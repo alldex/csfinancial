@@ -1,0 +1,358 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: AffiliateWP-Ranks\n"
+"POT-Creation-Date: 2016-12-01 13:43-0700\n"
+"PO-Revision-Date: 2016-12-01 13:45-0700\n"
+"Last-Translator: Stephen Nielson <stephen@nielson.org>\n"
+"Language-Team: Stephen Nielson <stephen@nielson.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../affiliatewp-ranks.php:102 ../affiliatewp-ranks.php:114
+msgid "Cheatin&#8217; huh?"
+msgstr ""
+
+#: ../affiliatewp-ranks.php:255
+msgid "Get more add-ons for AffiliateWP"
+msgstr ""
+
+#: ../affiliatewp-ranks.php:255
+msgid "Get add-ons"
+msgstr ""
+
+#: ../am-license-menu.php:102
+msgid " Activation"
+msgstr ""
+
+#: ../am-license-menu.php:103
+msgid " API Key Activation"
+msgstr ""
+
+#: ../am-license-menu.php:104 ../am-license-menu.php:330
+msgid "API Key Activation"
+msgstr ""
+
+#: ../am-license-menu.php:105
+msgid "API Key Deactivation"
+msgstr ""
+
+#: ../am-license-menu.php:264
+#, php-format
+msgid ""
+"The <strong>%s</strong> API Key has not been activated, so the %s is "
+"inactive! %sClick here%s to activate <strong>%s</strong>."
+msgstr ""
+
+#: ../am-license-menu.php:281
+#, php-format
+msgid ""
+"<b>Warning!</b> You're blocking external requests which means you won't be "
+"able to get %s updates. Please add %s to %s."
+msgstr ""
+
+#: ../am-license-menu.php:313 ../am-license-menu.php:317
+msgid "Save Changes"
+msgstr ""
+
+#: ../am-license-menu.php:334
+msgid "API Key Status"
+msgstr ""
+
+#: ../am-license-menu.php:338
+msgid "API Key"
+msgstr ""
+
+#: ../am-license-menu.php:342
+msgid "API Email"
+msgstr ""
+
+#: ../am-license-menu.php:348
+msgid "API Deactivation"
+msgstr ""
+
+#: ../am-license-menu.php:352
+msgid "Deactivate API Key"
+msgstr ""
+
+#: ../am-license-menu.php:423
+#, php-format
+msgid "%s activated. "
+msgstr ""
+
+#: ../am-license-menu.php:429
+msgid "Connection failed to the License Key API server. Try again later."
+msgstr ""
+
+#: ../am-license-menu.php:527
+msgid ""
+"The API Key could not be deactivated. Use the API Key Deactivation tab to "
+"manually deactivate the API Key before activating a new API Key."
+msgstr ""
+
+#: ../am-license-menu.php:562
+msgid "API Key deactivated. "
+msgstr ""
+
+#: ../am-license-menu.php:635
+msgid "Deactivates an API Key so it can be used on another blog."
+msgstr ""
+
+#: ../am-license-menu.php:1001
+#, php-format
+msgid ""
+"The license key for %s has expired. You can reactivate or purchase a license "
+"key from your account <a href=\"%s\" target=\"_blank\">dashboard</a>."
+msgstr ""
+
+#: ../am-license-menu.php:1008
+#, php-format
+msgid ""
+"The subscription for %s is on-hold. You can reactivate the subscription from "
+"your account <a href=\"%s\" target=\"_blank\">dashboard</a>."
+msgstr ""
+
+#: ../am-license-menu.php:1015
+#, php-format
+msgid ""
+"The subscription for %s has been cancelled. You can renew the subscription "
+"from your account <a href=\"%s\" target=\"_blank\">dashboard</a>. A new "
+"license key will be emailed to you after your order has been completed."
+msgstr ""
+
+#: ../am-license-menu.php:1022
+#, php-format
+msgid ""
+"The subscription for %s has expired. You can reactivate the subscription "
+"from your account <a href=\"%s\" target=\"_blank\">dashboard</a>."
+msgstr ""
+
+#: ../am-license-menu.php:1029
+#, php-format
+msgid ""
+"The subscription for %s has been suspended. You can reactivate the "
+"subscription from your account <a href=\"%s\" target=\"_blank\">dashboard</"
+"a>."
+msgstr ""
+
+#: ../am-license-menu.php:1036
+#, php-format
+msgid ""
+"The subscription for %s is still pending. You can check on the status of the "
+"subscription from your account <a href=\"%s\" target=\"_blank\">dashboard</"
+"a>."
+msgstr ""
+
+#: ../am-license-menu.php:1043
+#, php-format
+msgid ""
+"The subscription for %s has been placed in the trash and will be deleted "
+"soon. You can purchase a new subscription from your account <a href=\"%s\" "
+"target=\"_blank\">dashboard</a>."
+msgstr ""
+
+#: ../am-license-menu.php:1050
+#, php-format
+msgid ""
+"A subscription for %s could not be found. You can purchase a subscription "
+"from your account <a href=\"%s\" target=\"_blank\">dashboard</a>."
+msgstr ""
+
+#: ../am-license-menu.php:1057
+#, php-format
+msgid ""
+"A license key for %s could not be found. Maybe you forgot to enter a license "
+"key when setting up %s, or the key was deactivated in your account. You can "
+"reactivate or purchase a license key from your account <a href=\"%s\" target="
+"\"_blank\">dashboard</a>."
+msgstr ""
+
+#: ../am-license-menu.php:1064
+#, php-format
+msgid ""
+"Download permission for %s has been revoked possibly due to a license key or "
+"subscription expiring. You can reactivate or purchase a license key from "
+"your account <a href=\"%s\" target=\"_blank\">dashboard</a>."
+msgstr ""
+
+#: ../am-license-menu.php:1071
+#, php-format
+msgid ""
+"%s has not been activated. Go to the settings page and enter the license key "
+"and license email to activate %s."
+msgstr ""
+
+#: ../am-license-menu.php:1078
+#, php-format
+msgid ""
+"You changed the subscription for %s, so you will need to enter your new API "
+"License Key in the settings page. The License Key should have arrived in "
+"your email inbox, if not you can get it by logging into your account <a href="
+"\"%s\" target=\"_blank\">dashboard</a>."
+msgstr ""
+
+#: ../templates/affiliate-rank-dashboard.php:47
+msgid "Affiliate Rank"
+msgstr "Agent Rank"
+
+#: ../templates/affiliate-rank-dashboard.php:52
+msgid "Last Rank"
+msgstr ""
+
+#: ../templates/affiliate-rank-dashboard.php:53
+msgid "Current Rank"
+msgstr ""
+
+#: ../templates/affiliate-rank-dashboard.php:54
+msgid "Next Rank"
+msgstr ""
+
+#: ../includes/actions.php:239
+msgid "You do not have permission to manage affiliates"
+msgstr "You do not have permission to manage agents"
+
+#: ../includes/actions.php:278
+msgid "You do not have permission to delete affiliate accounts"
+msgstr "You do not have permission to delete agent accounts"
+
+#: ../includes/actions.php:282
+msgid "Security check failed"
+msgstr ""
+
+#: ../includes/actions.php:286
+msgid "No affiliate IDs specified for deletion"
+msgstr "No agent IDs specified for deletion"
+
+#: ../includes/compatibility.php:19 ../includes/functions.php:139
+msgid "Rank Promotion"
+msgstr ""
+
+#: ../includes/functions.php:117
+msgid "Category"
+msgstr ""
+
+#: ../includes/functions.php:118
+msgid "Level"
+msgstr ""
+
+#: ../includes/functions.php:140
+msgid "Earnings Percentage"
+msgstr ""
+
+#: ../includes/class-activation.php:47
+msgid "This plugin"
+msgstr ""
+
+#: ../includes/class-activation.php:82
+#, php-format
+msgid "%s requires %s. Please activate it to continue."
+msgstr ""
+
+#: ../includes/class-activation.php:85
+#, php-format
+msgid "%s requires %s. Please install it to continue."
+msgstr ""
+
+#: ../includes/EDD_SL_Plugin_Updater.php:181
+#, php-format
+msgid ""
+"There is a new version of %1$s available. <a target=\"_blank\" class="
+"\"thickbox\" href=\"%2$s\">View version %3$s details</a>."
+msgstr ""
+
+#: ../includes/EDD_SL_Plugin_Updater.php:188
+#, php-format
+msgid ""
+"There is a new version of %1$s available. <a target=\"_blank\" class="
+"\"thickbox\" href=\"%2$s\">View version %3$s details</a> or <a href=\"%4$s"
+"\">update now</a>."
+msgstr ""
+
+#: ../includes/EDD_SL_Plugin_Updater.php:326
+msgid "You do not have permission to install plugin updates"
+msgstr ""
+
+#: ../includes/EDD_SL_Plugin_Updater.php:326
+msgid "Error"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:33
+#: ../includes/admin/class-settings.php:53
+msgid "Ranks"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:69
+msgid "Default Rank"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:89
+msgid "Rank Settings"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:147
+msgid "What Rank should be given to new affiliates?"
+msgstr "What Rank should be given to new agents?"
+
+#: ../includes/admin/class-settings.php:240
+msgid "ID"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:241
+msgid "Order"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:242
+msgid "Name"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:243
+msgid "Mode"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:244
+msgid "Type"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:245
+msgid "Requirement"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:246
+msgid "Rate"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:247
+msgid "Rate Type"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:281
+#: ../includes/admin/class-settings.php:332
+msgid "None"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:295
+#: ../includes/admin/class-settings.php:346
+msgid "Site Default"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:308
+msgid "No ranks created yet"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:362
+msgid "Add New Rank"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:394
+msgid "Rank"
+msgstr ""
+
+#: ../includes/admin/class-settings.php:406
+msgid "Add or change the rank for this affiliate."
+msgstr "Add or change the rank for this agent."

@@ -21,7 +21,10 @@ class AffiliateLTP {
         }
         add_shortcode('ltp_affiliate_display', array(__CLASS__, 'ltp_affiliate_display' ) );
         
-        add_filter( 'load_textdomain_mofile', array($this, 'load_ltp_en_mofile'), 10, 2 );
+        // come in last here.
+        add_filter( 'load_textdomain_mofile', array($this, 'load_ltp_en_mofile'), 50, 2 );
+        
+        add_action( 'init', array($this, 'load_ltp_affiliate_ranks_translation' ) );
     }
     
     public static function ltp_affiliate_display() {
@@ -41,7 +44,16 @@ class AffiliateLTP {
             $includePath = plugin_dir_path( __FILE__ );
             return $includePath . "/languages/affiliatewp-multi-level-marketing-en.mo";
         }
+        else if ( 'affiliatewp-ranks' == $domain )
+        {
+            $includePath = plugin_dir_path( __FILE__ );
+            return $includePath . "/languages/affiliatewp-ranks-en.mo";
+        }
         return $mofile;
+    }
+    
+    public function load_ltp_affiliate_ranks_translation() {
+        load_plugin_textdomain( 'affiliatewp-ranks', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
     }
 
 }
