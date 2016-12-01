@@ -17,14 +17,28 @@ class AffiliateLTP {
         if( is_admin() ) {
             $includePath = plugin_dir_path( __FILE__ );
             require_once $includePath . '/admin/class-referrals.php';
+            require_once $includePath . '/admin/class-menu.php';
         }
         add_shortcode('ltp_affiliate_display', array(__CLASS__, 'ltp_affiliate_display' ) );
+        
+        add_filter( 'load_textdomain_mofile', array($this, 'load_ltp_en_mofile'), 10, 2 );
     }
     
     public static function ltp_affiliate_display() {
         $affiliate = new ReferralsLTP();
         $affiliate->display_referral_amount();
     }
+    
+    public function load_ltp_en_mofile( $mofile, $domain )
+    {
+        if ( 'affiliate-wp' == $domain )
+        {
+            $includePath = plugin_dir_path( __FILE__ );
+            return $includePath . "/languages/affiliate-wp-en.mo";
+        }
+        return $mofile;
+    }
+
 }
 
 new AffiliateLTP();
