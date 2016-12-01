@@ -3,16 +3,24 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/projects/lifetestprep/affiliatewp-multi-level-marketing/integrations/class-woocommerce.php</file>
-            <file>file:/projects/lifetestprep/affiliatewp-multi-level-marketing/affiliatewp-multi-level-marketing.php</file>
-            <file>file:/projects/lifetestprep/affiliate-wp/includes/class-db.php</file>
-            <file>file:/projects/lifetestprep/index.php</file>
-            <file>file:/projects/lifetestprep/affiliatewp-multi-level-marketing/integrations/class-memberpress.php</file>
-            <file>file:/projects/lifetestprep/affiliate-wp/includes/class-referrals-db.php</file>
-            <file>file:/projects/lifetestprep/affiliate-wp/includes/class-affiliate-meta-db.php</file>
-            <file>file:/projects/lifetestprep/affiliatewp-multi-level-marketing/includes/functions.php</file>
-            <file>file:/projects/lifetestprep/affiliate-ltp/affiliate-ltp.php</file>
-            <file>file:/projects/lifetestprep/affiliatewp-multi-level-marketing/integrations/class-base.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/payments/actions.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/admin/class-menu.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/integrations/class-base.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliatewp-multi-level-marketing/integrations/class-woocommerce.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-menu.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/class-referrals-ltp.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/admin/tools/class-recount.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/actions.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/payments/payments.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/referral-functions.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/admin/referrals/actions.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/affiliate-ltp.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/admin/tools/tools.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/admin/referrals/referrals.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/affiliate-wp.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliatewp-multi-level-marketing/integrations/class-base.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/admin/referrals/new.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-referrals.php</file>
         </group>
     </open-files>
 </project-private>

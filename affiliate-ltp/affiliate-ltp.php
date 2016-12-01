@@ -14,6 +14,10 @@ class AffiliateLTP {
     public function __construct() {
         require_once "class-referrals-ltp.php";
         
+        if( is_admin() ) {
+            $includePath = plugin_dir_path( __FILE__ );
+            require_once $includePath . '/admin/class-referrals.php';
+        }
         add_shortcode('ltp_affiliate_display', array(__CLASS__, 'ltp_affiliate_display' ) );
     }
     
