@@ -36,6 +36,11 @@ class AffiliateLTP {
             $includePath = plugin_dir_path( __FILE__ );
             return $includePath . "/languages/affiliate-wp-en.mo";
         }
+        else if ( 'affiliatewp-multi-level-marketing' == $domain )
+        {
+            $includePath = plugin_dir_path( __FILE__ );
+            return $includePath . "/languages/affiliatewp-multi-level-marketing-en.mo";
+        }
         return $mofile;
     }
 

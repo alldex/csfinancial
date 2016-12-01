@@ -571,7 +571,7 @@ class AffiliateWP_MLM_Settings {
     
                     <td>
                         <input class="small-text" type="text" name="matrix_level" id="matrix_level" value="<?php echo esc_attr( $matrix_level ); ?>" disabled="1" />
-                        <p class="description"><?php _e( 'The affiliate\'s level in the matrix. This cannot be changed.', 'affiliate-wp' ); ?></p>
+                        <p class="description"><?php _e( 'The affiliate\'s level in the matrix. This cannot be changed.', 'affiliatewp-multi-level-marketing' ); ?></p>
                     </td>
     
                 </tr>
