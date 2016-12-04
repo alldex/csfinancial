@@ -1,0 +1,67 @@
+Array
+(
+)
+Array
+(
+    [referral_id] => 51
+    [data] => Array
+        (
+            [affiliate_id] => 3
+            [description] => Direct referral
+            [amount] => 3
+            [reference] => #575633
+            [custom] => direct
+            [context] => ltp-commission
+            [status] => paid
+        )
+
+    [hook] => affwp_ltp_referral_created
+)
+Array
+(
+    [referral_id] => 52
+    [data] => Array
+        (
+            [affiliate_id] => 2
+            [description] => Indirect referral. Level 2
+            [amount] => 0
+            [reference] => #575633
+            [custom] => indirect
+            [context] => ltp-commission
+            [status] => paid
+        )
+
+    [hook] => affwp_ltp_referral_created
+)
+Array
+(
+    [referral_id] => 53
+    [data] => Array
+        (
+            [affiliate_id] => 1
+            [description] => Indirect referral. Level 3
+            [amount] => 4.5
+            [reference] => #575633
+            [custom] => indirect
+            [context] => ltp-commission
+            [status] => paid
+        )
+
+    [hook] => affwp_ltp_referral_created
+)
+Array
+(
+    [referral_id] => 54
+    [data] => Array
+        (
+            [affiliate_id] => 4
+            [description] => Indirect referral. Level 4
+            [amount] => 4.5
+            [reference] => #575633
+            [custom] => indirect
+            [context] => ltp-commission
+            [status] => paid
+        )
+
+    [hook] => affwp_ltp_referral_created
+)
