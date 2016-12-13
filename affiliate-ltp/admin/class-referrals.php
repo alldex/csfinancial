@@ -105,7 +105,7 @@ class AffiliateLTPReferrals {
         $referral_id = affiliate_wp()->referrals->add( $data );
 
         if ( $referral_id ) {
-            do_action( 'affwp_ltp_referral_created', $referral_id, $data );
+            do_action( 'affwp_ltp_referral_created', $referral_id, $description, $amount, $reference, $custom, $context, $status);
         }
     }
     
