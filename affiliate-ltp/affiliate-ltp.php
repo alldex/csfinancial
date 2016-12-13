@@ -24,13 +24,26 @@ class AffiliateLTP {
         // come in last here.
         add_filter( 'load_textdomain_mofile', array($this, 'load_ltp_en_mofile'), 50, 2 );
         
+        // do some cleanup on the plugins
 	add_action ('plugins_loaded', array($this, 'fix_dependent_plugin_init_order'));
+        add_action ('plugins_loaded', array($this, 'remove_affiliate_wp_mlm_tab_hooks'));
+        
         add_action( 'init', array($this, 'load_ltp_affiliate_ranks_translation' ) );
 
 	add_filter( 'hookpress_actions', array($this, 'add_hookpress_actions'), 10, 1);
 	add_action( 'hookpress_hook_fired', array($this, 'log_hookpress_fired'), 10, 1);
         
         add_filter( 'affwp_affiliate_area_show_tab', array($this, 'remove_unused_tabs'), 10, 2 );
+        
+        add_action( 'affwp_affiliate_dashboard_tabs', array( $this, 'add_organization_tab' ), 10, 2 );
+			
+        // Add template folder to hold the sub affiliates tab content
+        add_filter( 'affwp_template_paths', array( $this, 'get_theme_template_paths' ) );
+        
+        // so we can check to see if its active
+        add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
+                return array_merge( $tabs, array( 'organization' ) );
+        } );
     }
 
     public function fix_dependent_plugin_init_order() {
@@ -44,6 +57,18 @@ class AffiliateLTP {
 	// add these in the order that they need to execute
 	add_action( 'init', 'hookpress_init', 10);
 	add_action( 'init', 'affwp_do_actions', 20);
+    }
+    
+    /**
+     * Since the AffiliateWP_Multi_Level_Marketing class does not use the affiliatewp
+     * affwp_affiliate_area_show_tab() function we have to just remove the hook
+     * alltogether.
+     */
+    public function remove_affiliate_wp_mlm_tab_hooks() {
+        if (class_exists("AffiliateWP_Multi_Level_Marketing")) {
+            $instance = AffiliateWP_Multi_Level_Marketing::instance();
+            remove_action( 'affwp_affiliate_dashboard_tabs', array( $instance, 'add_sub_affiliates_tab' ));
+        }
     }
 
     public function log_hookpress_fired( $desc ) {
@@ -77,6 +102,10 @@ class AffiliateLTP {
             $includePath = plugin_dir_path( __FILE__ );
             return $includePath . "/languages/affiliatewp-ranks-en.mo";
         }
+        else if ( 'affiliate-ltp' == $domain ) {
+            $includePath = plugin_dir_path( __FILE__ );
+            return $includePath . "/languages/affiliate-ltp-en.mo";
+        }
         return $mofile;
     }
     
@@ -98,6 +127,9 @@ class AffiliateLTP {
         }
         
         switch ($tab) {
+            // leaving in sub-affiliates in case the MLM plugin ever fixes
+            // itself to use the right functions and can be filtered out...
+            case 'sub-affiliates':
             case 'urls':
             case 'visits':
             case 'creatives': {
@@ -111,6 +143,37 @@ class AffiliateLTP {
         
         return $shouldDisplay;
     }
+    
+    /**
+     * Add the organization tab.
+     * @param type $affiliate_id
+     * @param type $active_tab
+     */
+    public function add_organization_tab( $affiliate_id, $active_tab ) {
+        
+        // make sure we only show the tab if it hasn't been filtered out.
+        if (affwp_affiliate_area_show_tab( 'organization' )) {
+            ?>
+            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'organization' ? ' active' : ''; ?>">
+                <a href="<?php echo esc_url( add_query_arg( 'tab', 'organization' ) ); ?>"><?php _e( 'Organization', 'affiliate-ltp' ); ?></a>
+            </li>
+                <?php	
+        }
+    }
+    
+    /**
+    * Add template folder to hold the organization tab content
+    *
+    *
+    * @return void
+    */
+   public function get_theme_template_paths( $file_paths ) {
+           $file_paths[80] = plugin_dir_path( __FILE__ ) . '/templates';
+
+           return $file_paths;
+   }
+   
+            
 
 }
 
