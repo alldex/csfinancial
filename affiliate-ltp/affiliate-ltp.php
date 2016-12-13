@@ -11,6 +11,9 @@
 */
 
 class AffiliateLTP {
+    
+    private $settings;
+    
     public function __construct() {
         require_once "class-referrals-ltp.php";
         
@@ -18,6 +21,10 @@ class AffiliateLTP {
             $includePath = plugin_dir_path( __FILE__ );
             require_once $includePath . '/admin/class-referrals.php';
             require_once $includePath . '/admin/class-menu.php';
+            require_once $includePath . "/admin/class-settings.php";
+            
+            // setup the settings.
+            $this->settings = new AffiliateLTPSettings();
         }
         add_shortcode('ltp_affiliate_display', array(__CLASS__, 'ltp_affiliate_display' ) );
         

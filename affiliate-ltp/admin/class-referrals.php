@@ -13,6 +13,7 @@
  * @author snielson
  */
 class AffiliateLTPReferrals {
+    
     public function __construct() {
         remove_action('affwp_add_referral', 'affwp_process_add_referral');
         add_action('affwp_add_referral', array($this, 'processAddReferralRequest'));
@@ -31,7 +32,8 @@ class AffiliateLTPReferrals {
 	}
         
         try {
-            $data = $this->getReferralDataFromRequest( $requestData );
+            $referralData = $this->getReferralDataFromRequest( $requestData );
+            $data = $this->processCompanyCommission($referralData);
             $this->createReferralHeirarchy($data['affiliate_id'], $data['amount'], 
                     $data['context'], $data['reference'], $data['description'], $data['status']);
             
@@ -42,6 +44,53 @@ class AffiliateLTPReferrals {
             wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=referral_add_failed' ) );
         }
         exit;
+    }
+    
+    private function processCompanyCommission( $data ) {
+        $companyCommission = affiliate_wp()->settings->get("affwp_ltp_company_rate");
+        $companyAgentId = affiliate_wp()->settings->get("affwp_ltp_company_agent_id");
+        
+        // if we have no company agent
+        if (empty($companyAgentId)) {
+            return $data;
+        }
+        
+        // make the commission 0 if we don't have anything here so that we get
+        // a line item here.
+        if (empty($companyCommission)) {
+            $companyCommission = 0;
+        }
+        else {
+            $companyCommission = absint($companyCommission) / 100;
+        }
+        
+        $amount = $data[ 'amount' ];
+        $companyAmount = round($companyCommission * $amount, 2);
+        $amountRemaining = $amount - $companyAmount;
+        
+        // create the records for the company commission
+        
+        $data['amount'] = $amountRemaining;
+        
+        
+        // Process cart and get amount
+        $companyData = array();
+        $companyData['affiliate_id'] = absint($companyAgentId);
+        $companyData['description']  = "Company commission for " . $data['reference'];
+        $companyData['amount']       = $companyAmount;
+        $companyData['reference']    = $data['reference'];
+        $companyData['custom']       = 'indirect';
+        $companyData['context']      = 'ltp-commission';
+        $companyData['status']       = 'paid';
+        
+        // create referral
+        $referral_id = affiliate_wp()->referrals->add( $companyData );
+        if (empty($referral_id)) {
+            error_log("Failed to calculate company commission.  Data array: "
+                    . var_export($companyData, true));
+        }
+        
+        return $data;
     }
     
     private function getReferralDataFromRequest( $data ) {
