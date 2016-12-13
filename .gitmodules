@@ -1,0 +1,3 @@
+[submodule "hookpress"]
+	path = hookpress
+	url = https://github.com/Willemdumee/hookpress.git
