@@ -12,6 +12,12 @@
         $parent_agent_id = affwp_mlm_get_parent_affiliate($affiliate_id);
         $parent_agent = $parent_agent_id ? affwp_get_affiliate_name($parent_agent_id) : null;
         $direct_agent = $direct_agent_id ? affwp_get_affiliate_name($direct_agent_id) : null;
+        
+        $agent_position = 1;
+        $upline = affwp_mlm_get_upline($affiliate_id);
+        if (!empty($upline)) {
+            $agent_position = count($upline) + 1;
+        }
 	
 	// DEBUG - var_dump( $sub_affiliate_ids );
         
@@ -103,6 +109,8 @@
         <?php if (!empty($parent_agent)) : ?>
         <p><?php printf( __('Parent Agent: %s', 'affilate-ltp' ), $parent_agent); ?></p>
         <?php endif; ?>
+        
+        <p><?php printf( __('Agent Organization Position: %s', 'affilate-ltp' ), $agent_position); ?></p>
         
 
 	<?php display_sub_affiliates($sub_affiliates, $sub_affiliate_count, $sub_affiliate_ids); ?>
