@@ -137,7 +137,7 @@ class AffiliateLTP {
             // leaving in sub-affiliates in case the MLM plugin ever fixes
             // itself to use the right functions and can be filtered out...
             case 'sub-affiliates':
-            case 'urls':
+//            case 'urls':
             case 'visits':
             case 'creatives': {
                 $shouldDisplay = false;

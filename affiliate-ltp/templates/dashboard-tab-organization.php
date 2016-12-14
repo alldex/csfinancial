@@ -102,11 +102,11 @@
 <div id="affwp-affiliate-dashboard-organization" class="affwp-tab-content">
     
         
-        <?php if (!empty($direct_agent)) : ?>
+        <?php if (!empty($direct_agent_id)) : ?>
         <p><?php printf( __('Agent that recruited you: %s', 'affilate-ltp' ), $direct_agent); ?></p>    
         <?php endif; ?>
         
-        <?php if (!empty($parent_agent)) : ?>
+        <?php if (!empty($parent_agent_id)) : ?>
         <p><?php printf( __('Parent Agent: %s', 'affilate-ltp' ), $parent_agent); ?></p>
         <?php endif; ?>
         
