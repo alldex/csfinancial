@@ -15,7 +15,6 @@ class AffiliateLTP {
     private $settings;
     
     public function __construct() {
-        require_once "class-referrals-ltp.php";
         require_once "class-sugarcrm-dal.php";
         
         if( is_admin() ) {
