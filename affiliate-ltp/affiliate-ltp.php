@@ -16,6 +16,7 @@ class AffiliateLTP {
     
     public function __construct() {
         require_once "class-referrals-ltp.php";
+        require_once "class-sugarcrm-dal.php";
         
         if( is_admin() ) {
             $includePath = plugin_dir_path( __FILE__ );
