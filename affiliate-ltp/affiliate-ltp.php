@@ -25,8 +25,10 @@ class AffiliateLTP {
             
             // setup the settings.
             $this->settings = new AffiliateLTPSettings();
+            
+            // setup our admin scripts.
+            add_action( 'admin_enqueue_scripts', array($this, 'admin_scripts' ) );
         }
-        add_shortcode('ltp_affiliate_display', array(__CLASS__, 'ltp_affiliate_display' ) );
         
         // come in last here.
         add_filter( 'load_textdomain_mofile', array($this, 'load_ltp_en_mofile'), 50, 2 );
@@ -77,6 +79,18 @@ class AffiliateLTP {
             remove_action( 'affwp_affiliate_dashboard_tabs', array( $instance, 'add_sub_affiliates_tab' ));
         }
     }
+    
+    /** Add any admin javascript files we need to load **/
+    public function admin_scripts() {
+        if( ! affwp_is_admin_page() ) {
+		return;
+	}
+
+	//$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+        $plugin_url = plugin_dir_url( __FILE__ );
+        $url = $plugin_url . 'assets/js/admin/ltp-admin' . $suffix . '.js';
+	wp_enqueue_script( 'affiliate-ltp-admin', $url, array( 'jquery', 'jquery-ui-autocomplete'  ));
+    }
 
     public function log_hookpress_fired( $desc ) {
 	error_log(var_export($desc, true));
@@ -85,11 +99,6 @@ class AffiliateLTP {
     public function add_hookpress_actions( $hookpress_actions ) {
 	$hookpress_actions['affwp_ltp_referral_created'] = array('referral_id', 'description', 'amount', 'reference', 'custom', 'context', 'status');
 	return $hookpress_actions;
-    }
-    
-    public static function ltp_affiliate_display() {
-        $affiliate = new ReferralsLTP();
-        $affiliate->display_referral_amount();
     }
     
     public function load_ltp_en_mofile( $mofile, $domain )

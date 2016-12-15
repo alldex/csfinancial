@@ -12,6 +12,32 @@ class AffiliateLTPReferrals {
         
         add_action( 'affwp_new_referral_bottom', array($this, 'addNewReferralClientFields'), 10, 1);
         add_action( 'affwp_edit_referral_bottom', array($this, 'addEditReferralClientFields'), 10, 1);
+        
+        add_action( 'wp_ajax_affwp_ltp_search_clients', array($this, 'ajaxSearchClients') );
+    }
+    
+    /**
+     * Handle ajax requests for searching through a list of clients.
+     */
+    public function ajaxSearchClients() {
+        // TODO: stephen would it be better to just make searchAccounts conform
+        // to what we return to the client instead of what it's returning now?
+        $instance = SugarCRMDAL::instance();
+        
+        $searchQuery = htmlentities2( trim( $_REQUEST['term'] ) );
+        
+        $results = $instance->searchAccounts($searchQuery);
+        
+        $jsonResults = array();
+        foreach ($results as $id => $record) {
+            $record['label'] = $record['name'];
+            $record['value'] = $record['name'];
+            $record['client_id'] = $id;
+            $jsonResults[] = $record;
+        }
+        
+        
+        wp_die(json_encode($jsonResults)); // this is required to terminate immediately and return a proper response
     }
     
     public function addEditReferralClientFields( $referral ) {
@@ -72,6 +98,12 @@ class AffiliateLTPReferrals {
     }
     
     private function createClient($clientData) {
+        // we already have a client id we don't need to create a client here
+        if (!empty($clientData['id'])) {
+            // TODO: stephen add the connection between the referrals and the
+            // clients here.
+            return;
+        }
         // create the client on the sugar CRM system.
         $instance = SugarCRMDAL::instance();
         $instance->createAccount($clientData);

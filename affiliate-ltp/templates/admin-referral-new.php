@@ -1,5 +1,3 @@
-<input type="hidden" id="client_id" value="" />
-
 <h3>Client Information</h3>
 <table class="form-table">
 
@@ -11,8 +9,16 @@
         </th>
 
         <td>
-            <input class="medium-text" type="text" name="client_name" id="client_name" value=""/>
+            <span class="affwp-ajax-search-wrap">
+                    <input type="text" name="client_name" id="client_name" class="affwp-client-search" autocomplete="off" />
+                    <input type="hidden" name="client_id" id="client_id" value="" />
+                    <input type="button" class="affwp-client-search-reset" value="Clear" />
+            </span>
             <p class="description"><?php _e('The name of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+            <p class="readonly-description hidden">
+                <?php printf(__('This client information can only be changed in the <a href="%s">Agent CMS</a>', 
+                        'affiliate-ltp'), "https://cms.mycommonsensefinancial.com/"); ?>
+            </p>
         </td>
 
     </tr>
@@ -33,7 +39,7 @@
     <tr class="form-row form-required">
 
         <th scope="row">
-            <label for="client_city_address"><?php _e('City Address', 'affiliate-ltp'); ?></label>
+            <label for="client_city_address"><?php _e('City', 'affiliate-ltp'); ?></label>
         </th>
 
         <td>
@@ -46,11 +52,11 @@
     <tr class="form-row form-required">
 
         <th scope="row">
-            <label for="client_zip_address"><?php _e('Address Zipcode', 'affiliate-ltp'); ?></label>
+            <label for="client_zip_address"><?php _e('Zipcode', 'affiliate-ltp'); ?></label>
         </th>
 
         <td>
-            <input class="medium-text" type="text" name="client_zip_address" id="client_city_address" value="<?php echo esc_attr($client["zip_address"]); ?>" />
+            <input class="medium-text" type="text" name="client_zip_address" id="client_zip_address" value="<?php echo esc_attr($client["zip_address"]); ?>" />
             <p class="description"><?php _e('The zipcode of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
         </td>
     </tr>

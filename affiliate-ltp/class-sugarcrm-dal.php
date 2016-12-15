@@ -11,6 +11,8 @@ class SugarCRMDAL {
     const PASSWORD = 'ae67ecae664590bdb190c45823030c16';
     const URL = "https://cms.mycommonsensefinancial.com/service/v4_1/rest.php";
     const APP_NAME = "Agents MyCommonSenseFinancial";
+    const SESSION_TOKEN_LENGTH = 60; // 60 seconds.
+    const SESSION_TRANSIENT_ID = 'affwp-ltp-sugarcrm-id';
     private static $instance = null;
     
     private $sessionId = null;
@@ -46,19 +48,26 @@ class SugarCRMDAL {
         $this->setAccount($accountData);
     }
     
-    public function searchAccounts($accountNameSearch="") {
+    public function searchAccounts($accountNameSearch="", $limit = 5) {
+        
+        if (!$this->isAuthenticated()) {
+            $this->authenticate();
+        }
+        
         $mapping = $this->getAccountMapping();
         
         $selectFields = array_values($mapping);
         
         $searchClause = "";
         if (!empty($accountNameSearch)) {
-            $searchClause = "name LIKE '%$accountNameSearch%'";
+            // apparently need to use the module name and make it lowercase
+            // see http://stackoverflow.com/a/25104583
+            $searchClause = "accounts.name LIKE '%$accountNameSearch%'";
         }
         
         $parameters = array(
             //session id
-            'session' => $session_id,
+            'session' => $this->sessionId,
 
             //The name of the module from which to retrieve records
             'module_name' => 'Accounts',
@@ -86,7 +95,7 @@ class SugarCRMDAL {
                 ),
             ),  
             //The maximum number of results to return.
-            'max_results' => 2,
+            'max_results' => $limit,
 
             //If deleted records should be included in results.
             'deleted' => 0,
@@ -94,9 +103,9 @@ class SugarCRMDAL {
             //If only records marked as favorites should be returned.
             'favorites' => false,
          );
-
+        
         $getEntryListResult = $this->call('get_entry_list', $parameters, self::URL);
-
+        
         if (!(isset($getEntryListResult) && isset($getEntryListResult->result_count))) {
             return array();
         }
@@ -127,7 +136,17 @@ class SugarCRMDAL {
     }
     
     public function isAuthenticated() {
-        return !empty($this->sessionId);
+        if (empty($this->sessionId)) {
+            // check the session
+            $id = get_transient(self::SESSION_TRANSIENT_ID);
+            if (!empty($id)) {
+                $this->sessionId = $id;
+                return true;
+            }
+            
+            return false;
+        }
+        return true;
     }
     
     private function call($method, $parameters, $url)
@@ -180,6 +199,8 @@ class SugarCRMDAL {
         $loginResult = $this->call("login", $loginParameters, self::URL);
         if (isset($loginResult->id)) {
             $this->sessionId = $loginResult->id;
+            // use transients so we don't have to keep re-authenticating
+            set_transient(self::SESSION_TRANSIENT_ID, $this->sessionId, self::SESSION_TOKEN_LENGTH);
         }
         else {
             throw new \Exception("Failed to authenticate with SugarCRM check authentication credentials");
