@@ -6,7 +6,9 @@
  */
 class AffiliateLTPReferrals {
     
-    public function __construct() {
+    private $referralMetaDb;
+    
+    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
         remove_action('affwp_add_referral', 'affwp_process_add_referral');
         add_action('affwp_add_referral', array($this, 'processAddReferralRequest'));
         
@@ -14,6 +16,7 @@ class AffiliateLTPReferrals {
         add_action( 'affwp_edit_referral_bottom', array($this, 'addEditReferralClientFields'), 10, 1);
         
         add_action( 'wp_ajax_affwp_ltp_search_clients', array($this, 'ajaxSearchClients') );
+        $this->referralMetaDb = $referralMetaDb;
     }
     
     /**
@@ -264,5 +267,3 @@ class AffiliateLTPReferrals {
         
     }
 }
-
-new AffiliateLTPReferrals();

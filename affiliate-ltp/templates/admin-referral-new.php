@@ -10,7 +10,7 @@
 
         <td>
             <span class="affwp-ajax-search-wrap">
-                    <input type="text" name="client_name" id="client_contract_number" class="affwp-client-search" autocomplete="off" />
+                    <input type="text" name="client_contract_number" id="client_contract_number" class="affwp-client-search" autocomplete="off" />
                     <input type="hidden" name="client_id" id="client_id" value="" />
                     <input type="button" class="affwp-client-search-reset" value="Clear" />
             </span>
@@ -30,7 +30,7 @@
         </th>
 
         <td>
-            <textarea class="medium-text" name="client_name" id="client_name"></textarea>
+            <input class="medium-text" type="text" name="client_name" id="client_name" value="" />
             <p class="description"><?php _e('The name of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
         </td>
 

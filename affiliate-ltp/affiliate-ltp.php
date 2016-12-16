@@ -13,6 +13,11 @@
 class AffiliateLTP {
     
     private $settings;
+    /**
+     * The meta object for interacting with referrals.
+     * @var Affiliate_WP_Referral_Meta_DB 
+     */
+    private $referralMeta;
     
     public function __construct() {
         require_once "class-sugarcrm-dal.php";
@@ -36,9 +41,11 @@ class AffiliateLTP {
         // do some cleanup on the plugins
 	add_action ('plugins_loaded', array($this, 'fix_dependent_plugin_init_order'));
         add_action ('plugins_loaded', array($this, 'remove_affiliate_wp_mlm_tab_hooks'));
+        add_action ('plugins_loaded', array($this, 'setup_dependent_objects') );
         
         add_action( 'init', array($this, 'load_ltp_affiliate_ranks_translation' ) );
 
+        // TODO: stephen fix hookpress as we are no longer using it, it seems.
 	add_filter( 'hookpress_actions', array($this, 'add_hookpress_actions'), 10, 1);
 	add_action( 'hookpress_hook_fired', array($this, 'log_hookpress_fired'), 10, 1);
         
@@ -53,6 +60,16 @@ class AffiliateLTP {
         add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
                 return array_merge( $tabs, array( 'organization' ) );
         } );
+    }
+    
+    public function setup_dependent_objects() {
+        require_once "class-referral-meta-db.php";
+        
+        $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
+        
+        if (is_admin()) {
+            $this->adminReferrals = new AffiliateLTPReferrals($this->referralMeta);
+        }
     }
 
     public function fix_dependent_plugin_init_order() {
