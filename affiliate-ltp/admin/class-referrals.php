@@ -27,11 +27,11 @@ class AffiliateLTPReferrals {
         $searchQuery = htmlentities2( trim( $_REQUEST['term'] ) );
         
         $results = $instance->searchAccounts($searchQuery);
-        
+        error_log(var_export($results, true));
         $jsonResults = array();
         foreach ($results as $id => $record) {
-            $record['label'] = $record['name'];
-            $record['value'] = $record['name'];
+            $record['label'] = $record['contract_number'] . " - " . $record['name'];
+            $record['value'] = $record['contract_number'];
             $record['client_id'] = $id;
             $jsonResults[] = $record;
         }
@@ -175,9 +175,9 @@ class AffiliateLTPReferrals {
             }
 	}
         
-        
         $client_args = array (
             'id'      => ! empty( $data['client_id'] ) ? sanitize_text_field( $data['client_id'] ) : null,
+            'contract_number' => ! empty( $data['client_contract_number'] ) ? sanitize_text_field( $data['client_contract_number'] ) : null,
             'name'    => ! empty( $data['client_name'] ) ? sanitize_text_field( $data['client_name'] ) : '',
             'street_address' => ! empty( $data['client_street_address'] ) ? sanitize_text_field( $data['client_street_address'] ) : '',
             'city' => ! empty( $data['client_city_address'] ) ? sanitize_text_field( $data['client_city_address'] ) : '',

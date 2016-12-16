@@ -9,7 +9,8 @@
         $( '#client_id' ).val("");
 
         var items = [
-            "client_street_address"
+            "client_name"
+            ,"client_street_address"
             ,"client_city_address"
             ,"client_zip_address"
             ,"client_phone"
@@ -39,6 +40,9 @@
 			select: function( event, data ) {
 				$user_id.val( data.item.user_id );
                                 $('.readonly-description').removeClass('hidden');
+                                $('#client_name')
+                                        .prop("disabled", true)
+                                        .val(data.item.name);
                                 $('#client_street_address')
                                         .prop("disabled", true)
                                         .val(data.item.street_address);

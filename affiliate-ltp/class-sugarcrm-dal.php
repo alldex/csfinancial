@@ -48,7 +48,7 @@ class SugarCRMDAL {
         $this->setAccount($accountData);
     }
     
-    public function searchAccounts($accountNameSearch="", $limit = 5) {
+    public function searchAccounts($searchValue="", $limit = 5) {
         
         if (!$this->isAuthenticated()) {
             $this->authenticate();
@@ -59,10 +59,10 @@ class SugarCRMDAL {
         $selectFields = array_values($mapping);
         
         $searchClause = "";
-        if (!empty($accountNameSearch)) {
+        if (!empty($searchValue)) {
             // apparently need to use the module name and make it lowercase
             // see http://stackoverflow.com/a/25104583
-            $searchClause = "accounts.name LIKE '%$accountNameSearch%'";
+            $searchClause = "contract_number_c LIKE '%$searchValue%'";
         }
         
         $parameters = array(
@@ -103,6 +103,8 @@ class SugarCRMDAL {
             //If only records marked as favorites should be returned.
             'favorites' => false,
          );
+        
+        error_log(var_export($parameters, true));
         
         $getEntryListResult = $this->call('get_entry_list', $parameters, self::URL);
         
@@ -210,6 +212,7 @@ class SugarCRMDAL {
     private function getAccountMapping() {
         return array(
             "id" => "id"
+            ,"contract_number" => "contract_number_c"
             ,"agent_id" => "assigned_user_id"
             ,"name" => "name"
             ,"description" => "description"

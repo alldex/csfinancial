@@ -5,16 +5,16 @@
     <tr class="form-row form-required">
 
         <th scope="row">
-            <label for="client_name"><?php _e('Name', 'affiliate-ltp'); ?></label>
+            <label for="client_name"><?php _e('Contract Number', 'affiliate-ltp'); ?></label>
         </th>
 
         <td>
             <span class="affwp-ajax-search-wrap">
-                    <input type="text" name="client_name" id="client_name" class="affwp-client-search" autocomplete="off" />
+                    <input type="text" name="client_name" id="client_contract_number" class="affwp-client-search" autocomplete="off" />
                     <input type="hidden" name="client_id" id="client_id" value="" />
                     <input type="button" class="affwp-client-search-reset" value="Clear" />
             </span>
-            <p class="description"><?php _e('The name of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+            <p class="description"><?php _e('The unique contract number of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
             <p class="readonly-description hidden">
                 <?php printf(__('This client information can only be changed in the <a href="%s">Agent CMS</a>', 
                         'affiliate-ltp'), "https://cms.mycommonsensefinancial.com/"); ?>
@@ -26,11 +26,24 @@
     <tr class="form-row form-required">
 
         <th scope="row">
+            <label for="client_name"><?php _e('Name', 'affiliate-ltp'); ?></label>
+        </th>
+
+        <td>
+            <textarea class="medium-text" name="client_name" id="client_name"></textarea>
+            <p class="description"><?php _e('The name of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+        </td>
+
+    </tr>
+    
+    <tr class="form-row form-required">
+
+        <th scope="row">
             <label for="client_street_address"><?php _e('Street Address', 'affiliate-ltp'); ?></label>
         </th>
 
         <td>
-            <textarea class="medium-text" name="client_street_address" id="client_street_address"><?php echo esc_attr($client["street_address"]); ?></textarea>
+            <textarea class="medium-text" name="client_street_address" id="client_street_address"></textarea>
             <p class="description"><?php _e('The street address of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
         </td>
 
@@ -43,7 +56,7 @@
         </th>
 
         <td>
-            <input class="medium-text" type="text" name="client_city_address" id="client_city_address" value="<?php echo esc_attr($client["city_address"]); ?>" />
+            <input class="medium-text" type="text" name="client_city_address" id="client_city_address" value="" />
             <p class="description"><?php _e('The city of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
         </td>
 
@@ -56,7 +69,7 @@
         </th>
 
         <td>
-            <input class="medium-text" type="text" name="client_zip_address" id="client_zip_address" value="<?php echo esc_attr($client["zip_address"]); ?>" />
+            <input class="medium-text" type="text" name="client_zip_address" id="client_zip_address" value=""/>
             <p class="description"><?php _e('The zipcode of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
         </td>
     </tr>

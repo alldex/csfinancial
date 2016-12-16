@@ -4,6 +4,19 @@
     <tr class="form-row form-required">
 
         <th scope="row">
+            <label for="client_contract_number"><?php _e('Contract Number', 'affiliate-ltp'); ?></label>
+        </th>
+
+        <td>
+            <input class="medium-text" type="text" name="client_contract_number" id="client_contract_number" value="<?php echo esc_attr($client["contract_number"]); ?>" disabled="disabled"/>
+            <p class="description"><?php _e('The unique contract number of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+        </td>
+
+    </tr>
+    
+    <tr class="form-row form-required">
+
+        <th scope="row">
             <label for="client_name"><?php _e('Client Name', 'affiliate-ltp'); ?></label>
         </th>
 
