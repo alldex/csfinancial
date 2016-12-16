@@ -103,11 +103,11 @@ class Affiliate_WP_Rewrites {
 			return;
 		}
 
-		$key = affiliate_wp()->tracking->get_referral_var();
+		$key  = affiliate_wp()->tracking->get_referral_var();
+		$ref  = $query->get( $key );
+		$path = ! empty( $_SERVER['REQUEST_URI' ] ) ? $_SERVER['REQUEST_URI' ] : '';
 
-		$ref = $query->get( $key );
-
-		if ( ! empty( $ref ) ) {
+		if ( ! empty( $ref ) || false !== strpos( $path, '/' . $key ) ) {
 
 			$this->referral = $ref;
 
@@ -122,8 +122,19 @@ class Affiliate_WP_Rewrites {
 			// if in home (because $wp->query_vars is empty) and 'show_on_front' is page
 			if ( empty( $wp->query_vars ) && get_option( 'show_on_front' ) === 'page' ) {
 
+				// Look to see if we have a page with this slug
+				$page = get_page_by_path( $key );
+
 			 	// reset and re-parse query vars
-				$wp->query_vars['page_id'] = get_option( 'page_on_front' );
+			 	if( $page ) {
+
+					$wp->query_vars['page_id'] = $page->ID;
+
+			 	} else {
+
+					$wp->query_vars['page_id'] = get_option( 'page_on_front' );
+
+			 	}
 				$query->parse_query( $wp->query_vars );
 
 			}

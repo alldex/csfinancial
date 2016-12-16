@@ -1,19 +1,23 @@
 <?php
+/**
+ * Retrieves a referral object.
+ *
+ * @param int|AffWP\Referral $referral Referral ID or object.
+ * @return AffWP\Referral|false Referral object, otherwise false.
+ */
+function affwp_get_referral( $referral = null ) {
 
-
-function affwp_get_referral( $referral ) {
-
-	if( is_object( $referral ) && isset( $referral->referral_id ) ) {
+	if ( is_object( $referral ) && isset( $referral->referral_id ) ) {
 		$referral_id = $referral->referral_id;
-	} elseif( is_numeric( $referral ) ) {
+	} elseif ( is_numeric( $referral ) ) {
 		$referral_id = absint( $referral );
 	} else {
 		return false;
 	}
 
-	$referral = affiliate_wp()->referrals->get( $referral_id );
+	$referral = affiliate_wp()->referrals->get_object( $referral_id );
 
-	if( ! empty( $referral->products ) ) {
+	if ( ! empty( $referral->products ) ) {
 		// products is a multidimensional array. Double unserialize is not a typo
 		$referral->products = maybe_unserialize( maybe_unserialize( $referral->products ) );
 	}
@@ -21,30 +25,36 @@ function affwp_get_referral( $referral ) {
 	return $referral;
 }
 
+/**
+ * Retrieves a referral's status.
+ *
+ * @since 1.6
+ *
+ * @param int|AffWP\Referral $referral Referral ID or object.
+ * @return string|false Referral status, otherwise false.
+ */
 function affwp_get_referral_status( $referral ) {
 
-	if( is_object( $referral ) && isset( $referral->referral_id ) ) {
-		$referral_id = $referral->referral_id;
-	} elseif( is_numeric( $referral ) ) {
-		$referral_id = absint( $referral );
-	} else {
+	if ( ! $referral = affwp_get_referral( $referral ) ) {
 		return false;
 	}
 
-	return affiliate_wp()->referrals->get_column( 'status', $referral_id );
+	return $referral->status;
 }
 
 /**
- * Get the status label for a referral
+ * Retrieves the status label for a referral.
  *
  * @since 1.6
- * @return string $label The localized version of the referral status
+ *
+ * @param int|AffWP\Referral $referral Referral ID or object.
+ * @return string|false $label The localized version of the referral status, otherwise false. If the status
+ *                             isn't registered and the referral is valid, the default 'pending' status will
+ *                             be returned
  */
 function affwp_get_referral_status_label( $referral ) {
 
-	$referral = affwp_get_referral( $referral );
-
-	if( empty( $referral ) ) {
+	if ( ! $referral = affwp_get_referral( $referral ) ) {
 		return false;
 	}
 
@@ -57,18 +67,31 @@ function affwp_get_referral_status_label( $referral ) {
 
 	$label = array_key_exists( $referral->status, $statuses ) ? $statuses[ $referral->status ] : 'pending';
 
+	/**
+	 * Filters the referral status label.
+	 *
+	 * @since 1.6
+	 *
+	 * @param string         $label    A localized version of the referral status label.
+	 * @param AffWP\Referral $referral Referral object.
+	 */
 	return apply_filters( 'affwp_referral_status_label', $label, $referral );
 
 }
 
+/**
+ * Sets a referral's status.
+ *
+ * @since
+ *
+ * @param int|AffWP\Referral $referral   Referral ID or object.
+ * @param string             $new_status Optional. New referral status to set. Default empty.
+ * @return bool True if the referral status was successfully changed from the old status to the
+ *              new one, otherwise false.
+ */
 function affwp_set_referral_status( $referral, $new_status = '' ) {
 
-	if( is_object( $referral ) && isset( $referral->referral_id ) ) {
-		$referral_id = $referral->referral_id;
-	} elseif( is_numeric( $referral ) ) {
-		$referral_id = absint( $referral );
-		$referral    = affwp_get_referral( $referral_id );
-	} else {
+	if ( ! $referral = affwp_get_referral( $referral ) ) {
 		return false;
 	}
 
@@ -82,7 +105,7 @@ function affwp_set_referral_status( $referral, $new_status = '' ) {
 		return false;
 	}
 
-	if( affiliate_wp()->referrals->update( $referral_id, array( 'status' => $new_status ), '', 'referral' ) ) {
+	if( affiliate_wp()->referrals->update( $referral->ID, array( 'status' => $new_status ), '', 'referral' ) ) {
 
 		if( 'paid' == $new_status ) {
 
@@ -92,7 +115,7 @@ function affwp_set_referral_status( $referral, $new_status = '' ) {
 		} elseif ( 'unpaid' == $new_status && ( 'pending' == $old_status || 'rejected' == $old_status ) ) {
 
 			// Update the visit ID that spawned this referral
-			affiliate_wp()->visits->update( $referral->visit_id, array( 'referral_id' => $referral->referral_id ), '', 'visit' );
+			affiliate_wp()->visits->update( $referral->visit_id, array( 'referral_id' => $referral->ID ), '', 'visit' );
 
 			do_action( 'affwp_referral_accepted', $referral->affiliate_id, $referral );
 
@@ -103,7 +126,18 @@ function affwp_set_referral_status( $referral, $new_status = '' ) {
 
 		}
 
-		do_action( 'affwp_set_referral_status', $referral_id, $new_status, $old_status );
+		/**
+		 * Fires immediately after a referral's status has been successfully updated.
+		 *
+		 * Will not fire if the new status matches the old one, or if `$new_status` is empty.
+		 *
+		 * @since
+		 *
+		 * @param int    $referral_id Referral ID.
+		 * @param string $new_status  New referral status.
+		 * @param string $old_status  Old referral status.
+		 */
+		do_action( 'affwp_set_referral_status', $referral->ID, $new_status, $old_status );
 
 		return true;
 	}
@@ -113,10 +147,24 @@ function affwp_set_referral_status( $referral, $new_status = '' ) {
 }
 
 /**
- * Adds a new referral to the database
+ * Adds a new referral to the database.
+ *
+ * Referral status cannot be updated here, use affwp_set_referral_status().
  *
  * @since 1.0
- * @return integer 0 if no referral was added, referral ID if it was successfully added.
+ *
+ * @param array $data {
+ *     Optional. Arguments for adding a new referral. Default empty array.
+ *
+ *     @type int    $affiliate_id Affiliate ID.
+ *     @type float  $amount       Referral amount. Default empty.
+ *     @type string $description  Description. Default empty.
+ *     @type string $reference    Referral reference (usually product information). Default empty.
+ *     @type string $context      Referral context (usually the integration it was generated from).
+ *                                Default empty.
+ *     @type string $status       Status to update the referral too. Default 'pending'.
+ * }
+ * @return int|bool 0|false if no referral was added, referral ID if it was successfully added.
  */
 function affwp_add_referral( $data = array() ) {
 	
@@ -169,14 +217,19 @@ function affwp_add_referral( $data = array() ) {
 
 }
 
+/**
+ * Deletes a referral.
+ *
+ * If the referral has a status of 'paid', the affiliate's earnings and referral count will decrease.
+ *
+ * @since
+ *
+ * @param int|AffWP\Referral $referral Referral ID or object.
+ * @return bool True if the referral was successfully deleted, otherwise false.
+ */
 function affwp_delete_referral( $referral ) {
 
-	if( is_object( $referral ) && isset( $referral->referral_id ) ) {
-		$referral_id = $referral->referral_id;
-	} elseif( is_numeric( $referral ) ) {
-		$referral_id = absint( $referral );
-		$referral    = affwp_get_referral( $referral_id );
-	} else {
+	if ( ! $referral = affwp_get_referral( $referral ) ) {
 		return false;
 	}
 
@@ -190,9 +243,16 @@ function affwp_delete_referral( $referral ) {
 
 	}
 
-	if( affiliate_wp()->referrals->delete( $referral_id ) ) {
+	if( affiliate_wp()->referrals->delete( $referral->ID, 'referral' ) ) {
 
-		do_action( 'affwp_delete_referral', $referral_id );
+		/**
+		 * Fires immediately after a referral has been deleted.
+		 *
+		 * @since
+		 *
+		 * @param int $referral_id Referral ID.
+		 */
+		do_action( 'affwp_delete_referral', $referral->ID );
 
 		return true;
 
@@ -227,11 +287,26 @@ function affwp_calc_referral_amount( $amount = '', $affiliate_id = 0, $reference
 
 }
 
+/**
+ * Retrieves the number of referrals for the given affiliate.
+ *
+ * @since
+ *
+ * @param int|AffWP\Affiliate $affiliate Optional. Affiliate ID or object. Default is the current affiliate.
+ * @param string|array        $status    Optional. Referral status or array of statuses. Default empty array.
+ * @param array|string        $date      Optional. Array of date data with 'start' and 'end' key/value pairs,
+ *                                       or a timestamp. Default empty array.
+ * @return int Zero if the affiliate is invalid, or the number of referrals for the given arguments.
+ */
 function affwp_count_referrals( $affiliate_id = 0, $status = array(), $date = array() ) {
 
+	if ( ! $affiliate = affwp_get_affiliate( $affiliate_id ) ) {
+		return 0;
+	}
+
 	$args = array(
-		'affiliate_id' => $affiliate_id,
-		'status' => $status
+		'affiliate_id' => $affiliate->ID,
+		'status'       => $status
 	);
 
 	if( ! empty( $date ) ) {
@@ -239,5 +314,4 @@ function affwp_count_referrals( $affiliate_id = 0, $status = array(), $date = ar
 	}
 
 	return affiliate_wp()->referrals->count( $args );
-
 }

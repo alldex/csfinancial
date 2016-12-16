@@ -22,7 +22,8 @@ class Affiliate_WP_Registrations_Graph extends Affiliate_WP_Graph {
 			'orderby'  => 'date_registered',
 			'order'    => 'ASC',
 			'number'   => -1,
-			'date'     => $date
+			'date'     => $date,
+			'fields'   => 'date_registered',
 		) );
 
 		$affiliate_data = array();
@@ -31,17 +32,17 @@ class Affiliate_WP_Registrations_Graph extends Affiliate_WP_Graph {
 
 		if( $affiliates ) {
 
-			foreach( $affiliates as $affiliate ) {
+			foreach( $affiliates as $affiliate_date_registered ) {
 
 				if( 'today' == $dates['range'] || 'yesterday' == $dates['range'] ) {
 
-					$point = strtotime( $affiliate->date_registered ) * 1000;
+					$point = strtotime( $affiliate_date_registered ) * 1000;
 
 					$affiliate_data[ $point ] = array( $point, 1 );
 
 				} else {
 
-					$time      = date( 'Y-n-d', strtotime( $affiliate->date_registered ) );
+					$time      = date( 'Y-n-d', strtotime( $affiliate_date_registered ) );
 					$timestamp = strtotime( $time ) * 1000;
 
 					if( array_key_exists( $time, $affiliate_data ) && isset( $affiliate_data[ $time ][1] ) ) {

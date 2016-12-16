@@ -95,12 +95,12 @@ class Affiliate_WP_Graph {
 			'multiple_y_axes' => false,
 			'bgcolor'         => '#f9f9f9',
 			'bordercolor'     => '#ccc',
-			'color'           => '#bbb',
 			'borderwidth'     => 2,
 			'bars'            => false,
 			'lines'           => true,
 			'points'          => true,
-			'currency'        => true
+			'currency'        => true,
+			'show_controls'   => true,
 		);
 
 	}
@@ -183,130 +183,151 @@ class Affiliate_WP_Graph {
 	 * @return string
 	 */
 	public function build_graph() {
-
-		$yaxis_count = 1;
-
 		$this->load_scripts();
 
 		ob_start();
 
-?>
-		<script type="text/javascript">
-			var affwp_vars;
-			jQuery( document ).ready( function($) {
-				$.plot(
-					$("#affwp-graph-<?php echo $this->id; ?>"),
-					[
-						<?php foreach( $this->get_data() as $label => $data ) : ?>
-						{
-							label: "<?php echo esc_attr( $label ); ?>",
-							id: "<?php echo sanitize_key( $label ); ?>",
-							// data format is: [ point on x, value on y ]
-							data: [<?php foreach( $data as $point ) { echo '[' . implode( ',', $point ) . '],'; } ?>],
-							points: {
-								show: <?php echo $this->options['points'] ? 'true' : 'false'; ?>,
-							},
-							bars: {
-								show: <?php echo $this->options['bars'] ? 'true' : 'false'; ?>,
-								barWidth: 2,
-								align: 'center'
-							},
-							lines: {
-								show: <?php echo $this->options['lines'] ? 'true' : 'false'; ?>
-							},
-							<?php if( $this->options[ 'multiple_y_axes' ] ) : ?>
-							yaxis: <?php echo $yaxis_count; ?>
-							<?php endif; ?>
-						},
-						<?php $yaxis_count++; endforeach; ?>
-					],
+		if ( function_exists( 'wp_add_inline_script' ) ) {
+			wp_add_inline_script( 'jquery-flot', $this->graph_js() );
+		} else {
+			// Back-compat for < WP 4.5.0.
+			wp_scripts()->add_data( 'jquery-flot', 'after', array(
+				wp_scripts()->get_data( 'jquery-flot', 'after' ),
+				$this->graph_js()
+			) );
+		}
+
+		if ( false !== $this->get( 'show_controls' ) ) {
+			echo $this->graph_controls();
+		}
+		?><div id="affwp-graph-<?php echo $this->id; ?>" class="affwp-graph" style="height: 300px; width:100%;"></div><?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Retrieves the Graph initialization JS for output inline.
+	 *
+	 * @access public
+	 * @since  1.9.5
+	 *
+	 * @return string Graph JS output.
+	 */
+	public function graph_js() {
+		$yaxis_count = 1;
+
+		ob_start();
+		?>
+		var affwp_vars;
+		jQuery( document ).ready( function($) {
+			$.plot(
+				$("#affwp-graph-<?php echo $this->id; ?>"),
+				[
+					<?php foreach( $this->get_data() as $label => $data ) : ?>
 					{
-						// Options
-						grid: {
-							show: true,
-							aboveData: false,
-							color: "<?php echo $this->options[ 'color' ]; ?>",
-							backgroundColor: "<?php echo $this->options[ 'bgcolor' ]; ?>",
-							borderColor: "<?php echo $this->options[ 'bordercolor' ]; ?>",
-							borderWidth: <?php echo absint( $this->options[ 'borderwidth' ] ); ?>,
-							clickable: false,
-							hoverable: true
+						label: "<?php echo esc_attr( $label ); ?>",
+						id: "<?php echo sanitize_key( $label ); ?>",
+						// data format is: [ point on x, value on y ]
+						data: [<?php foreach( $data as $point ) { echo '[' . implode( ',', $point ) . '],'; } ?>],
+						points: {
+							show: <?php echo $this->options['points'] ? 'true' : 'false'; ?>,
 						},
-						xaxis: {
-							mode: "<?php echo $this->options['x_mode']; ?>",
-							timeFormat: "<?php echo $this->options['x_mode'] == 'time' ? $this->options['time_format'] : ''; ?>",
-							tickSize: "<?php echo $this->options['x_mode'] == 'time' ? '' : 1; ?>",
-							<?php if( $this->options['x_mode'] != 'time' ) : ?>
-							tickDecimals: <?php echo $this->options['x_decimals']; ?>
-							<?php endif; ?>
+						bars: {
+							show: <?php echo $this->options['bars'] ? 'true' : 'false'; ?>,
+							barWidth: 2,
+							align: 'center'
 						},
-						yaxis: {
-							position: 'right',
-							min: 0,
-							mode: "<?php echo $this->options['y_mode']; ?>",
-							timeFormat: "<?php echo $this->options['y_mode'] == 'time' ? $this->options['time_format'] : ''; ?>",
-							<?php if( $this->options['y_mode'] != 'time' ) : ?>
-							tickDecimals: <?php echo $this->options['y_decimals']; ?>
-							<?php endif; ?>
-						}
+						lines: {
+							show: <?php echo $this->options['lines'] ? 'true' : 'false'; ?>
+						},
+						<?php if( $this->options[ 'multiple_y_axes' ] ) : ?>
+						yaxis: <?php echo $yaxis_count; ?>
+						<?php endif; ?>
+					},
+					<?php $yaxis_count++; endforeach; ?>
+				],
+				{
+					// Options
+					grid: {
+						show: true,
+						aboveData: false,
+						backgroundColor: "<?php echo $this->options[ 'bgcolor' ]; ?>",
+						borderColor: "<?php echo $this->options[ 'bordercolor' ]; ?>",
+						borderWidth: <?php echo absint( $this->options[ 'borderwidth' ] ); ?>,
+						clickable: false,
+						hoverable: true
+					},
+					xaxis: {
+						mode: "<?php echo $this->options['x_mode']; ?>",
+						timeFormat: "<?php echo $this->options['x_mode'] == 'time' ? $this->options['time_format'] : ''; ?>",
+						tickSize: "<?php echo $this->options['x_mode'] == 'time' ? '' : 1; ?>",
+						<?php if( $this->options['x_mode'] != 'time' ) : ?>
+						tickDecimals: <?php echo $this->options['x_decimals']; ?>
+						<?php endif; ?>
+					},
+					yaxis: {
+						position: 'right',
+						min: 0,
+						mode: "<?php echo $this->options['y_mode']; ?>",
+						timeFormat: "<?php echo $this->options['y_mode'] == 'time' ? $this->options['time_format'] : ''; ?>",
+						<?php if( $this->options['y_mode'] != 'time' ) : ?>
+						tickDecimals: <?php echo $this->options['y_decimals']; ?>
+						<?php endif; ?>
 					}
-
-				);
-
-				function affwp_flot_tooltip(x, y, contents) {
-					$('<div id="affwp-flot-tooltip">' + contents + '</div>').css( {
-						position: 'absolute',
-						display: 'none',
-						top: y + 5,
-						left: x + 5,
-						border: '1px solid #fdd',
-						padding: '2px',
-						'background-color': '#fee',
-						opacity: 0.80
-					}).appendTo("body").fadeIn(200);
 				}
 
-				var previousPoint = null;
-				$("#affwp-graph-<?php echo $this->id; ?>").bind("plothover", function (event, pos, item) {
-					$("#x").text(pos.x.toFixed(2));
-					$("#y").text(pos.y.toFixed(2));
-					if (item) {
-						if (previousPoint != item.dataIndex) {
-							previousPoint = item.dataIndex;
-							$("#affwp-flot-tooltip").remove();
-							var x = item.datapoint[0].toFixed(2),
+			);
+
+			function affwp_flot_tooltip(x, y, contents) {
+				$('<div id="affwp-flot-tooltip">' + contents + '</div>').css( {
+					position: 'absolute',
+					display: 'none',
+					top: y + 5,
+					left: x + 5,
+					border: '1px solid #fdd',
+					padding: '2px',
+					'background-color': '#fee',
+					opacity: 0.80
+				}).appendTo("body").fadeIn(200);
+			}
+
+			var previousPoint = null;
+			$("#affwp-graph-<?php echo $this->id; ?>").bind("plothover", function (event, pos, item) {
+				$("#x").text(pos.x.toFixed(2));
+				$("#y").text(pos.y.toFixed(2));
+				if (item) {
+					if (previousPoint != item.dataIndex) {
+						previousPoint = item.dataIndex;
+						$("#affwp-flot-tooltip").remove();
+						var x = item.datapoint[0].toFixed(2),
 							y = item.datapoint[1].toFixed(2);
 
-							<?php if( $this->get( 'currency' ) ) : ?>
-								if( affwp_vars.currency_pos == 'before' ) {
-									affwp_flot_tooltip( item.pageX, item.pageY, item.series.label + ' ' + affwp_vars.currency_sign + y );
-								} else {
-									affwp_flot_tooltip( item.pageX, item.pageY, item.series.label + ' ' + y + affwp_vars.currency_sign );
-								}
-							<?php else : ?>
-								affwp_flot_tooltip( item.pageX, item.pageY, item.series.label + ' ' + y );
-							<?php endif; ?>
+						<?php if( $this->get( 'currency' ) ) : ?>
+						if( affwp_vars.currency_pos == 'before' ) {
+							affwp_flot_tooltip( item.pageX, item.pageY, item.series.label + ' ' + affwp_vars.currency_sign + y );
+						} else {
+							affwp_flot_tooltip( item.pageX, item.pageY, item.series.label + ' ' + y + affwp_vars.currency_sign );
 						}
-					} else {
-						$("#affwp-flot-tooltip").remove();
-						previousPoint = null;
+						<?php else : ?>
+						affwp_flot_tooltip( item.pageX, item.pageY, item.series.label + ' ' + y );
+						<?php endif; ?>
 					}
-				});
-
-				$( '#affwp-graphs-date-options' ).change( function() {
-					var $this = $(this);
-					if( $this.val() == 'other' ) {
-						$( '#affwp-date-range-options' ).css('display', 'inline-block');
-					} else {
-						$( '#affwp-date-range-options' ).hide();
-					}
-				});
-
+				} else {
+					$("#affwp-flot-tooltip").remove();
+					previousPoint = null;
+				}
 			});
-		</script>
-		<?php echo $this->graph_controls(); ?>
-		<div id="affwp-graph-<?php echo $this->id; ?>" class="affwp-graph" style="height: 300px; width:100%;"></div>
-<?php
+
+			$( '#affwp-graphs-date-options' ).change( function() {
+				var $this = $(this);
+				if( $this.val() == 'other' ) {
+					$( '#affwp-date-range-options' ).css('display', 'inline-block');
+				} else {
+					$( '#affwp-date-range-options' ).hide();
+				}
+			});
+
+		});
+		<?php
 		return ob_get_clean();
 	}
 
@@ -377,28 +398,18 @@ class Affiliate_WP_Graph {
 				</select>
 
 				<div id="affwp-date-range-options" <?php echo $display; ?>>
-					<span><?php _e( 'From', 'affiliate-wp' ); ?>&nbsp;</span>
-					<select id="affwp-graphs-month-start" name="m_start">
-						<?php for ( $i = 1; $i <= 12; $i++ ) : ?>
-							<option value="<?php echo absint( $i ); ?>" <?php selected( $i, $dates['m_start'] ); ?>><?php echo affwp_month_num_to_name( $i ); ?></option>
-						<?php endfor; ?>
-					</select>
-					<select id="affwp-graphs-year" name="year_start">
-						<?php for ( $i = 2007; $i <= date( 'Y', $current_time ); $i++ ) : ?>
-							<option value="<?php echo absint( $i ); ?>" <?php selected( $i, $dates['year'] ); ?>><?php echo $i; ?></option>
-						<?php endfor; ?>
-					</select>
-					<span><?php _e( 'To', 'affiliate-wp' ); ?>&nbsp;</span>
-					<select id="affwp-graphs-month-start" name="m_end">
-						<?php for ( $i = 1; $i <= 12; $i++ ) : ?>
-							<option value="<?php echo absint( $i ); ?>" <?php selected( $i, $dates['m_end'] ); ?>><?php echo affwp_month_num_to_name( $i ); ?></option>
-						<?php endfor; ?>
-					</select>
-					<select id="affwp-graphs-year" name="year_end">
-						<?php for ( $i = 2007; $i <= date( 'Y', $current_time ); $i++ ) : ?>
-							<option value="<?php echo absint( $i ); ?>" <?php selected( $i, $dates['year_end'] ); ?>><?php echo $i; ?></option>
-						<?php endfor; ?>
-					</select>
+
+					<?php
+					$from = empty( $_REQUEST['filter_from'] ) ? '' : $_REQUEST['filter_from'];
+					$to   = empty( $_REQUEST['filter_to'] )   ? '' : $_REQUEST['filter_to'];
+					?>
+					<span class="affwp-search-date">
+						<span><?php _ex( 'From', 'date filter', 'affiliate-wp' ); ?></span>
+						<input type="text" class="affwp-datepicker" autocomplete="off" name="filter_from" placeholder="<?php esc_attr_e( 'From - mm/dd/yyyy', 'affiliate-wp' ); ?>" aria-label="<?php esc_attr_e( 'From - mm/dd/yyyy', 'affiliate-wp' ); ?>" value="<?php echo esc_attr( $from ); ?>" />
+						<span><?php _ex( 'To', 'date filter', 'affiliate-wp' ); ?></span>
+						<input type="text" class="affwp-datepicker" autocomplete="off" name="filter_to" placeholder="<?php esc_attr_e( 'To - mm/dd/yyyy', 'affiliate-wp' ); ?>" aria-label="<?php esc_attr_e( 'To - mm/dd/yyyy', 'affiliate-wp' ); ?>" value="<?php echo esc_attr( $to ); ?>" />
+					</span>
+
 				</div>
 
 				<input type="submit" class="button" value="<?php _e( 'Filter', 'affiliate-wp' ); ?>"/>
@@ -423,13 +434,19 @@ function affwp_get_report_dates() {
 
 	$current_time = current_time( 'timestamp' );
 
+	$dates['date_from']  = ! empty( $_REQUEST['filter_from'] ) ? $_REQUEST['filter_from'] : date( 'j/n/Y', $current_time );
+	$dates['date_to']    = ! empty( $_REQUEST['filter_to'] )   ? $_REQUEST['filter_to']   : date( 'j/n/Y', $current_time );
+
+	$variable_from_time  = ! empty( $_REQUEST['filter_from'] ) ? strtotime( $dates['date_from'] ) : $current_time;
+	$variable_to_time    = ! empty( $_REQUEST['filter_to'] )   ? strtotime( $dates['date_to'] )   : $current_time;
+
 	$dates['range']      = isset( $_GET['range'] )      ? $_GET['range']      : 'this_month';
-	$dates['year']       = isset( $_GET['year_start'] ) ? $_GET['year_start'] : date( 'Y', $current_time );
-	$dates['year_end']   = isset( $_GET['year_end'] )   ? $_GET['year_end']   : date( 'Y', $current_time );
-	$dates['m_start']    = isset( $_GET['m_start'] )    ? $_GET['m_start']    : 1;
-	$dates['m_end']      = isset( $_GET['m_end'] )      ? $_GET['m_end']      : 12;
-	$dates['day']        = isset( $_GET['day'] )        ? $_GET['day']        : 1;
-	$dates['day_end']    = isset( $_GET['day_end'] )    ? $_GET['day_end']    : cal_days_in_month( CAL_GREGORIAN, $dates['m_start'], $dates['year'] );
+	$dates['year']       = isset( $_GET['year_start'] ) ? $_GET['year_start'] : date( 'Y', $variable_from_time );
+	$dates['year_end']   = isset( $_GET['year_end'] )   ? $_GET['year_end']   : date( 'Y', $variable_to_time );
+	$dates['m_start']    = isset( $_GET['m_start'] )    ? $_GET['m_start']    : date( 'n', $variable_from_time );
+	$dates['m_end']      = isset( $_GET['m_end'] )      ? $_GET['m_end']      : date( 'n', $variable_to_time );
+	$dates['day']        = isset( $_GET['day'] )        ? $_GET['day']        : date( 'd', $variable_from_time );
+	$dates['day_end']    = isset( $_GET['day_end'] )    ? $_GET['day_end']    : date( 'd', $variable_to_time );
 
 	// Modify dates based on predefined ranges
 	switch ( $dates['range'] ) :

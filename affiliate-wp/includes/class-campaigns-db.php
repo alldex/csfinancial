@@ -3,6 +3,18 @@
 class Affiliate_WP_Campaigns_DB extends Affiliate_WP_DB {
 
 	/**
+	 * Cache group for queries.
+	 *
+	 * @internal DO NOT change. This is used externally both as a cache group and shortcut
+	 *           for accessing db class instances via affiliate_wp()->{$cache_group}->*.
+	 *
+	 * @access public
+	 * @since  1.9
+	 * @var    string
+	 */
+	public $cache_group = 'campaigns';
+
+	/**
 	 * Setup our table name, primary key, and version
 	 *
 	 * This is a read-only VIEW of the visits table
@@ -28,25 +40,224 @@ class Affiliate_WP_Campaigns_DB extends Affiliate_WP_DB {
 	 *
 	 * @param  int  $affiliate_id The ID of the affiliate to retrieve campaigns for
 	 * @since  1.7
+	 *
+	 * @param array $args {
+	 *     Optional. Arguments to retrieve campaigns.
+	 *
+	 *     @type int          $number           Number of campaigns to query for. Default 20.
+	 *     @type int          $offset           Number of campaigns to offset the query for. Default 0.
+	 *     @type int|array    $affiliate_id     Affiliate ID or array of IDs. Default 0.
+	 *     @type string|array $campaign         Campaign or array of campaigns. Default empty.
+	 *     @type string       $campaign_compare Comparison operator to use when querying for visits by campaign.
+	 *                                          Accepts '=', '!=' or 'NOT EMPTY'. If 'EMPTY' or 'NOT EMPTY', `$campaign`
+	 *                                          will be ignored and campaigns will simply be queried based on whether
+	 *                                          the `campaign` column is empty or not. Default '='.
+	 *     @type float|array  $conversion_rate  {
+	 *         Specific conversion rate to query for or min/max range. If float, can be used with `$rate_compare`.
+	 *         If array, `BETWEEN` is used.
+	 *
+	 *         @type float $min Minimum conversion rate to query for.
+	 *         @type float $max Maximum conversion rate to query for.
+	 *     }
+	 *     @type string       $rate_compare     Comparison operator to use with `$conversion_rate`. Accepts '>', '<',
+	 *                                          '>=', '<=', '=', or '!='. Default '='.
+	 *     @type string       $order            How to order returned campaign results. Accepts 'ASC' or 'DESC'.
+	 *                                          Default 'DESC'.
+	 *     @type string       $orderby          Campaigns table column to order results by. Default 'affiliate_id'.
+	 *     @type string       $fields           Specific fields to retrieve. Accepts 'ids' or '*' (all). Default '*'.
+	 * }
+	 * @param bool  $count Optional. Whether to return only the total number of results found. Default false.
 	 * @return array
 	 */
-	public function get_campaigns( $affiliate_id = 0 ) {
-
+	public function get_campaigns( $args = array(), $count = false ) {
 		global $wpdb;
-		
-		$cache_key = 'affwp_affiliate_campaigns_' . $affiliate_id;
 
-		$results = wp_cache_get( $cache_key, 'campaigns' );
+		// Back-compat for the old $affiliate_id parameter.
+		if ( is_numeric( $args ) ) {
+			$affiliate_id = $args;
+			$args = array(
+				'affiliate_id' => $affiliate_id
+			);
+			unset( $affiliate_id );
+		}
 
-		if ( false === $results ) {
-		
-			$campaigns = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $this->table_name WHERE affiliate_id = %d;", $affiliate_id ) );
+		$defaults = array(
+			'number'           => 20,
+			'offset'           => 0,
+			'affiliate_id'     => 0,
+			'campaign'         => '',
+			'campaign_compare' => '=',
+			'conversion_rate'  => 0,
+			'rate_compare'     => '',
+			'orderby'          => 'affiliate_id',
+			'order'            => 'DESC',
+			'fields'           => '',
+		);
 
-			wp_cache_set( $cache_key, $campaigns, 'campaigns', HOUR_IN_SECONDS );
+		$args = wp_parse_args( $args, $defaults );
+
+		if ( $args['number'] < 1 ) {
+			$args['number'] = 999999999999;
+		}
+
+		$where = $join = '';
+
+		// Specific affiliate(s).
+		if( ! empty( $args['affiliate_id'] ) ) {
+
+			$where .= empty( $where ) ? "WHERE " : "AND ";
+
+			if( is_array( $args['affiliate_id'] ) ) {
+				$affiliate_ids = implode( ',', array_map( 'intval', $args['affiliate_id'] ) );
+			} else {
+				$affiliate_ids = intval( $args['affiliate_id'] );
+			}
+
+			$where .= "`affiliate_id` IN( {$affiliate_ids} ) ";
 
 		}
 
-		return $campaigns;
+		// Specific campaign(s).
+		if ( empty( $args['campaign_compare'] ) ) {
+			$campaign_compare = '=';
+		} else {
+			if ( 'NOT EMPTY' === $args['campaign_compare'] ) {
+				$campaign_compare = '!=';
+
+				// Cancel out campaign value for comparison purposes.
+				$args['campaign'] = '';
+			} elseif ( 'EMPTY' === $args['campaign_compare'] ) {
+				$campaign_compare = '=';
+
+				// Cancel out campaign value for comparison purposes.
+				$args['campaign'] = '';
+			} else {
+				$campaign_compare = $args['campaign_compare'];
+			}
+		}
+
+		// visits for specific campaign
+		if( ! empty( $args['campaign'] )
+		    || ( empty( $args['campaign'] ) && '=' !== $campaign_compare )
+		) {
+
+			$where .= empty( $where ) ? "WHERE " : "AND ";
+
+			if( is_array( $args['campaign'] ) ) {
+
+				if ( '!=' === $campaign_compare ) {
+					$where .= "`campaign` NOT IN(" . implode( ',', array_map( 'esc_sql', $args['campaign'] ) ) . ") ";
+				} else {
+					$where .= "`campaign` IN(" . implode( ',', array_map( 'esc_sql', $args['campaign'] ) ) . ") ";
+				}
+
+			} else {
+
+				if ( empty( $args['campaign'] ) ) {
+					$where .= "`campaign` {$campaign_compare} '' ";
+				} else {
+					$where .= "`campaign` {$campaign_compare} '{$args['campaign']}' ";
+				}
+			}
+
+		}
+
+		// Conversion rate.
+		if ( ! empty( $args['conversion_rate'] ) ) {
+
+			$rate = $args['conversion_rate'];
+
+			$where .= empty( $where ) ? "WHERE " : "AND ";
+
+			if ( is_array( $rate ) && ! empty( $rate['min'] ) && ! empty( $rate['max'] ) ) {
+
+				$minimum = absint( $rate['min'] );
+				$maximum = absint( $rate['max'] );
+
+				$where .= "`conversion_rate` BETWEEN {$minimum} AND {$maximum} ";
+
+			} else {
+
+				$rate  = absint( $rate );
+				$compare = '=';
+
+				if ( ! empty( $args['rate_compare'] ) ) {
+					$compare = $args['rate_compare'];
+
+					if ( ! in_array( $compare, array( '>', '<', '>=', '<=', '=', '!=' ) ) ) {
+						$compare = '=';
+					}
+				}
+
+				$where .= " `conversion_rate` {$compare} {$rate}";
+			}
+		}
+
+		// Orderby.
+		switch( $args['orderby'] ) {
+			case 'conversion_rate':
+				$orderby = 'conversion_rate+0';
+				break;
+
+			case 'visits':
+				$orderby = 'visits+0';
+				break;
+
+			case 'unique_visits':
+				$orderby = 'unique_visits+0';
+				break;
+
+			case 'referrals':
+				$orderby = 'referrals+0';
+				break;
+
+			default:
+				$orderby = array_key_exists( $args['orderby'], $this->get_columns() ) ? $args['orderby'] : $this->primary_key;
+				break;
+		}
+
+		// There can be only two orders.
+		if ( 'DESC' === strtoupper( $args['order'] ) ) {
+			$order = 'DESC';
+		} else {
+			$order = 'ASC';
+		}
+
+		// Overload args values for the benefit of the cache.
+		$args['orderby'] = $orderby;
+		$args['order']   = $order;
+
+		$fields = "*";
+
+		if ( ! empty( $args['fields'] ) ) {
+			if ( 'ids' === $args['fields'] ) {
+				$fields = "$this->primary_key";
+			} elseif ( array_key_exists( $args['fields'], $this->get_columns() ) ) {
+				$fields = $args['fields'];
+			}
+		}
+
+		$key = ( true === $count ) ? md5( 'affwp_campaigns_count' . serialize( $args ) ) : md5( 'affwp_campaigns_' . serialize( $args ) );
+
+		$last_changed = wp_cache_get( 'last_changed', $this->cache_group );
+		if ( ! $last_changed ) {
+			wp_cache_set( 'last_changed', microtime(), $this->cache_group );
+		}
+
+		$cache_key = "{$key}:{$last_changed}";
+
+		$results = wp_cache_get( $cache_key, $this->cache_group );
+
+		if ( false === $results ) {
+
+			$clauses = compact( 'fields', 'join', 'where', 'orderby', 'order', 'count' );
+
+			$results = $this->get_results( $clauses, $args );
+		}
+
+		wp_cache_add( $cache_key, $results, $this->cache_group, HOUR_IN_SECONDS );
+
+		return $results;
 
 	}
 
@@ -73,7 +284,7 @@ class Affiliate_WP_Campaigns_DB extends Affiliate_WP_DB {
 	 *
 	 * @since  1.7
 	 */
-	public function delete( $row_id = 0 ) {
+	public function delete( $row_id = 0, $type = '' ) {
 		_doing_it_wrong( 'delete', 'The AffiliateWP Campaigns table is a read-only VIEW. Data cannot be deleted.', '1.7' );
 	}
 

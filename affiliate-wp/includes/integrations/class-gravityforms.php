@@ -23,8 +23,13 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 		// Internal hooks
 		add_filter( 'affwp_referral_reference_column', array( $this, 'reference_link' ), 10, 2 );
 
+		// Form settings
 		add_filter( 'gform_form_settings', array( $this, 'add_settings' ), 10, 2 );
 		add_filter( 'gform_pre_form_settings_save', array( $this, 'save_settings' ) );
+
+		// Coupon settings
+		add_filter( 'gform_gravityformscoupons_feed_settings_fields', array( $this, 'coupon_settings' ), 10, 2 );
+		add_filter( 'admin_footer', array( $this, 'coupon_scripts' ) );
 	}
 
 	/**
@@ -40,7 +45,14 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 	 */
 	public function add_pending_referral( $entry, $form ) {
 
-		if ( ! $this->was_referred() || ! rgar( $form, 'affwp_allow_referrals' ) ) {
+		if ( ! rgar( $form, 'affwp_allow_referrals' ) ) {
+			return;
+		}
+
+		// Check if an affiliate coupon was included
+		$this->maybe_check_coupons( $form, $entry );
+
+		if( ! $this->was_referred() && empty( $this->affiliate_id ) ) {
 			return;
 		}
 
@@ -159,6 +171,60 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 	}
 
 	/**
+	 * Checks for submitted coupons and sets affiliate ID to the associated affiliate, if any
+	 *
+	 * @since 1.9
+	 * @access public
+	 * @uses GFCoupons::get_submitted_coupon_codes()
+	 * @uses GFCoupons::get_coupon_field()
+	 * @uses GFCoupons::get_config()
+	 *
+	 * @param  array  $form
+	 * @param  array  $entry
+	 * @return void
+	 */
+	public function maybe_check_coupons( $form, $entry ) {
+
+		if( ! class_exists( 'GFCoupons' ) ) {
+			return;
+		}
+
+		$gf_coupons   = new GFCoupons;
+		$coupons      = $gf_coupons->get_submitted_coupon_codes( $form, $entry );
+		$coupon_field = $gf_coupons->get_coupon_field( $form );
+
+		if( empty( $coupons ) ) {
+			return;
+		}
+
+		if ( ! is_object( $coupon_field ) ) {
+			return;
+		}
+
+		foreach( $coupons as $coupon ) {
+
+			// Forms can have multiple coupons. If there are multiple affiliate coupons, the last one in the list will be used.
+
+			$config = $gf_coupons->get_config( $form, $coupon );
+
+			if( empty( $config['meta']['affwp_affiliate'] ) ) {
+				continue;
+			}
+
+			$username  = $config['meta']['affwp_affiliate'];
+			$affiliate = affwp_get_affiliate( $username );
+
+			if( $affiliate && affiliate_wp()->tracking->is_valid_affiliate( $affiliate->ID ) ) {
+
+				$this->affiliate_id = $affiliate->ID;
+
+			}
+
+		}
+
+	}
+
+	/**
 	 * Register the form-specific settings
 	 *
 	 * @since  1.7
@@ -192,6 +258,77 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 
 		return $form;
 
+	}
+
+
+	/**
+	 * Add settings to Coupon edit screens
+	 *
+	 * @since 1.9
+	 */
+	public function coupon_settings( $settings, $addon ) {
+
+		$settings[2]['fields'][] = array(
+			'name'  => 'affwp_affiliate',
+			'label' => __( 'Affiliate Coupon', 'affiliate-wp' ),
+			'type'  => 'text',
+			'class' => 'affwp_gf_coupon',
+			'tooltip' => __( 'To connect this coupon to an affiliate, enter the username of the affiliate. Anytime this coupon is redeemed, the connected affiliate will receive a referral commission.', 'affiliate-wp' )
+		);
+
+		return $settings;
+
+	}
+
+	/**
+	 * Add inline scripts to Coupon edit screen
+	 *
+	 * @since 1.9
+	 */
+	public function coupon_scripts() {
+
+		if( empty( $_GET['page'] ) || 'gravityformscoupons' !== $_GET['page'] ) {
+			return;
+		}
+
+		if( empty( $_GET['fid'] ) ) {
+			return;
+		}
+?>
+		<script type="text/javascript">
+		jQuery(document).ready(function($) {
+			// Ajax user search.
+			$( '.affwp_gf_coupon' ).each( function() {
+				var	$this    = $( this ),
+					$action  = 'affwp_search_users',
+					$search  = $this.val();
+
+				$this.autocomplete( {
+					source: ajaxurl + '?action=' + $action + '&term=' + $search,
+					delay: 500,
+					minLength: 2,
+					position: { offset: '0, -1' },
+					select: function( event, data ) {
+						$this.val( data.item.user_id );
+					},
+					open: function() {
+						$this.addClass( 'open' );
+					},
+					close: function() {
+						$this.removeClass( 'open' );
+					}
+				} );
+
+				// Unset the input if the input is cleared.
+				$this.on( 'keyup', function() {
+					if ( ! this.value ) {
+						$this.val( '' );
+					}
+				} );
+			} );
+		});
+		</script>
+<?php
 	}
 
 }

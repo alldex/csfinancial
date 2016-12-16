@@ -3,6 +3,8 @@
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/visits/class-list-table.php';
+
 /**
  * Add per page screen option to the Visits list table
  *
@@ -10,9 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 function affwp_visits_screen_options() {
 
-	$screen = get_current_screen();
+	$screen = affwp_get_current_screen();
 
-	if ( $screen->id !== 'affiliates_page_affiliate-wp-visits' ) {
+	if ( $screen !== 'affiliate-wp-visits' ) {
 		return;
 	}
 
@@ -24,6 +26,9 @@ function affwp_visits_screen_options() {
 			'default' => 30,
 		)
 	);
+
+	// Instantiate the list table to make the columns array available to screen options.
+	new AffWP_Visits_Table;
 
 	do_action( 'affwp_visits_screen_options', $screen );
 

@@ -13,11 +13,10 @@ jQuery(document).ready( function($) {
 	var ref = affwp_get_query_vars()[AFFWP.referral_var];
 	var campaign = affwp_get_query_vars()['campaign'];
 
-	if( typeof ref == 'undefined' ) {
+	if( typeof ref == 'undefined' || $.isFunction( ref ) ) {
 
 		// See if we are using a pretty affiliate URL
 		var path = window.location.pathname.split( '/' );
-
 		$.each( path, function( key, value ) {
 			if( AFFWP.referral_var == value ) {
 				ref = path[ key + 1 ];
@@ -26,6 +25,9 @@ jQuery(document).ready( function($) {
 
 	}
 
+	if( $.isFunction( ref ) ) {
+		return;
+	}
 
 	if( typeof ref != 'undefined' && ! $.isNumeric( ref ) ) {
 

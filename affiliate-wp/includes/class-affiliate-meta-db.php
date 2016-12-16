@@ -1,12 +1,18 @@
 <?php
-
+/**
+ * Core class used to implement affiliate meta.
+ *
+ * @since 1.6
+ *
+ * @see Affiliate_WP_DB
+ */
 class Affiliate_WP_Affiliate_Meta_DB extends Affiliate_WP_DB {
 
 	/**
-	 * Get things started
+	 * Sets up the Affiliate Meta DB class.
 	 *
-	 * @access  public
-	 * @since   1.6
+	 * @access public
+	 * @since  1.6
 	*/
 	public function __construct() {
 		global $wpdb;
@@ -21,14 +27,15 @@ class Affiliate_WP_Affiliate_Meta_DB extends Affiliate_WP_DB {
 		$this->version     = '1.0';
 
 		add_action( 'plugins_loaded', array( $this, 'register_table' ), 11 );
-
 	}
 
 	/**
-	 * Get table columns and data types
+	 * Retrieves the table columns and data types.
 	 *
-	 * @access  public
-	 * @since   1.7.18
+	 * @access public
+	 * @since  1.7.18
+	 *
+	 * @return array List of affiliate meta table columns and their respective types.
 	*/
 	public function get_columns() {
 		return array(
@@ -40,92 +47,97 @@ class Affiliate_WP_Affiliate_Meta_DB extends Affiliate_WP_DB {
 	}
 
 	/**
-	 * Register the table with $wpdb so the metadata api can find it
+	 * Registers the table with $wpdb so the metadata api can find it.
 	 *
-	 * @access  public
-	 * @since   1.6
-	*/
+	 * @access public
+	 * @since  1.6
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
 	public function register_table() {
 		global $wpdb;
 		$wpdb->affiliatemeta = $this->table_name;
 	}
 
 	/**
-	 * Retrieve affiliate meta field for a affiliate.
+	 * Retrieves an affiliate meta field for a affiliate.
 	 *
-	 * @param   int    $affiliate_id  Affiliate ID.
-	 * @param   string $meta_key      The meta key to retrieve.
-	 * @param   bool   $single        Whether to return a single value.
-	 * @return  mixed                 Will be an array if $single is false. Will be value of meta data field if $single is true.
+	 * @access public
+	 * @since  1.6
 	 *
-	 * @access  public
-	 * @since   1.6
+	 * @param int    $affiliate_id Optional. Affiliate ID. Default 0.
+	 * @param string $meta_key     Optional. The meta key to retrieve. Default empty.
+	 * @param bool   $single       Optional. Whether to return a single value. Default false.
+	 * @return mixed Will be an array if $single is false. Will be value of meta data field if $single is true.
+	 *
 	 */
 	function get_meta( $affiliate_id = 0, $meta_key = '', $single = false ) {
 		return get_metadata( 'affiliate', $affiliate_id, $meta_key, $single );
 	}
 
 	/**
-	 * Add meta data field to a affiliate.
+	 * Adds a meta data field to a affiliate.
 	 *
-	 * @param   int    $affiliate_id  Affiliate ID.
-	 * @param   string $meta_key      Metadata name.
-	 * @param   mixed  $meta_value    Metadata value.
-	 * @param   bool   $unique        Optional, default is false. Whether the same key should not be added.
-	 * @return  bool                  False for failure. True for success.
+	 * @access public
+	 * @since  1.6
 	 *
-	 * @access  public
-	 * @since   1.6
+	 * @param int    $affiliate_id Optional. Affiliate ID. Default 0.
+	 * @param string $meta_key     Optional. Meta data key. Default empty.
+	 * @param mixed  $meta_value   Optional. Meta data value. Default empty
+	 * @param bool   $unique       Optional. Whether the same key should not be added. Default false.
+	 * @return bool False for failure. True for success.
 	 */
-	function add_meta( $affiliate_id = 0, $meta_key = '', $meta_value, $unique = false ) {
+	function add_meta( $affiliate_id = 0, $meta_key = '', $meta_value = '', $unique = false ) {
 		return add_metadata( 'affiliate', $affiliate_id, $meta_key, $meta_value, $unique );
 	}
 
 	/**
-	 * Update affiliate meta field based on affiliate ID.
+	 * Updates an affiliate meta field based on affiliate ID.
 	 *
 	 * Use the $prev_value parameter to differentiate between meta fields with the
 	 * same key and affiliate ID.
 	 *
 	 * If the meta field for the affiliate does not exist, it will be added.
 	 *
-	 * @param   int    $affiliate_id  Affiliate ID.
-	 * @param   string $meta_key      Metadata key.
-	 * @param   mixed  $meta_value    Metadata value.
-	 * @param   mixed  $prev_value    Optional. Previous value to check before removing.
-	 * @return  bool                  False on failure, true if success.
+	 * @access public
+	 * @since  1.6
 	 *
-	 * @access  public
-	 * @since   1.6
+	 * @param int    $affiliate_id Optional. Affiliate ID. Default 0.
+	 * @param string $meta_key     Optional. Meta data key. Default empty.
+	 * @param mixed  $meta_value   Optional. Meta data value. Default empty.
+	 * @param mixed  $prev_value   Optional. Previous value to check before removing. Default empty.
+	 * @return bool False on failure, true if success.
 	 */
-	function update_meta( $affiliate_id = 0, $meta_key = '', $meta_value, $prev_value = '' ) {
+	function update_meta( $affiliate_id = 0, $meta_key = '', $meta_value = '', $prev_value = '' ) {
 		return update_metadata( 'affiliate', $affiliate_id, $meta_key, $meta_value, $prev_value );
 	}
 
 	/**
-	 * Remove metadata matching criteria from a affiliate.
+	 * Removes metadata matching criteria from a affiliate.
 	 *
 	 * You can match based on the key, or key and value. Removing based on key and
 	 * value, will keep from removing duplicate metadata with the same key. It also
 	 * allows removing all metadata matching key, if needed.
 	 *
-	 * @param   int    $affiliate_id  Affiliate ID.
-	 * @param   string $meta_key      Metadata name.
-	 * @param   mixed  $meta_value    Optional. Metadata value.
-	 * @return  bool                  False for failure. True for success.
+	 * @access public
+	 * @since  1.6
 	 *
-	 * @access  public
-	 * @since   1.6
+	 * @param int    $affiliate_id Optional. Affiliate ID. Default 0.
+	 * @param string $meta_key     Optional. Meta data key. Default empty.
+	 * @param mixed  $meta_value   Optional. Meta data value. Default empty.
+	 * @return bool False for failure. True for success.
 	 */
 	function delete_meta( $affiliate_id = 0, $meta_key = '', $meta_value = '' ) {
 		return delete_metadata( 'affiliate', $affiliate_id, $meta_key, $meta_value );
 	}
 
 	/**
-	 * Create the table
+	 * Creates the table.
 	 *
-	 * @access  public
-	 * @since   1.6
+	 * @access public
+	 * @since  1.6
+	 *
+	 * @see dbDelta()
 	*/
 	public function create_table() {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -138,7 +150,7 @@ class Affiliate_WP_Affiliate_Meta_DB extends Affiliate_WP_DB {
 			PRIMARY KEY  (meta_id),
 			KEY affiliate_id (affiliate_id),
 			KEY meta_key (meta_key)
-			) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;";
+			) CHARACTER SET utf8 COLLATE utf8_general_ci;";
 
 		dbDelta( $sql );
 

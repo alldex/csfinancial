@@ -42,7 +42,7 @@ $default_rate = affwp_abs_number_round( $default_rate );
 						<option value="inactive"><?php _e( 'Inactive', 'affiliate-wp' ); ?></option>
 						<option value="pending"><?php _e( 'Pending', 'affiliate-wp' ); ?></option>
 					</select>
-					<p class="description"><?php _e( 'The status assigned to the affiliate\'s account.', 'affiliate-wp' ); ?></p>
+					<p class="description"><?php _e( 'The status assigned to the affiliate&#8217;s account.', 'affiliate-wp' ); ?></p>
 				</td>
 
 			</tr>
@@ -60,7 +60,7 @@ $default_rate = affwp_abs_number_round( $default_rate );
 							<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $type ); ?></option>
 						<?php endforeach; ?>
 					</select>
-					<p class="description"><?php _e( 'The affiliate\'s referral rate type.', 'affiliate-wp' ); ?></p>
+					<p class="description"><?php _e( 'The affiliate&#8217;s referral rate type.', 'affiliate-wp' ); ?></p>
 				</td>
 
 			</tr>
@@ -73,7 +73,7 @@ $default_rate = affwp_abs_number_round( $default_rate );
 
 				<td>
 					<input class="small-text" type="number" name="rate" id="rate" step="0.01" min="0" max="999999" placeholder="<?php echo esc_attr( $default_rate ); ?>" />
-					<p class="description"><?php _e( 'The affiliate\'s referral rate, such as 20 for 20%. If left blank, the site default will be used.', 'affiliate-wp' ); ?></p>
+					<p class="description"><?php _e( 'The affiliate&#8217;s referral rate, such as 20 for 20%. If left blank, the site default will be used.', 'affiliate-wp' ); ?></p>
 				</td>
 
 			</tr>
@@ -86,7 +86,7 @@ $default_rate = affwp_abs_number_round( $default_rate );
 
 				<td>
 					<input class="regular-text" type="text" name="payment_email" id="payment_email" />
-					<p class="description"><?php _e( 'Affiliate\'s payment email for systems such as PayPal, Moneybookers, or others. Leave blank to use the affiliate\'s user email.', 'affiliate-wp' ); ?></p>
+					<p class="description"><?php _e( 'Affiliate&#8217;s payment email for systems such as PayPal, Moneybookers, or others. Leave blank to use the affiliate&#8217;s user email.', 'affiliate-wp' ); ?></p>
 				</td>
 
 			</tr>

@@ -45,7 +45,9 @@ function affwp_get_currencies() {
 		'IDR' => __( 'Indonesia Rupiah', 'affiliate-wp' ),
 		'INR' => __( 'Indian Rupee', 'affiliate-wp' ),
 		'ILS' => __( 'Israeli Shekel', 'affiliate-wp' ),
+		'IRR' => __( 'Iranian Rial', 'affiliate-wp' ),
 		'JPY' => __( 'Japanese Yen', 'affiliate-wp' ),
+		'KZT' => __( 'Kazakhstani Tenge', 'affiliate-wp' ),
 		'KIP' => __( 'Lao Kip', 'affiliate-wp' ),
 		'MYR' => __( 'Malaysian Ringgits', 'affiliate-wp' ),
 		'MXN' => __( 'Mexican Peso', 'affiliate-wp' ),
@@ -99,17 +101,14 @@ function affwp_get_currency() {
  * @return string $amount Newly sanitized amount
  */
 function affwp_sanitize_amount( $amount ) {
-	global $affwp_options;
 
+	$is_negative   = false;
 	$thousands_sep = affiliate_wp()->settings->get( 'thousands_separator', ',' );
 	$decimal_sep   = affiliate_wp()->settings->get( 'decimal_separator', '.' );
 
-	// Remove non-numeric numbers
-	$amount = preg_replace("/([^0-9\\.])/i", "", $amount );
-
 	// Sanitize the amount
 	if ( $decimal_sep == ',' && false !== ( $found = strpos( $amount, $decimal_sep ) ) ) {
-		if ( $thousands_sep == '.' && false !== ( $found = strpos( $amount, $thousands_sep ) ) ) {
+		if ( ( $thousands_sep == '.' || $thousands_sep == ' ' ) && false !== ( $found = strpos( $amount, $thousands_sep ) ) ) {
 			$amount = str_replace( $thousands_sep, '', $amount );
 		} elseif( empty( $thousands_sep ) && false !== ( $found = strpos( $amount, '.' ) ) ) {
 			$amount = str_replace( '.', '', $amount );
@@ -120,10 +119,36 @@ function affwp_sanitize_amount( $amount ) {
 		$amount = str_replace( $thousands_sep, '', $amount );
 	}
 
-	$decimals = apply_filters( 'affwp_sanitize_amount_decimals', affwp_get_decimal_count(), $amount );
-	$amount   = number_format( floatval( $amount ), absint( $decimals ), '.', '' );
+	if( $amount < 0 ) {
+		$is_negative = true;
+	}
 
+	$amount   = preg_replace( '/[^0-9\.]/', '', $amount );
+
+	/**
+	 * Filter number of decimals to use for prices
+	 *
+	 * @since 1.0
+	 *
+	 * @param int $number Number of decimals
+	 * @param int|string $amount Price
+	 */
+	$decimals = apply_filters( 'affwp_sanitize_amount_decimals', affwp_get_decimal_count(), $amount );
+	$amount   = number_format( (double) $amount, $decimals, '.', '' );
+
+	if( $is_negative ) {
+		$amount *= -1;
+	}
+
+	/**
+	 * Filter the sanitized price before returning
+	 *
+	 * @since 1.0
+	 *
+	 * @param string $amount Price
+	 */
 	return apply_filters( 'affwp_sanitize_amount', $amount );
+
 }
 
 /**
@@ -180,6 +205,33 @@ function affwp_get_decimal_count() {
 }
 
 /**
+ * Formats referral rate based on the given type.
+ *
+ * @since 1.9
+ *
+ * @param int    $rate   Referral rate.
+ * @param string $type   Optional. Rate type. Accepts 'percentage' or 'flat'. Default 'percentage'.
+ * @return string Formatted rate string.
+ */
+function affwp_format_rate( $rate, $type = 'percentage' ) {
+	if ( 'percentage' === $type ) {
+		$rate = affwp_abs_number_round( $rate * 100 ) . '%';
+	} else {
+		$rate = affwp_currency_filter( $rate );
+	}
+
+	/**
+	 * Filter the rate format.
+	 *
+	 * @since 1.9
+	 *
+	 * @param string $rate Formatted rate.
+	 * @param string $type Rate type.
+	 */
+	return apply_filters( 'affwp_format_rate', $rate, $type );
+}
+
+/**
  * Formats the currency display
  *
  * @since 1.0
@@ -196,8 +248,6 @@ function affwp_currency_filter( $amount ) {
 	if( $negative ) {
 		$amount = substr( $amount, 1 ); // Remove proceeding "-" -
 	}
-
-	$amount = affwp_format_amount( $amount );
 
 	if ( $position == 'before' ):
 		switch ( $currency ):
@@ -265,6 +315,9 @@ function affwp_currency_filter( $amount ) {
 				break;
 			case "KRW" :
 				$formatted = $amount . '&#8361;';
+				break;
+			case "IRR" :
+				$formatted = $amount . '&#65020;';
 				break;
 			default :
 			    $formatted = $amount . ' ' . $currency;
@@ -571,4 +624,236 @@ function affwp_make_url_human_readable( $url ) {
  */
 function affwp_affiliate_area_show_tab( $tab = '' ) {
 	return apply_filters( 'affwp_affiliate_area_show_tab', true, $tab );
+}
+
+/**
+ * Cleans the cache for a given object.
+ *
+ * @since 1.9
+ *
+ * @param AffWP\Base_Object $object Base_Object.
+ * @return bool True if the item cache was cleaned, false otherwise.
+ */
+function affwp_clean_item_cache( $object ) {
+	if ( ! is_object( $object ) ) {
+		return false;
+	}
+
+	if ( ! method_exists( $object, 'get_cache_key' ) ) {
+		return false;
+	}
+
+	$Object_Class = get_class( $object );
+	$cache_key    = $Object_Class::get_cache_key( $object->ID );
+	$cache_group  = $Object_Class::$object_type;
+
+	// Individual object.
+	wp_cache_delete( $cache_key, $cache_group );
+
+	// Prime the item cache.
+	$Object_Class::get_instance( $object->ID );
+
+	$db_groups      = $Object_Class::get_db_groups();
+	$db_cache_group = isset( $db_groups->secondary ) ? $db_groups->secondary : $db_groups->primary;
+
+	$last_changed = microtime();
+
+	// Invalidate core object queries.
+	wp_cache_set( 'last_changed', $last_changed, $db_cache_group );
+
+	// Explicitly invalidate the campaigns cache.
+	wp_cache_set( 'last_changed', $last_changed, affiliate_wp()->campaigns->cache_group );
+}
+
+/**
+ * Adds AffiliateWP postbox nonces, which are used
+ * to save the position of AffiliateWP meta boxes.
+ *
+ * @since  1.9
+ *
+ * @return void
+ */
+function affwp_add_screen_options_nonces() {
+
+	if ( ! affwp_is_admin_page() ) {
+		return;
+	}
+
+	wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce' , false );
+	wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce' , false );
+
+
+}
+add_action( 'admin_footer', 'affwp_add_screen_options_nonces' );
+
+/*
+ * Get the logout URL
+ *
+ * @since  1.8.8
+ * @return string logout URL
+ */
+function affwp_get_logout_url() {
+
+	/**
+	 * Filters the URL to log out the current user.
+	 *
+	 * @since 1.8.8
+	 * @param string $logout_url URL to log out the current user.
+	 */
+	return apply_filters( 'affwp_logout_url', wp_logout_url( get_permalink() ) );
+}
+
+/**
+ * Retrieve a list of all published pages
+ *
+ * On large sites this can be expensive, so only load if on the settings page or $force is set to true
+ *
+ * @since 1.0
+ * @since 1.8.8 Moved to misc-functions.php to prevent fatal errors with other plugins incorrectly loading admin code without actually loading WP admin.
+ *        See https://github.com/AffiliateWP/AffiliateWP/issues/1431
+ *        See https://github.com/AffiliateWP/AffiliateWP/issues/1038
+ * @param bool $force Force the pages to be loaded even if not on settings
+ * @return array $pages_options An array of the pages
+ */
+function affwp_get_pages( $force = false ) {
+
+	$pages_options = array( 0 => '' ); // Blank option
+
+	if( ( ! isset( $_GET['page'] ) || 'affiliate-wp-settings' != $_GET['page'] ) && ! $force ) {
+		return $pages_options;
+	}
+
+	$pages = get_pages();
+	if ( $pages ) {
+		foreach ( $pages as $page ) {
+			$pages_options[ $page->ID ] = $page->post_title;
+		}
+	}
+
+	return $pages_options;
+
+}
+
+/**
+ * Returns the current AffiliateWP admin screen
+ *
+ * @since  1.9.1
+ *
+ * @return bool|string  Returns
+ */
+function affwp_get_current_screen() {
+
+	if ( ! affwp_is_admin_page() ) {
+		return false;
+	}
+
+	$page_now = false;
+
+	$page_now = ( isset( $_GET['page'] ) ) ? sanitize_text_field( $_GET['page'] ) : false;
+
+	return $page_now;
+
+}
+
+/**
+ * Outputs navigation tabs markup in core screens.
+ *
+ * @since 1.9.5
+ *
+ * @param array  $tabs       Navigation tabs.
+ * @param string $active_tab Active tab slug.
+ * @param array  $query_args Optional. Query arguments used to build the tab URLs. Default empty array.
+ */
+function affwp_navigation_tabs( $tabs, $active_tab, $query_args = array() ) {
+	$tabs = (array) $tabs;
+
+	if ( empty( $tabs ) ) {
+		return;
+	}
+
+	/**
+	 * Filters the navigation tabs immediately prior to output.
+	 *
+	 * @since 1.9.5
+	 *
+	 * @param array  $tabs Tabs array.
+	 * @param string $active_tab Active tab slug.
+	 * @param array  $query_args Query arguments used to build the tab URLs.
+	 */
+	$tabs = apply_filters( 'affwp_navigation_tabs', $tabs, $active_tab, $query_args );
+
+	foreach ( $tabs as $tab_id => $tab_name ) {
+		$query_args = array_merge( $query_args, array( 'tab' => $tab_id ) );
+		$tab_url    = add_query_arg( $query_args );
+
+		printf( '<a href="%1$s" alt="%2$s" class="%3$s">%4$s</a>',
+			esc_url( $tab_url ),
+			esc_attr( $tab_name ),
+			$active_tab == $tab_id ? 'nav-tab nav-tab-active' : 'nav-tab',
+			esc_html( $tab_name )
+		);
+	}
+
+	/**
+	 * Fires immediately after the navigation tabs output.
+	 *
+	 * @since 1.9.5
+	 *
+	 * @param array  $tabs Tabs array.
+	 * @param string $active_tab Active tab slug.
+	 * @param array  $query_args Query arguments used to build the tab URLs.
+	 */
+	do_action( 'affwp_after_navigation_tabs', $tabs, $active_tab, $query_args );
+}
+
+/**
+ * Enables stylesheet queue manipulation by wrapping wp_enqueue_style() with added context.
+ *
+ * @since 1.9.5
+ *
+ * @param string $handle  Registered stylesheet handle.
+ * @param string $context Optional. Context under which to enqueue the stylesheet.
+ */
+function affwp_enqueue_style( $handle, $context = '' ) {
+	/**
+	 * Filters whether to enqueue the given stylesheet.
+	 *
+	 * The dynamic portion of the hook name, `$handle` refers to the stylesheet handle.
+	 *
+	 * @since 1.9.5
+	 *
+	 * @see wp_enqueue_style()
+	 *
+	 * @param bool   $enqueue Whether to enqueue the stylesheet. Default true.
+	 * @param string $context Context under which to enqueue the stylesheet.
+	 */
+	if ( true === apply_filters( "affwp_enqueue_style_{$handle}", true, $context ) ) {
+		wp_enqueue_style( $handle );
+	}
+}
+
+/**
+ * Enables script queue manipulation by wrapping wp_enqueue_style() with added context.
+ *
+ * @since 1.9.5
+ *
+ * @param string $handle  Registered script handle.
+ * @param string $context Optional. Context under which to enqueue the script.
+ */
+function affwp_enqueue_script( $handle, $context = '' ) {
+	/**
+	 * Filters whether to enqueue the given script.
+	 *
+	 * The dynamic portion of the hook name, `$handle` refers to the script handle.
+	 *
+	 * @since 1.9.5
+	 *
+	 * @see wp_enqueue_script()
+	 *
+	 * @param bool   $enqueue Whether to enqueue the script. Default true.
+	 * @param string $context Context under which to enqueue the script.
+	 */
+	if ( true === apply_filters( "affwp_enqueue_script_{$handle}", true, $context ) ) {
+		wp_enqueue_script( $handle );
+	}
 }

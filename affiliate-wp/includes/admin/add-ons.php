@@ -14,7 +14,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * @return void
  */
 function affwp_add_ons_admin() {
-	$add_ons_tabs = apply_filters( 'affwp_add_ons_tabs', array( 'pro' => 'Pro', 'official-free' => 'Official Free' ) );
+	/**
+	 * Filters the add-ons tabs.
+	 *
+	 * @param array $tabs Add-ons tabs.
+	 */
+	$add_ons_tabs = (array) apply_filters( 'affwp_add_ons_tabs', array(
+		'pro'           => 'Pro',
+		'official-free' => 'Official Free'
+	) );
+
 	$active_tab = isset( $_GET['tab'] ) && array_key_exists( $_GET['tab'], $add_ons_tabs ) ? $_GET['tab'] : 'pro';
 
 	ob_start();
@@ -28,22 +37,7 @@ function affwp_add_ons_admin() {
 		</h1>
 		<p><?php _e( 'These add-ons <em><strong>add functionality</strong></em> to your AffiliateWP-powered site.', 'affiliate-wp' ); ?></p>
 		<h2 class="nav-tab-wrapper">
-			<?php
-			foreach( $add_ons_tabs as $tab_id => $tab_name ) {
-
-				$tab_url = add_query_arg( array(
-					'settings-updated' => false,
-					'tab'              => $tab_id
-				) );
-
-				$active = $active_tab == $tab_id ? ' nav-tab-active' : '';
-
-				echo '<a href="' . esc_url( $tab_url ) . '" title="' . esc_attr( $tab_name ) . '" class="nav-tab' . $active . '">';
-					echo esc_html( $tab_name );
-				echo '</a>';
-			}
-			?>
-
+			<?php affwp_navigation_tabs( $add_ons_tabs, $active_tab, array( 'settings-updated' => false ) ); ?>
 		</h2>
 		<div id="tab_container">
 

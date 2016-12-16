@@ -23,29 +23,32 @@ function affwp_search_users() {
 
 		switch ( $status ) {
 			case 'none':
-				$affiliates = affiliate_wp()->affiliates->get_affiliates(
+				$affiliate_users = affiliate_wp()->affiliates->get_affiliates(
 					array(
-						'number' => 9999,
+						'number' => -1,
+						'fields' => 'user_id',
 					)
 				);
-				$args = array( 'exclude' => array_map( 'absint', wp_list_pluck( $affiliates, 'user_id' ) ) );
+				$args = array( 'exclude' => $affiliate_users );
 				break;
 			case 'any':
-				$affiliates = affiliate_wp()->affiliates->get_affiliates(
+				$affiliate_users = affiliate_wp()->affiliates->get_affiliates(
 					array(
-						'number' => 9999,
+						'number' => -1,
+						'fields' => 'user_id',
 					)
 				);
-				$args = array( 'include' => array_map( 'absint', wp_list_pluck( $affiliates, 'user_id' ) ) );
+				$args = array( 'include' => $affiliate_users );
 				break;
 			default:
-				$affiliates = affiliate_wp()->affiliates->get_affiliates(
+				$affiliate_users = affiliate_wp()->affiliates->get_affiliates(
 					array(
-						'number' => 9999,
+						'number' => -1,
 						'status' => $status,
+						'fields' => 'user_id',
 					)
 				);
-				$args = array( 'include' => array_map( 'absint', wp_list_pluck( $affiliates, 'user_id' ) ) );
+				$args = array( 'include' => $affiliate_users );
 		}
 	}
 
@@ -59,8 +62,10 @@ function affwp_search_users() {
 
 	if ( $found_users ) {
 		foreach( $found_users as $user ) {
+			$label = empty( $user->user_email ) ? $user->user_login : "{$user->user_login} ({$user->user_email})";
+
 			$user_list[] = array(
-				'label'   => $user->user_login . " ({$user->user_email})",
+				'label'   => $label,
 				'value'   => $user->user_login,
 				'user_id' => $user->ID
 			);

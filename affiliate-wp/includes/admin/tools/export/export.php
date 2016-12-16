@@ -53,7 +53,11 @@ function affwp_process_referrals_export() {
 		return;
 	}
 
-	if( ! current_user_can( 'manage_options' ) ) {
+	$can_export = false;
+
+	$can_export = ( current_user_can( 'manage_options' ) || current_user_can( 'export_referral_data' ) ) ? true : false;
+
+	if( ! $can_export ) {
 		return;
 	}
 

@@ -46,6 +46,7 @@ class Affiliate_WP_Capabilities {
 
 			$wp_roles->add_cap( 'administrator', 'view_affiliate_reports' );
 			$wp_roles->add_cap( 'administrator', 'export_affiliate_data' );
+			$wp_roles->add_cap( 'administrator', 'export_referral_data' );
 			$wp_roles->add_cap( 'administrator', 'manage_affiliate_options' );
 			$wp_roles->add_cap( 'administrator', 'manage_affiliates' );
 			$wp_roles->add_cap( 'administrator', 'manage_referrals' );
@@ -69,12 +70,13 @@ class Affiliate_WP_Capabilities {
 				$wp_roles = new WP_Roles();
 			}
 		}
-		
+
 		if ( is_object( $wp_roles ) ) {
 
 			/** Site Administrator Capabilities */
 			$wp_roles->remove_cap( 'administrator', 'view_affiliate_reports' );
 			$wp_roles->remove_cap( 'administrator', 'export_affiliate_data' );
+			$wp_roles->remove_cap( 'administrator', 'export_referral_data' );
 			$wp_roles->remove_cap( 'administrator', 'manage_affiliate_options' );
 			$wp_roles->remove_cap( 'administrator', 'manage_affiliates' );
 			$wp_roles->remove_cap( 'administrator', 'manage_referrals' );

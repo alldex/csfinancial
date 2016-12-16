@@ -30,7 +30,7 @@ $affiliate_id = isset( $_GET['affiliate_id'] ) ? absint( $_GET['affiliate_id'] )
 		<tbody>
 
 			<tr>
-				<td><?php echo affwp_currency_filter( affwp_get_affiliate_earnings( $affiliate_id ) ); ?></td>
+				<td><?php echo affwp_get_affiliate_earnings( $affiliate_id, true ); ?></td>
 				<td><?php echo affwp_get_affiliate_unpaid_earnings( $affiliate_id, true ); ?></td>
 				<td><?php echo affwp_get_affiliate_referral_count( $affiliate_id ); ?></td>
 				<td><?php echo affiliate_wp()->referrals->count( array( 'affiliate_id' => $affiliate_id, 'status' => 'unpaid' ) ); ?></td>
@@ -48,6 +48,24 @@ $affiliate_id = isset( $_GET['affiliate_id'] ) ? absint( $_GET['affiliate_id'] )
 	$graph->set( 'x_mode', 'time' );
 	$graph->set( 'affiliate_id', $affiliate_id );
 	$graph->display();
-	
-	do_action( 'affwp_view_affiliate_report_bottom' ); ?>
+
+	// Recent Payouts.
+	$payouts_table = new AffWP_Payouts_Table( array(
+		'query_args' => array(
+			'affiliate_id' => $affiliate_id
+		),
+		'display_args' => array(
+			'hide_bulk_options'    => true,
+			'columns_to_hide'      => array( 'status' ),
+			'hide_column_controls' => true,
+		),
+	) );
+	$payouts_table->prepare_items();
+	?>
+	<h2><?php _e( 'Recent Payouts', 'affiliate-wp' ); ?></h2>
+
+	<?php $payouts_table->views(); ?>
+	<?php $payouts_table->display(); ?>
+
+	<?php do_action( 'affwp_view_affiliate_report_bottom' ); ?>
 </div>

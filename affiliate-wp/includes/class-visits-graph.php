@@ -12,14 +12,8 @@ class Affiliate_WP_Visits_Graph extends Affiliate_WP_Graph {
 	 */
 	public function __construct( $_data = array() ) {
 
-		if( empty( $_data ) ) {
-
-			$this->data = $this->get_data();
-
-		}
-
 		// Generate unique ID
-		$this->id   = md5( rand() );
+		$this->id = md5( rand() );
 
 		// Setup default options;
 		$this->options = array(
@@ -39,8 +33,9 @@ class Affiliate_WP_Visits_Graph extends Affiliate_WP_Graph {
 			'lines'           => true,
 			'points'          => true,
 			'affiliate_id'    => false,
+			'show_controls'   => true,
+			'query_args'      => array(),
 		);
-
 	}
 
 	/**
@@ -63,13 +58,17 @@ class Affiliate_WP_Visits_Graph extends Affiliate_WP_Graph {
 			'end'   => $end
 		);
 
-		$visits = affiliate_wp()->visits->get_visits( array(
+		$difference = ( strtotime( $date['end'] ) - strtotime( $date['start'] ) );
+
+		$args = wp_parse_args( $this->get( 'query_args' ), array(
 			'orderby'      => 'date',
 			'order'        => 'ASC',
 			'date'         => $date,
 			'number'       => -1,
 			'affiliate_id' => $this->get( 'affiliate_id' )
 		) );
+
+		$visits = affiliate_wp()->visits->get_visits( $args );
 
 		$converted_data   = array();
 		$unconverted_data = array();
@@ -79,7 +78,13 @@ class Affiliate_WP_Visits_Graph extends Affiliate_WP_Graph {
 			// Loop through each visit and find how many there are per day
 			foreach( $visits as $visit ) {
 
-				$date = date( 'Y-m-d', strtotime( $visit->date ) );
+				if ( in_array( $dates['range'], array( 'this_year', 'last_year' ), true )
+					|| $difference >= YEAR_IN_SECONDS
+				) {
+					$date = date( 'Y-m', strtotime( $visit->date ) );
+				} else {
+					$date = date( 'Y-m-d', strtotime( $visit->date ) );
+				}
 
 				$this->total += 1;
 

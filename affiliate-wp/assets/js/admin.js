@@ -210,4 +210,17 @@ jQuery(document).ready(function($) {
 
 	});
 
-});
+	/**
+	 * Enable meta box toggle states
+	 *
+	 * @since  1.9
+	 *
+	 * @param  typeof postboxes postboxes object
+	 *
+	 * @return {void}
+	 */
+	if ( typeof postboxes !== 'undefined' ) {
+		postboxes.add_postbox_toggles( pagenow );
+	}
+
+} );

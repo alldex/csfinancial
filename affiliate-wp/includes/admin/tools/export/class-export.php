@@ -181,6 +181,19 @@ class Affiliate_WP_Export {
 		// Output CSV rows
 		$this->csv_rows_out();
 
+		/**
+		 * Fires at the end of an export.
+		 *
+		 * The dynamic portion of the hook name, `$this->export_type`, refers to
+		 * the export type set by the extending sub-class.
+		 *
+		 * @since 1.9
+		 * @since 1.9.2 Renamed to 'affwp_export_type_end' to prevent a conflict with another
+		 *              dynamic hook.
+		 *
+		 * @param Affiliate_WP_Export $this Affiliate_WP_Export instance.
+		 */
+		do_action( "affwp_export_{$this->export_type}_end", $this );
 		exit;
 	}
 }

@@ -44,7 +44,7 @@
 
 				<td>
 					<input type="text" name="url" id="url" class="regular-text" />
-					<p class="description"><?php _e( 'Where the creative should link to. The affiliate\'s referral ID will be automatically appended.', 'affiliate-wp' ); ?></p>
+					<p class="description"><?php _e( 'Where the creative should link to. The affiliate&#8217;s referral ID will be automatically appended.', 'affiliate-wp' ); ?></p>
 				</td>
 
 			</tr>

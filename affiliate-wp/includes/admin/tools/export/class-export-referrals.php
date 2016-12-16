@@ -98,19 +98,41 @@ class Affiliate_WP_Referral_Export extends Affiliate_WP_Export {
 
 			foreach( $referrals as $referral ) {
 
-				$data[] = array(
+				/**
+				 * Filters an individual line of referral data to be exported.
+				 *
+				 * @since 1.9.5
+				 *
+				 * @param array           $line {
+				 *     Single line of exported referral data
+				 *
+				 *     @type int    $affiliate_id  Affiliate ID.
+				 *     @type string $email         Affiliate email.
+				 *     @type string $payment_email Affiliate payment email.
+				 *     @type float  $amount        Referral amount.
+				 *     @type string $currency      Referral currency.
+				 *     @type string $description   Referral description.
+				 *     @type string $campaign      Campaign.
+				 *     @type string $reference     Referral reference.
+				 *     @type string $context       Context the referral was created under, e.g. 'woocommerce'.
+				 *     @type string $status        Referral status.
+				 *     @type string $date          Referral date.
+				 * }
+				 * @param \AffWP\Referral $referral Referral object.
+				 */
+				$data[] = apply_filters( 'affwp_referral_export_get_data_line', array(
 					'affiliate_id'  => $referral->affiliate_id,
 					'email'         => affwp_get_affiliate_email( $referral->affiliate_id ),
 					'payment_email' => affwp_get_affiliate_payment_email( $referral->affiliate_id ),
 					'amount'        => $referral->amount,
 					'currency'      => $referral->currency,
-					'description'   => $referral->description,
+					'description'   => str_replace(',', "\r\n", $referral->description),
 					'campaign'      => $referral->campaign,
 					'reference'     => $referral->reference,
 					'context'       => $referral->context,
 					'status'        => $referral->status,
-					'date'          => $referral->date,
-				);
+					'date'          => $referral->date
+				), $referral );
 
 			}
 

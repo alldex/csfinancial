@@ -177,7 +177,10 @@ class AffWP_AddOn_Updater {
 
 			// build a plugin list row, with update notification
 			$wp_list_table = _get_list_table( 'WP_Plugins_List_Table' );
-			echo '<tr class="plugin-update-tr"><td colspan="' . $wp_list_table->get_column_count() . '" class="plugin-update colspanchange"><div class="update-message">';
+			echo '<tr class="plugin-update-tr" id="' . $this->slug . '-update" data-slug="' . $this->slug . '" data-plugin="' . $this->slug . '/' . $this->name . '">';
+			echo '<td colspan="3" class="plugin-update colspanchange">';
+			echo '<div class="update-message notice inline notice-warning notice-alt"><p>';
+
 
 			$changelog_link = self_admin_url( 'index.php?affwp_action=view_plugin_changelog&plugin=' . $this->name . '&slug=' . $this->slug . '&addon_id=' . $this->addon_id . '&TB_iframe=true&width=772&height=911' );
 
@@ -198,7 +201,7 @@ class AffWP_AddOn_Updater {
 				);
 			}
 
-			echo '</div></td></tr>';
+			echo '</p></div></td></tr>';
 		}
 
 		// Restore our filter

@@ -26,8 +26,8 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 
 		add_action( 'rcp_add_subscription_form', array( $this, 'subscription_new' ) );
 		add_action( 'rcp_edit_subscription_form', array( $this, 'subscription_edit' ) );
-		add_action( 'rcp_add_subscription', array( $this, 'store_subscription_rate' ), 10, 2 );
-		add_action( 'rcp_edit_subscription_level', array( $this, 'store_subscription_rate' ), 10, 2 );
+		add_action( 'rcp_add_subscription', array( $this, 'store_subscription_meta' ), 10, 2 );
+		add_action( 'rcp_edit_subscription_level', array( $this, 'store_subscription_meta' ), 10, 2 );
 
 	}
 
@@ -41,6 +41,25 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 
 		$affiliate_discount = false;
 
+		if( function_exists( 'rcp_get_registration' ) ) {
+
+			global $rcp_levels_db;
+
+			$subscription_id = rcp_get_registration()->get_subscription();
+
+			// Bail if referrals are disabled on this subscription
+			if( $rcp_levels_db->get_meta( $subscription_id, 'affwp_rcp_disable_referrals', true ) ) {
+
+				return;
+
+			}
+
+		} else {
+
+			$subscription_id = absint( $_POST['rcp_level'] );
+
+		}
+
 		if( ! empty( $_POST['rcp_discount'] ) ) {
 
 			global $wpdb;
@@ -51,6 +70,10 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 			$user_id       = affwp_get_affiliate_user_id( $affiliate_id );
 			$discount_aff  = get_user_meta( $user_id, 'affwp_discount_rcp_' . $discount_obj->id, true );
 
+			$subscription_key = rcp_get_subscription_key( $user_id );
+			$subscription = rcp_get_subscription( $user_id );
+			$visit_id    = affiliate_wp()->tracking->get_visit_id();
+
 			if( $discount_aff && affiliate_wp()->tracking->is_valid_affiliate( $affiliate_id ) ) {
 
 				$affiliate_discount = true;
@@ -59,13 +82,13 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 
 				$key = get_user_meta( $user_id, 'rcp_pending_subscription_key', true );
 				if( empty( $key ) ) {
-					$key = rcp_get_subscription_key( $user_id );
+					$key = $subscription_key;
 				}
 
 				$amount = $this->calculate_referral_amount( $price, $key, absint( $_POST['rcp_level'] ) );
 
 				if( 0 == $amount && affiliate_wp()->settings->get( 'ignore_zero_referrals' ) ) {
-				
+
 					if( $this->debug ) {
 						$this->log( 'Referral not created due to 0.00 amount.' );
 					}
@@ -73,14 +96,14 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 					return false; // Ignore a zero amount referral
 				}
 
-				$referral_id = affiliate_wp()->referrals->add( array(
+				$referral_id = affiliate_wp()->referrals->add( apply_filters( 'affwp_insert_pending_referral', array(
 					'amount'       => $amount,
-					'reference'    => rcp_get_subscription_key( $user_id ),
-					'description'  => rcp_get_subscription( $user_id ),
+					'reference'    => $subscription_key,
+					'description'  => $subscription,
 					'affiliate_id' => $this->affiliate_id,
 					'context'      => $this->context,
 					'campaign'     => affiliate_wp()->tracking->get_campaign(),
-				) );
+				), $amount, $subscription_key, $subscription, $this->affiliate_id, $visit_id, array(), $this->context ) );
 
 			}
 
@@ -91,7 +114,7 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 			$user = get_userdata( $user_id );
 
 			if ( $this->is_affiliate_email( $user->user_email ) ) {
-			
+
 				if( $this->debug ) {
 					$this->log( 'Referral not created because affiliate\'s own account was used.' );
 				}
@@ -99,16 +122,19 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 				return; // Customers cannot refer themselves
 			}
 
+			$subscription_key = rcp_get_subscription_key( $user_id );
+			$subscription     = rcp_get_subscription( $user_id );
+
 			$key = get_user_meta( $user_id, 'rcp_pending_subscription_key', true );
 			if( empty( $key ) ) {
-				$key = rcp_get_subscription_key( $user_id );
+				$key = $subscription_key;
 			}
 
-			$total = $this->calculate_referral_amount( $price, $key, absint( $_POST['rcp_level'] )  );
+			$total = $this->calculate_referral_amount( $price, $key, $subscription_id );
 
-			$this->insert_pending_referral( $total, $key, rcp_get_subscription( $user_id ) );
+			$this->insert_pending_referral( $total, $key, $subscription );
+
 		}
-
 	}
 
 	/**
@@ -194,11 +220,14 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 		add_filter( 'affwp_is_admin_page', '__return_true' );
 		affwp_admin_scripts();
 
+		$user_name    = '';
+		$user_id      = 0;
 		$affiliate_id = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $wpdb->usermeta WHERE meta_key = %s", 'affwp_discount_rcp_' . $discount_id ) );
-		$user_id      = affwp_get_affiliate_user_id( $affiliate_id );
-		$user         = get_userdata( $user_id );
-		$user_name    = $user ? $user->user_login : '';
-
+		if( $affiliate_id ) {
+			$user_id      = affwp_get_affiliate_user_id( $affiliate_id );
+			$user         = get_userdata( $user_id );
+			$user_name    = $user ? $user->user_login : '';
+		}
 ?>
 		<table class="form-table">
 			<tbody>
@@ -353,7 +382,16 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 	*/
 	public function subscription_edit( $level ) {
 
-		$rate = get_option( 'affwp_rcp_level_rate_' . $level->id );
+		global $rcp_levels_db;
+
+		$rate     = get_option( 'affwp_rcp_level_rate_' . $level->id );
+		$disabled = false;
+
+		// Make sure RCP version is compatible
+		if ( is_a( $rcp_levels_db, 'RCP_Levels' ) ) {
+
+			$disabled = (bool) $rcp_levels_db->get_meta( $level->id, 'affwp_rcp_disable_referrals', true );
+		}
 ?>
 		<tr class="form-field">
 			<th scope="row" valign="top">
@@ -364,6 +402,19 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 				<p class="description"><?php _e( 'This rate will be used to calculate affiliate earnings when members subscribe to this level. Leave blank to use the site default referral rate.', 'affiliate-wp' ); ?></p>
 			</td>
 		</tr>
+		<?php if ( is_a( $rcp_levels_db, 'RCP_Levels' ) ) : ?>
+			<tr class="form-field">
+				<th scope="row" valign="top">
+					<?php _e( 'Disable Referrals', 'affiliate-wp' ); ?>
+				</th>
+				<td>
+					<label for="rcp-affwp-disable-referrals">
+						<input name="affwp_rcp_disable_referrals" id="rcp-affwp-disable-referrals" type="checkbox" value="1"<?php checked( true, $disabled ); ?>/>
+						<?php _e( 'Disable referrals on this subscription level.', 'affiliate-wp' ); ?></p>
+					</label>
+				</td>
+			</tr>
+		<?php endif; ?>
 <?php
 	}
 
@@ -373,7 +424,9 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 	 * @access  public
 	 * @since   1.7
 	*/
-	public function store_subscription_rate( $level_id = 0, $args ) {
+	public function store_subscription_meta( $level_id = 0, $args ) {
+
+		global $rcp_levels_db;
 
 		if( ! empty( $_POST['affwp_rcp_level_rate'] ) ) {
 
@@ -382,6 +435,21 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 		} else {
 
 			delete_option( 'affwp_rcp_level_rate_' . $level_id );
+
+		}
+
+		// Make sure RCP version is compatible
+		if ( ! is_a( $rcp_levels_db, 'RCP_Levels' ) ) {
+			return;
+		}
+
+		if( ! empty( $_POST['affwp_rcp_disable_referrals'] ) ) {
+
+			$rcp_levels_db->update_meta( $level_id, 'affwp_rcp_disable_referrals', 1 );
+
+		} else {
+
+			$rcp_levels_db->delete_meta( $level_id, 'affwp_rcp_disable_referrals' );
 
 		}
 

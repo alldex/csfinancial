@@ -18,7 +18,7 @@ class Affiliate_WP_Migrate {
 		$step  = isset( $_REQUEST['step'] )  ? absint( $_REQUEST['step'] )              : 1;
 		$type  = isset( $_REQUEST['type'] )  ? sanitize_text_field( $_REQUEST['type'] ) : false;
 		$part  = isset( $_REQUEST['part'] )  ? sanitize_text_field( $_REQUEST['part'] ) : false;
-		$roles = isset( $_REQUEST['roles'] ) ? array_map( 'sanitize_text_field', explode( ',', $_REQUEST['roles'] ) ) : array();
+		$roles = isset( $_REQUEST['roles'] ) ? array_map( 'sanitize_key', explode( ',', $_REQUEST['roles'] ) ) : array();
 
 		if ( ! $type ) {
 

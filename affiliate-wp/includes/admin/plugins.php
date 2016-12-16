@@ -24,9 +24,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * @return array $links
  */
 function affwp_plugin_action_links( $links, $file ) {
-	$settings_link = '<a href="' . admin_url( 'admin.php?page=affiliate-wp-settings' ) . '">' . esc_html__( 'General Settings', 'affiliate-wp' ) . '</a>';
-	if ( $file == 'affiliate-wp/affiliate-wp.php' )
-		array_unshift( $links, $settings_link );
+	$affwp_links = '<a href="' . admin_url( 'admin.php?page=affiliate-wp-settings' ) . '">' . esc_html__( 'General Settings', 'affiliate-wp' ) . '</a>';
+	if ( $file == 'affiliate-wp/affiliate-wp.php' ) {
+		array_unshift( $links, $affwp_links );
+	}
 
 	return $links;
 }
@@ -43,11 +44,13 @@ add_filter( 'plugin_action_links', 'affwp_plugin_action_links', 10, 2 );
  * @return array $input
  */
 function affwp_plugin_row_meta( $input, $file ) {
-	if ( $file != 'affiliate-wp/affiliate-wp.php' )
+
+	if ( $file != 'affiliate-wp/affiliate-wp.php' ) {
 		return $input;
+	}
 
 	$links = array(
-		'<a href="' . admin_url( 'index.php?page=affwp-getting-started' ) . '">' . esc_html__( 'Getting Started', 'affiliate-wp' ) . '</a>'
+		'<a href="https://affiliatewp.com/changelog">' . esc_html__( 'Changelog', 'affiliate-wp' ) . '</a>'
 	);
 
 	$input = array_merge( $input, $links );

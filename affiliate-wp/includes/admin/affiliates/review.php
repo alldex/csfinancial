@@ -60,7 +60,7 @@ $promotion_method = get_user_meta( $affiliate->user_id, 'affwp_promotion_method'
 				</th>
 
 				<td>
-					<a href="<?php echo esc_url( $user_url ); ?>" title="<?php _e( 'Affiliate\'s Website URL', 'affiliate-wp' ); ?>" target="blank"><?php echo esc_url( $user_url ); ?></a>
+					<a href="<?php echo esc_url( $user_url ); ?>" title="<?php _e( 'Affiliate&#8217;s Website URL', 'affiliate-wp' ); ?>" target="blank"><?php echo esc_url( $user_url ); ?></a>
 				</td>
 
 			</tr>

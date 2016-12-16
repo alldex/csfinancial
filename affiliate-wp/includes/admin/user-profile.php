@@ -54,8 +54,38 @@ function affwp_user_profile_fields( $user ) {
 				<?php endif; ?>
 			</td>
 		</tr>
+
+		<?php if ( ! affiliate_wp()->emails->is_email_disabled()
+			&& ( $affiliate && ! in_array( $affiliate->status, array( 'active', 'inactive' ), true ) )
+		) : ?>
+			<tr>
+				<th scope="row"><label for="disable-affiliate-email"><?php _e( 'Disable Affiliate Email',  'affiliate-wp' ); ?></label></th>
+				<td>
+					<label for="disable-affiliate-email"><input type="checkbox" id="disable-affiliate-email" name="disable_affiliate_email" value="1" <?php checked( true, get_user_meta( $user->ID, 'affwp_disable_affiliate_email', true ) ); ?> /> <?php _e( 'Disable the application accepted email sent to the affiliate.', 'affiliate-wp' ); ?></label>
+				</td>
+			</tr>
+		<?php endif; ?>
 	</table>
 	<?php
 }
 add_action( 'show_user_profile', 'affwp_user_profile_fields' );
 add_action( 'edit_user_profile', 'affwp_user_profile_fields' );
+
+/**
+ * Save AffWP user settings.
+ *
+ * @since 1.9.5
+ *
+ * @param int $user_id Current user ID.
+ */
+function affwp_user_profile_update( $user_id ) {
+	if ( current_user_can( 'edit_user', $user_id ) ) {
+		if ( isset( $_REQUEST['disable_affiliate_email'] ) ) {
+			update_user_meta( $user_id, 'affwp_disable_affiliate_email', 1 );
+		} else {
+			delete_user_meta( $user_id, 'affwp_disable_affiliate_email' );
+		}
+	}
+}
+add_action( 'personal_options_update',  'affwp_user_profile_update' );
+add_action( 'edit_user_profile_update', 'affwp_user_profile_update' );

@@ -19,6 +19,58 @@ class Affiliate_WP_Migrate_Users extends Affiliate_WP_Migrate_Base {
 	public $roles = array();
 
 	/**
+	 * Whether debug mode is enabled.
+	 *
+	 * @access  public
+	 * @since   1.8.8
+	 * @var     bool
+	 */
+	public $debug;
+
+	/**
+	 * Logging class object
+	 *
+	 * @access  public
+	 * @since   1.8.8
+	 * @var     Affiliate_WP_Logging
+	 */
+	public $logs;
+
+	/**
+	 * Constructor.
+	 *
+	 * Sets up logging.
+	 *
+	 * @access  public
+	 * @since   1.8.8
+	 */
+	public function __construct() {
+
+		$this->debug = (bool) affiliate_wp()->settings->get( 'debug_mode', false );
+
+		if( $this->debug ) {
+			$this->logs = new Affiliate_WP_Logging;
+		}
+	}
+
+	/**
+	 * Writes a log message.
+	 *
+	 * @access  public
+	 * @since   1.8.8
+	 *
+	 * @param string $message Optional. Message to log. Default empty.
+	 */
+	public function log( $message = '' ) {
+
+		if ( $this->debug ) {
+
+			$this->logs->log( $message );
+
+		}
+	}
+
+	/**
 	 * Process the migration routine
 	 *
 	 * @since  1.3
@@ -64,10 +116,14 @@ class Affiliate_WP_Migrate_Users extends Affiliate_WP_Migrate_Base {
 				'type'  => 'users',
 				'part'  => $part,
 				'step'  => $step,
-				'roles' => implode( ',', array_map( 'sanitize_text_field', $this->roles ) )
+				'roles' => array_map( 'sanitize_key', $this->roles )
 			),
 			admin_url( 'index.php' )
 		);
+
+		if( $this->debug ) {
+			$this->log( $redirect );
+		}
 
 		wp_safe_redirect( $redirect );
 
@@ -85,15 +141,29 @@ class Affiliate_WP_Migrate_Users extends Affiliate_WP_Migrate_Base {
 	public function do_users( $step = 1 ) {
 
 		if ( ! $this->roles ) {
+			
 			return false;
+		}
+
+		$affiliate_user_ids = get_transient( 'affwp_migrate_users_user_ids' );
+
+		if ( false === $affiliate_user_ids ) {
+			$affiliate_user_ids = affiliate_wp()->affiliates->get_affiliates( array(
+				'number' => -1,
+				'fields' => 'user_id',
+			) );
+
+			set_transient( 'affwp_migrate_users_user_ids', $affiliate_user_ids, 10 * MINUTE_IN_SECONDS );
 		}
 
 		$args = array(
 			'number'     => 100,
 			'offset'     => ( $step - 1 ) * 100,
+			'exclude'    => $affiliate_user_ids,
 			'orderby'    => 'ID',
 			'order'      => 'ASC',
-			'role__in'   => $this->roles
+			'role__in'   => $this->roles,
+			'fields'     => array( 'ID', 'user_email', 'user_registered' )
 		);
 
 		$users = get_users( $args );
@@ -106,17 +176,11 @@ class Affiliate_WP_Migrate_Users extends Affiliate_WP_Migrate_Base {
 
 		foreach ( $users as $user ) {
 
-			$affiliate_exists = affiliate_wp()->affiliates->get_by( 'user_id', $user->data->ID );
-
-			if ( $affiliate_exists ) {
-				continue;
-			}
-
 			$args = array(
 				'status'          => 'active',
-				'user_id'         => $user->data->ID,
-				'payment_email'	  => $user->data->user_email,
-				'date_registered' => $user->data->user_registered
+				'user_id'         => $user->ID,
+				'payment_email'	  => $user->user_email,
+				'date_registered' => $user->user_registered
 			);
 
 			$inserted[] = affiliate_wp()->affiliates->insert( $args, 'affiliate' );
@@ -127,8 +191,14 @@ class Affiliate_WP_Migrate_Users extends Affiliate_WP_Migrate_Base {
 			return false;
 		}
 
-		return true;
+		if ( ! $current_count = $this->get_stored_data( 'affwp_migrate_users_total_count' ) ) {
+			$current_count = 0;
+		}
+		$current_count = $current_count + count( $inserted );
 
+		$this->store_data( 'affwp_migrate_users_total_count', $current_count, array( '%s', '%d', '%s' ) );
+
+		return true;
 	}
 
 	/**
@@ -138,6 +208,9 @@ class Affiliate_WP_Migrate_Users extends Affiliate_WP_Migrate_Base {
 	 * @return void
 	 */
 	public function finish() {
+
+		// Clean up.
+		delete_transient( 'affwp_migrate_users_user_ids' );
 
 		$redirect = add_query_arg(
 			array(

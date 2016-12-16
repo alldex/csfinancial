@@ -14,11 +14,17 @@ class Affiliate_WP_Settings {
 
 		$this->options = get_option( 'affwp_settings', array() );
 
+		// Set up.
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'activate_license' ) );
 		add_action( 'admin_init', array( $this, 'deactivate_license' ) );
 		add_action( 'admin_init', array( $this, 'check_license' ) );
 
+		// Global settings.
+		add_action( 'affwp_pre_get_registered_settings', array( $this, 'handle_global_license_setting' ) );
+		add_action( 'affwp_pre_get_registered_settings', array( $this, 'handle_global_debug_mode_setting' ) );
+
+		// Sanitization.
 		add_filter( 'affwp_settings_emails', array( $this, 'email_approval_settings' ) );
 		add_filter( 'affwp_settings_sanitize', array( $this, 'sanitize_referral_variable' ), 10, 2 );
 		add_filter( 'affwp_settings_sanitize_text', array( $this, 'sanitize_text_fields' ), 10, 2 );
@@ -26,6 +32,10 @@ class Affiliate_WP_Settings {
 		add_filter( 'affwp_settings_sanitize_checkbox', array( $this, 'sanitize_cb_fields' ), 10, 2 );
 		add_filter( 'affwp_settings_sanitize_number', array( $this, 'sanitize_number_fields' ), 10, 2 );
 		add_filter( 'affwp_settings_sanitize_rich_editor', array( $this, 'sanitize_rich_editor_fields' ), 10, 2 );
+
+		// Capabilities
+		add_filter( 'option_page_capability_affwp_settings', array( $this, 'option_page_capability' ) );
+
 	}
 
 	/**
@@ -235,6 +245,11 @@ class Affiliate_WP_Settings {
 		// Loop through each setting being saved and pass it through a sanitization filter
 		foreach ( $input as $key => $value ) {
 
+			// Don't overwrite the global license key.
+			if ( 'license_key' === $key ) {
+				$value = self::get_license_key( $value );
+			}
+
 			// Get the setting type (checkbox, select, etc)
 			$type              = isset( $settings[ $tab ][ $key ][ 'type' ] ) ? $settings[ $tab ][ $key ][ 'type' ] : false;
 			$sanitize_callback = isset( $settings[ $tab ][ $key ][ 'sanitize_callback' ] ) ? $settings[ $tab ][ $key ][ 'sanitize_callback' ] : false;
@@ -347,6 +362,16 @@ class Affiliate_WP_Settings {
 	}
 
 	/**
+	 * Set the capability needed to save affiliate settings
+	 *
+	 * @since 1.9
+	 * @return string
+	*/
+	public function option_page_capability( $capability ) {
+		return 'manage_affiliate_options';
+	}
+
+	/**
 	 * Retrieve the array of plugin settings
 	 *
 	 * @since 1.0
@@ -358,21 +383,16 @@ class Affiliate_WP_Settings {
 		$user_info = get_userdata( get_current_user_id() );
 		$username  = $user_info ? esc_html( $user_info->user_login ) : '';
 
-		// Handle debug_mode description.
-		if ( defined( 'AFFILIATE_WP_DEBUG' ) && true === AFFILIATE_WP_DEBUG ) {
-			$this->options['debug_mode'] = 1;
+		/**
+		 * Fires before attempting to retrieve registered settings.
+		 *
+		 * @since 1.9
+		 *
+		 * @param Affiliate_WP_Settings $this Settings instance.
+		 */
+		do_action( 'affwp_pre_get_registered_settings', $this );
 
-			// Globally enabled.
-			add_filter( 'affwp_settings_misc', function( $misc_settings ) {
-				$misc_settings['debug_mode']['disabled'] = true;
-
-				return $misc_settings;
-			} );
-
-			$debug_mode_desc = __( 'Debug mode is globally enabled via <code>AFFILIATE_WP_DEBUG</code> set in <code>wp-config.php</code>. This setting cannot be modified from this screen.', 'affiliate-wp' );
-		} else {
-			$debug_mode_desc = __( 'Check this box to enable debug mode. This will turn on error logging for the referral process to help identify problems.', 'affiliate-wp' );
-		}
+		$emails_tags_list = affwp_get_emails_tags_list();
 
 		$settings = array(
 			/** General Settings */
@@ -563,7 +583,7 @@ class Affiliate_WP_Settings {
 					),
 					'registration_email' => array(
 						'name' => __( 'Registration Email Content', 'affiliate-wp' ),
-						'desc' => __( 'Enter the email to send when a new affiliate registers. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . affwp_get_emails_tags_list(),
+						'desc' => __( 'Enter the email to send when a new affiliate registers. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 						'type' => 'rich_editor',
 						'std' => sprintf( __( 'A new affiliate has registered on your site, %s', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Name: ', 'affiliate-wp' ) . "{name}\n\n{website}\n\n{promo_method}"
 					),
@@ -575,7 +595,7 @@ class Affiliate_WP_Settings {
 					),
 					'accepted_email' => array(
 						'name' => __( 'Application Accepted Email Content', 'affiliate-wp' ),
-						'desc' => __( 'Enter the email to send when an application is accepted. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . affwp_get_emails_tags_list(),
+						'desc' => __( 'Enter the email to send when an application is accepted. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 						'type' => 'rich_editor',
 						'std' => __( 'Congratulations {name}!', 'affiliate-wp' ) . "\n\n" . sprintf( __( 'Your affiliate application on %s has been accepted!', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Log into your affiliate area at', 'affiliate-wp' ) . ' {login_url}'
 					),
@@ -587,7 +607,7 @@ class Affiliate_WP_Settings {
 					),
 					'referral_email' => array(
 						'name' => __( 'New Referral Email Content', 'affiliate-wp' ),
-						'desc' => __( 'Enter the email to send on new referrals. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . affwp_get_emails_tags_list(),
+						'desc' => __( 'Enter the email to send on new referrals. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 						'type' => 'rich_editor',
 						'std' => __( 'Congratulations {name}!', 'affiliate-wp' ) . "\n\n" . __( 'You have been awarded a new referral of', 'affiliate-wp' ) . ' {amount} ' . sprintf( __( 'on %s!', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Log into your affiliate area to view your earnings or disable these notifications:', 'affiliate-wp' ) . ' {login_url}'
 					)
@@ -597,18 +617,23 @@ class Affiliate_WP_Settings {
 			'misc' => apply_filters( 'affwp_settings_misc',
 				array(
 					'allow_affiliate_registration' => array(
-						'name' => __( 'Allow affiliate registration', 'affiliate-wp' ),
+						'name' => __( 'Allow Affiliate Registration', 'affiliate-wp' ),
 						'desc' => __( 'Should affiliates be able to register accounts for themselves?', 'affiliate-wp' ),
 						'type' => 'checkbox'
 					),
 					'require_approval' => array(
-						'name' => __( 'Require approval', 'affiliate-wp' ),
+						'name' => __( 'Require Approval', 'affiliate-wp' ),
 						'desc' => __( 'Require that site admins approve affiliates before they can begin earning referrals?', 'affiliate-wp' ),
 						'type' => 'checkbox'
 					),
 					'auto_register' => array(
 						'name' => __( 'Auto Register New Users', 'affiliate-wp' ),
 						'desc' => __( 'Automatically register new users as affiliates?', 'affiliate-wp' ),
+						'type' => 'checkbox'
+					),
+					'logout_link' => array(
+						'name' => __( 'Logout Link', 'affiliate-wp' ),
+						'desc' => __( 'Add a logout link to the Affiliate Area.', 'affiliate-wp' ),
 						'type' => 'checkbox'
 					),
 					'default_referral_url' => array(
@@ -648,7 +673,7 @@ class Affiliate_WP_Settings {
 					),
 					'debug_mode' => array(
 						'name' => __( 'Enable Debug Mode?', 'affiliate-wp' ),
-						'desc' => $debug_mode_desc,
+						'desc' => __( 'Check this box to enable debug mode. This will turn on error logging for the referral process to help identify problems.', 'affiliate-wp' ),
 						'type' => 'checkbox'
 					),
 					'uninstall_on_delete' => array(
@@ -676,6 +701,8 @@ class Affiliate_WP_Settings {
 			return $email_settings;
 		}
 
+		$emails_tags_list = affwp_get_emails_tags_list();
+
 		$new_email_settings = array(
 			'pending_subject' => array(
 				'name' => __( 'Application Pending Email Subject', 'affiliate-wp' ),
@@ -685,9 +712,9 @@ class Affiliate_WP_Settings {
 			),
 			'pending_email' => array(
 				'name' => __( 'Application Pending Email Content', 'affiliate-wp' ),
-				'desc' => __( 'Enter the email to send when an application is pending. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . affwp_get_emails_tags_list(),
+				'desc' => __( 'Enter the email to send when an application is pending. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 				'type' => 'rich_editor',
-				'std' => __( 'Hi {name}!', 'affiliate-wp' ) . "\n\n" . __( 'Thanks for your recent affiliate registration on {site_name}.', 'affiliate-wp' ) . "\n\n" . __( 'We\'re currently reviewing your affiliate application and will be in touch soon!', 'affiliate-wp' ) . "\n\n"
+				'std' => __( 'Hi {name}!', 'affiliate-wp' ) . "\n\n" . __( 'Thanks for your recent affiliate registration on {site_name}.', 'affiliate-wp' ) . "\n\n" . __( 'We&#8217;re currently reviewing your affiliate application and will be in touch soon!', 'affiliate-wp' ) . "\n\n"
 			),
 			'rejection_subject' => array(
 				'name' => __( 'Application Rejection Email Subject', 'affiliate-wp' ),
@@ -697,7 +724,7 @@ class Affiliate_WP_Settings {
 			),
 			'rejection_email' => array(
 				'name' => __( 'Application Rejection Email Content', 'affiliate-wp' ),
-				'desc' => __( 'Enter the email to send when an application is rejected. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . affwp_get_emails_tags_list(),
+				'desc' => __( 'Enter the email to send when an application is rejected. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 				'type' => 'rich_editor',
 				'std' => __( 'Hi {name},', 'affiliate-wp' ) . "\n\n" . __( 'We regret to inform you that your recent affiliate registration on {site_name} was rejected.', 'affiliate-wp' ) . "\n\n"
 			)
@@ -853,21 +880,20 @@ class Affiliate_WP_Settings {
 	 * @return void
 	 */
 	function license_callback( $args ) {
+		// Must use a 'readonly' attribute over disabled to ensure the value is passed in $_POST.
+		$readonly = $this->is_setting_disabled( $args ) ? __checked_selected_helper( $args['disabled'], true, false, 'readonly' ) : '';
 
-		if ( isset( $this->options[ $args['id'] ] ) )
-			$value = $this->options[ $args['id'] ];
-		else
-			$value = isset( $args['std'] ) ? $args['std'] : '';
+		$license_key = self::get_license_key();
 
-		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
-		$html = '<input type="text" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '"/>';
-		$license_status = $this->get( 'license_status' );
-		$license_key = ! empty( $value ) ? $value : false;
+		$size   = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
+		$html   = '<input type="text" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $license_key ) ) . '" ' . $readonly . '/>';
+		$status = $this->get( 'license_status' );
+		$status = is_object( $status ) ? $status->license : $status;
 
-		if( 'valid' === $license_status && ! empty( $license_key ) ) {
+		if( 'valid' === $status && ! empty( $license_key ) ) {
 			$html .= '<input type="submit" class="button" name="affwp_deactivate_license" value="' . esc_attr__( 'Deactivate License', 'affiliate-wp' ) . '"/>';
 			$html .= '<span style="color:green;">&nbsp;' . __( 'Your license is valid!', 'affiliate-wp' ) . '</span>';
-		} elseif( 'expired' === $license_status && ! empty( $license_key ) ) {
+		} elseif( 'expired' === $status && ! empty( $license_key ) ) {
 			$renewal_url = esc_url( add_query_arg( array( 'edd_license_key' => $license_key, 'download_id' => 17 ), 'https://affiliatewp.com/checkout' ) );
 			$html .= '<a href="' . esc_url( $renewal_url ) . '" class="button-primary">' . __( 'Renew Your License', 'affiliate-wp' ) . '</a>';
 			$html .= '<br/><span style="color:red;">&nbsp;' . __( 'Your license has expired, renew today to continue getting updates and support!', 'affiliate-wp' ) . '</span>';
@@ -1053,6 +1079,45 @@ class Affiliate_WP_Settings {
 	}
 
 	/**
+	 * Handles overriding and disabling the license key setting if a global key is defined.
+	 *
+	 * @since 1.9
+	 * @access public
+	 */
+	public function handle_global_license_setting() {
+		if ( self::global_license_set() ) {
+			$this->options['license_key'] = self::get_license_key();
+
+			add_filter( 'affwp_settings_general', function ( $general_settings ) {
+				$general_settings['license_key']['disabled'] = true;
+				$general_settings['license_key']['desc']     = sprintf( __( 'Your license key is globally defined via <code>AFFILIATEWP_LICENSE_KEY</code> set in <code>wp-config.php</code>.<br />It cannot be modified from this screen.<br />An active license key is needed for automatic plugin updates and <a href="%s" target="_blank">support</a>.', 'affiliate-wp' ), 'https://affiliatewp.com/support/' );
+
+				return $general_settings;
+			} );
+		}
+	}
+
+	/**
+	 * Handles overriding and disabling the debug mode setting if globally enabled.
+	 *
+	 * @since 1.9
+	 * @access public
+	 */
+	public function handle_global_debug_mode_setting() {
+		if ( defined( 'AFFILIATE_WP_DEBUG' ) && true === AFFILIATE_WP_DEBUG ) {
+			$this->options['debug_mode'] = 1;
+
+			// Globally enabled.
+			add_filter( 'affwp_settings_misc', function( $misc_settings ) {
+				$misc_settings['debug_mode']['disabled'] = true;
+				$misc_settings['debug_mode']['desc']     = __( 'Debug mode is globally enabled via <code>AFFILIATE_WP_DEBUG</code> set in <code>wp-config.php</code>. This setting cannot be modified from this screen.', 'affiliate-wp' );
+
+				return $misc_settings;
+			} );
+		}
+	}
+
+	/**
 	 * Determines whether a setting is disabled.
 	 *
 	 * @since 1.8.3
@@ -1070,26 +1135,33 @@ class Affiliate_WP_Settings {
 
 	public function activate_license() {
 
-		if( ! isset( $_POST['affwp_settings'] ) )
+		if( ! isset( $_POST['affwp_settings'] ) ) {
 			return;
+		}
 
-		if( ! isset( $_POST['affwp_activate_license'] ) )
+		if( ! isset( $_POST['affwp_activate_license'] ) ) {
 			return;
+		}
 
-		if( ! isset( $_POST['affwp_settings']['license_key'] ) )
+		if( ! isset( $_POST['affwp_settings']['license_key'] ) ) {
 			return;
+		}
 
-		// retrieve the license from the database
-		$status  = $this->get( 'license_status' );
-		$license = trim( $_POST['affwp_settings']['license_key'] );
+		// Retrieve the license status from the database.
+		$status = $this->get( 'license_status' );
 
-		if( 'valid' == $status )
+		if( is_object( $status ) ) {
+			$status = $status->license;
+		}
+
+		if( 'valid' == $status ) {
 			return; // license already activated and valid
+		}
 
 		// data to send in our API request
 		$api_params = array(
 			'edd_action'=> 'activate_license',
-			'license' 	=> $license,
+			'license' 	=> sanitize_text_field( $_POST['affwp_settings']['license_key'] ),
 			'item_name' => 'AffiliateWP',
 			'url'       => home_url()
 		);
@@ -1098,50 +1170,65 @@ class Affiliate_WP_Settings {
 		$response = wp_remote_post( 'https://affiliatewp.com', array( 'timeout' => 35, 'sslverify' => false, 'body' => $api_params ) );
 
 		// make sure the response came back okay
-		if ( is_wp_error( $response ) )
-			return false;
+		if ( is_wp_error( $response ) ) {
+
+			wp_safe_redirect( add_query_arg( array( 'affwp_notice' => 'license-http-failure', 'affwp_message' => $response->get_error_message(), 'affwp_success' => 'no' ), admin_url( 'admin.php?page=affiliate-wp-settings' ) ) ); exit;
+
+		}
 
 		// decode the license data
 		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
-		$this->save( array( 'license_status' => $license_data->license ) );
+		$this->save( array( 'license_status' => $license_data ) );
 
-		delete_transient( 'affwp_license_check' );
+		if( 'valid' !== $license_data->license || empty( $license_data->success ) ) {
+
+			wp_safe_redirect( add_query_arg( array( 'affwp_notice' => 'license-' . $license_data->error, 'affwp_success' => 'no' ), admin_url( 'admin.php?page=affiliate-wp-settings' ) ) ); exit;
+
+		}
+
+		wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-settings' ) ); exit;
 
 	}
 
 	public function deactivate_license() {
 
-		if( ! isset( $_POST['affwp_settings'] ) )
+		if( ! isset( $_POST['affwp_settings'] ) ) {
 			return;
+		}
 
-		if( ! isset( $_POST['affwp_deactivate_license'] ) )
+		if( ! isset( $_POST['affwp_deactivate_license'] ) ) {
 			return;
+		}
 
-		if( ! isset( $_POST['affwp_settings']['license_key'] ) )
+		if( ! isset( $_POST['affwp_settings']['license_key'] ) ) {
 			return;
-
-		// retrieve the license from the database
-		$license = trim( $_POST['affwp_settings']['license_key'] );
+		}
 
 		// data to send in our API request
 		$api_params = array(
 			'edd_action'=> 'deactivate_license',
-			'license' 	=> $license,
+			'license' 	=> $_POST['affwp_settings']['license_key'],
 			'item_name' => 'AffiliateWP',
 			'url'       => home_url()
 		);
 
 		// Call the custom API.
+		$message  = '';
+		$success  = true;
 		$response = wp_remote_post( 'https://affiliatewp.com', array( 'timeout' => 35, 'sslverify' => false, 'body' => $api_params ) );
 
 		// make sure the response came back okay
-		if ( is_wp_error( $response ) )
-			return false;
+		if ( is_wp_error( $response ) ) {
+
+			$success = false;
+			$message = $response->get_error_message();
+
+			wp_safe_redirect( add_query_arg( array( 'message' => $message, 'success' => $success ), admin_url( 'admin.php?page=affiliate-wp-settings' ) ) ); exit;
+
+		}
 
 		$this->save( array( 'license_status' => 0 ) );
-
-		delete_transient( 'affwp_license_check' );
 
 	}
 
@@ -1153,19 +1240,33 @@ class Affiliate_WP_Settings {
 
 		$status = get_transient( 'affwp_license_check' );
 
+		$request_url = 'https://affiliatewp.com';
+
 		// Run the license check a maximum of once per day
-		if( false === $status ) {
+		if( false === $status && site_url() !== $request_url ) {
 
 			// data to send in our API request
 			$api_params = array(
 				'edd_action'=> 'check_license',
-				'license' 	=> $this->get( 'license_key' ),
+				'license' 	=> self::get_license_key(),
 				'item_name' => 'AffiliateWP',
 				'url'       => home_url()
 			);
 
+			if( apply_filters( 'affwp_send_site_data', true ) ) {
+
+				// Send checkins once per week
+				$last_checked = get_option( 'affwp_last_checkin', false );
+
+				if( ! is_numeric( $last_checked ) || $last_checked < strtotime( '-1 week', current_time( 'timestamp' ) ) ) {
+
+					$api_params['site_data'] = $this->get_site_data();
+
+				}
+			}
+
 			// Call the custom API.
-			$response = wp_remote_post( 'https://affiliatewp.com', array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
+			$response = wp_remote_post( $request_url, array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
 
 			// make sure the response came back okay
 			if ( is_wp_error( $response ) ) {
@@ -1178,9 +1279,15 @@ class Affiliate_WP_Settings {
 
 			$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
-			$this->save( array( 'license_status' => $license_data->license ) );
+			$this->save( array( 'license_status' => $license_data ) );
 
 			set_transient( 'affwp_license_check', $license_data->license, DAY_IN_SECONDS );
+
+			if( ! empty( $api_params['site_data'] ) ) {
+
+				update_option( 'affwp_last_checkin', current_time( 'timestamp' ) );
+	
+			}
 
 			$status = $license_data->license;
 
@@ -1194,4 +1301,98 @@ class Affiliate_WP_Settings {
 		return $this->check_license() == 'valid';
 	}
 
+	/**
+	 * Retrieves the license key.
+	 *
+	 * If the `AFFILIATEWP_LICENSE_KEY` constant is defined, it will override values
+	 * stored in the database.
+	 *
+	 * @since 1.9
+	 * @access public
+	 * @static
+	 *
+	 * @param array $request_data POST or other data.
+	 * @return string License key.
+	 */
+	public static function get_license_key( $key = '' ) {
+		if ( self::global_license_set() ) {
+			$license = AFFILIATEWP_LICENSE_KEY;
+		} elseif ( ! empty( $key ) ) {
+			$license = $key;
+		} else {
+			$license = affiliate_wp()->settings->get( 'license_key' );
+		}
+		return trim( $license );
+	}
+
+	/**
+	 * Determines whether the global license key has been defined.
+	 *
+	 * @since 1.9
+	 * @access public
+	 * @static
+	 *
+	 * @return bool True if the global license has been defined, otherwise false.
+	 */
+	public static function global_license_set() {
+		if ( defined( 'AFFILIATEWP_LICENSE_KEY' ) && is_string( AFFILIATEWP_LICENSE_KEY ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Retrieves site data (plugin versions, integrations, etc) to be sent along with the license check.
+	 *
+	 * @since 1.9
+	 * @access public
+	 *
+	 * @return array
+	 */
+	public function get_site_data() {
+
+		$data = array();
+
+		$theme_data = wp_get_theme();
+		$theme      = $theme_data->Name . ' ' . $theme_data->Version;
+
+		$data['php_version']  = phpversion();
+		$data['affwp_version']  = AFFILIATEWP_VERSION;
+		$data['wp_version']   = get_bloginfo( 'version' );
+		$data['server']       = isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : '';
+		$data['install_date'] = get_post_field( 'post_date', affwp_get_affiliate_area_page_id() );
+		$data['multisite']    = is_multisite();
+		$data['url']          = home_url();
+		$data['theme']        = $theme;
+
+		// Retrieve current plugin information
+		if( ! function_exists( 'get_plugins' ) ) {
+			include ABSPATH . '/wp-admin/includes/plugin.php';
+		}
+
+		$plugins        = array_keys( get_plugins() );
+		$active_plugins = get_option( 'active_plugins', array() );
+
+		foreach ( $plugins as $key => $plugin ) {
+			if ( in_array( $plugin, $active_plugins ) ) {
+				// Remove active plugins from list so we can show active and inactive separately
+				unset( $plugins[ $key ] );
+			}
+		}
+
+		$data['active_plugins']   = $active_plugins;
+		$data['inactive_plugins'] = $plugins;
+		$data['locale']           = get_locale();
+		$data['integrations']     = affiliate_wp()->integrations->get_enabled_integrations();
+		$data['affiliates']       = affiliate_wp()->affiliates->count( array( 'number' => -1 ) );
+		$data['creatives']        = affiliate_wp()->creatives->count( array( 'number' => -1 ) );
+		$data['payouts']          = affiliate_wp()->affiliates->payouts->count( array( 'number' => -1 ) );
+		$data['referrals']        = affiliate_wp()->referrals->count( array( 'number' => -1 ) );
+		$data['consumers']        = affiliate_wp()->REST->consumers->count( array( 'number' => -1 ) );
+		$data['visits']           = affiliate_wp()->visits->count( array( 'number' => -1 ) );
+		$data['referral_rate']    = $this->get( 'referral_rate' );
+		$data['rate_type']        = $this->get( 'referral_rate_type' );
+
+		return $data;
+	}
 }

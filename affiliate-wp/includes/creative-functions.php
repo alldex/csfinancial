@@ -1,22 +1,23 @@
 <?php
-
 /**
  * Retrieves the creative object
  *
  * @since 1.1.4
- * @return object
+ *
+ * @param int|AffWP\Creative $creative Creative ID or object.
+ * @return AffWP\Creative|false Creative object, otherwise false.
  */
-function affwp_get_creative( $creative ) {
+function affwp_get_creative( $creative = null ) {
 
 	if ( is_object( $creative ) && isset( $creative->creative_id ) ) {
-		$creative_id = $creative->affiliate_id;
+		$creative_id = $creative->creative_id;
 	} elseif( is_numeric( $creative ) ) {
 		$creative_id = absint( $creative );
 	} else {
 		return false;
 	}
 
-	return affiliate_wp()->creatives->get( $creative_id );
+	return affiliate_wp()->creatives->get_object( $creative_id );
 }
 
 /**
@@ -53,21 +54,22 @@ function affwp_add_creative( $data = array() ) {
  */
 function affwp_update_creative( $data = array() ) {
 
-	if ( empty( $data['creative_id'] ) ) {
+	if ( empty( $data['creative_id'] )
+		|| ( ! $creative = affwp_get_creative( $data['creative_id'] ) )
+	) {
 		return false;
 	}
 
-	$args         = array();
-	$creative_id  = absint( $data['creative_id'] );
+	$args = array(
+		'name'        => ! empty( $data['name'] ) ? sanitize_text_field( $data['name'] ) : __( 'Creative', 'affiliate-wp' ),
+		'description' => ! empty( $data['description'] ) ? sanitize_text_field( $data['description'] ) : '',
+		'url'         => ! empty( $data['url'] ) ? esc_url_raw( $data['url'] ) : get_site_url(),
+		'text'        => ! empty( $data['text'] ) ? sanitize_text_field( $data['text'] ) : get_bloginfo( 'name' ),
+		'image'       => ! empty( $data['image'] ) ? sanitize_text_field( $data['image'] ) : '',
+		'status'      => ! empty( $data['status'] ) ? sanitize_text_field( $data['status'] ) : '',
+	);
 
-	$args['name']         = ! empty( $data['name'] ) ? sanitize_text_field( $data['name'] ) : __( 'Creative', 'affiliate-wp' );
-	$args['description']  = ! empty( $data['description'] ) ? sanitize_text_field( $data['description'] ) : '';
-	$args['url']          = ! empty( $data['url'] ) ? esc_url_raw( $data['url'] ) : get_site_url();
-	$args['text']         = ! empty( $data['text'] ) ? sanitize_text_field( $data['text'] ) : get_bloginfo( 'name' );
-	$args['image']        = ! empty( $data['image'] ) ? sanitize_text_field( $data['image'] ) : '';
-	$args['status']       = ! empty( $data['status'] ) ? sanitize_text_field( $data['status'] ) : '';
-
-	if ( affiliate_wp()->creatives->update( $creative_id, $args, '', 'creative' ) ) {
+	if ( affiliate_wp()->creatives->update( $creative->ID, $args, '', 'creative' ) ) {
 		return true;
 	}
 
@@ -84,38 +86,42 @@ function affwp_update_creative( $data = array() ) {
  */
 function affwp_delete_creative( $creative ) {
 
-	if ( is_object( $creative ) && isset( $creative->creative_id ) ) {
-		$creative_id = $creative->creative_id;
-	} elseif ( is_numeric( $creative ) ) {
-		$creative_id = absint( $creative );
-	} else {
+	if ( ! $creative = affwp_get_creative( $creative ) ) {
 		return false;
 	}
 
-	return affiliate_wp()->creatives->delete( $creative_id );
+	return affiliate_wp()->creatives->delete( $creative->ID, 'creative' );
 }
 
 /**
- * Sets the status for a creative
+ * Sets the status for a creative.
  *
  * @since 1.0
- * @return bool
+ *
+ * @param int|AffWP\Creative $creative Creative ID or object.
+ * @param string             $status   Optional. Status to give the creative. Default empty.
+ * @return bool True if the creative was updated with the new status, otherwise false.
  */
 function affwp_set_creative_status( $creative, $status = '' ) {
 
-	if ( is_object( $creative ) && isset( $creative->creative_id ) ) {
-		$creative_id = $creative->creative_id;
-	} elseif ( is_numeric( $creative ) ) {
-		$creative_id = absint( $creative );
-	} else {
+	if ( ! $creative = affwp_get_creative( $creative ) ) {
 		return false;
 	}
 
-	$old_status = affiliate_wp()->creatives->get_column( 'status', $creative_id );
+	$old_status = $creative->status;
 
-	do_action( 'affwp_set_creative_status', $creative_id, $status, $old_status );
+	/**
+	 * Fires immediately before the creative's status has been updated.
+	 *
+	 * @since 1.0
+	 *
+	 * @param int    $creative_id Creative ID.
+	 * @param string $status      New creative status.
+	 * @param string $old_status  Old creative status.
+	 */
+	do_action( 'affwp_set_creative_status', $creative->ID, $status, $old_status );
 
-	if ( affiliate_wp()->creatives->update( $creative_id, array( 'status' => $status ), '', 'creative' ) ) {
+	if ( affiliate_wp()->creatives->update( $creative->ID, array( 'status' => $status ), '', 'creative' ) ) {
 		return true;
 	}
 

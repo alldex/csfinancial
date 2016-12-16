@@ -9,14 +9,8 @@ class Affiliate_WP_Referrals_Graph extends Affiliate_WP_Graph {
 	 */
 	public function __construct( $_data = array() ) {
 
-		if( empty( $_data ) ) {
-
-			$this->data = $this->get_data();
-
-		}
-
 		// Generate unique ID
-		$this->id   = md5( rand() );
+		$this->id = md5( rand() );
 
 		// Setup default options;
 		$this->options = array(
@@ -36,6 +30,7 @@ class Affiliate_WP_Referrals_Graph extends Affiliate_WP_Graph {
 			'lines'           => true,
 			'points'          => true,
 			'affiliate_id'    => false,
+			'show_controls'   => true,
 		);
 
 	}
@@ -56,10 +51,13 @@ class Affiliate_WP_Referrals_Graph extends Affiliate_WP_Graph {
 
 		$start = $dates['year'] . '-' . $dates['m_start'] . '-' . $dates['day'] . ' 00:00:00';
 		$end   = $dates['year_end'] . '-' . $dates['m_end'] . '-' . $dates['day_end'] . ' 23:59:59';
+
 		$date  = array(
 			'start' => $start,
 			'end'   => $end
 		);
+
+		$difference = ( strtotime( $date['end'] ) - strtotime( $date['start'] ) );
 
 		//echo '<pre>'; print_r( $date ); echo '</pre>'; exit;
 
@@ -75,41 +73,68 @@ class Affiliate_WP_Referrals_Graph extends Affiliate_WP_Graph {
 		$pending[] = array( strtotime( $end ) * 1000 );
 
 		if( $referrals ) {
-			foreach( $referrals as $referral ) {
 
-				switch( $referral->status ) {
+			$referrals_by_status = array(
+				'paid'     => wp_list_filter( $referrals, array( 'status' => 'paid' ) ),
+				'unpaid'   => wp_list_filter( $referrals, array( 'status' => 'unpaid' ) ),
+				'rejected' => wp_list_filter( $referrals, array( 'status' => 'rejected' ) ),
+				'pending'  => wp_list_filter( $referrals, array( 'status' => 'pending' ) ),
+			);
 
-					case 'paid' :
+			$totals = array();
 
-						$paid[] = array( strtotime( $referral->date ) * 1000, $referral->amount );
+			foreach ( $referrals_by_status as $status => $referrals ) {
+				foreach ( $referrals as $referral ) {
+					if ( empty( $totals[ $status ] ) ) {
+						$totals[ $status ] = array();
+					}
 
+					if ( in_array( $dates['range'], array( 'this_year', 'last_year' ), true )
+					     || $difference >= YEAR_IN_SECONDS
+					) {
+						$date = date( 'Y-m', strtotime( $referral->date ) );
+					} else {
+						$date = date( 'Y-m-d', strtotime( $referral->date ) );
+					}
+
+					if ( empty( $totals[ $status ][ $date ] ) ) {
+						$totals[ $status ][ $date ] = $referral->amount;
+					} else {
+						$totals[ $status ][ $date ] += $referral->amount;
+					}
+
+				}
+			}
+
+			foreach ( $totals as $status => $dates ) {
+				switch( $status ) {
+					case 'paid':
+						foreach ( $dates as $date => $total ) {
+							$paid[] = array( strtotime( $date ) * 1000, $total );
+						}
 						break;
 
-					case 'unpaid' :
-
-						$unpaid[] = array( strtotime( $referral->date ) * 1000, $referral->amount );
-
+					case 'unpaid':
+						foreach ( $dates as $date => $total ) {
+							$unpaid[] = array( strtotime( $date ) * 1000, $total );
+						}
 						break;
 
-					case 'rejected' :
-
-						$rejected[] = array( strtotime( $referral->date ) * 1000, $referral->amount );
-
+					case 'rejected':
+						foreach ( $dates as $date => $total ) {
+							$rejected[] = array( strtotime( $date ) * 1000, $total );
+						}
 						break;
 
-					case 'pending' :
-
-						$pending[] = array( strtotime( $referral->date ) * 1000, $referral->amount );
-
-						break;
-
-					default :
-
+					case 'pending':
+						foreach ( $dates as $date => $total ) {
+							$pending[] = array( strtotime( $date ) * 1000, $total );
+						}
 						break;
 
 				}
-
 			}
+
 		}
 
 		$data = array(

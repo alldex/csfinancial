@@ -47,7 +47,7 @@
 							</span>
 						</td>
 						<td>
-							<?php echo esc_html( mysql2date( 'Y-m-d H:i:s', $visit->date, true ) ); ?>
+							<?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $visit->date ) ) ); ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>

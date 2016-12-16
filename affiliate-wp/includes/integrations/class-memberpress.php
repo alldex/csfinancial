@@ -74,14 +74,20 @@ class Affiliate_WP_MemberPress extends Affiliate_WP_Base {
 				return; // Referrals are disabled on this membership
 			}
 
-			/*
-			 * Coupon trial amount supercedes a regular sale amount or coupon sale amount without
-			 * a trial. MemberPress handles applying the non-trial coupon amount to $txn->amount.
-			 */
+			// Set the base amount from the transaction at the top of the stack.
+			$amount = $txn->amount;
+
+			// If there's a free trial subscription and rate type is percentage, override $amount.
+			if ( $txn->subscription()
+				&& ( $txn->subscription()->trial && 0 == intval( $txn->subscription()->trial_amount ) )
+				&& 'percentage' === affwp_get_affiliate_rate_type( $this->affiliate_id )
+			) {
+				$amount = $txn->subscription()->trial_amount;
+			}
+
+			// If there's coupon trial amount, override $amount.
 			if ( $txn->coupon() && $txn->coupon()->trial ) {
 				$amount = $txn->coupon()->trial_amount;
-			} else {
-				$amount = $txn->amount;
 			}
 
 			// get referral total
@@ -266,10 +272,14 @@ class Affiliate_WP_MemberPress extends Affiliate_WP_Base {
 		add_filter( 'affwp_is_admin_page', '__return_true' );
 		affwp_admin_scripts();
 
+		$user_id      = 0;
+		$user_name    = '';
 		$affiliate_id = get_post_meta( $post->ID, 'affwp_discount_affiliate', true );
-		$user_id      = affwp_get_affiliate_user_id( $affiliate_id );
-		$user         = get_userdata( $user_id );
-		$user_name    = $user ? $user->user_login : '';
+		if( $affiliate_id ) {
+			$user_id      = affwp_get_affiliate_user_id( $affiliate_id );
+			$user         = get_userdata( $user_id );
+			$user_name    = $user ? $user->user_login : '';
+		}
 		?>
 		<p class="form-field affwp-memberpress-coupon-field">
 			<label for="user_name"><?php _e( 'If you would like to connect this discount to an affiliate, enter the name of the affiliate it belongs to.', 'affiliate-wp' ); ?></label>

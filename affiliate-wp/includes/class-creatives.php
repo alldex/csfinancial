@@ -20,10 +20,10 @@ class Affiliate_WP_Creatives {
 	 */
 	public function affiliate_creative( $args = array() ) {
 
-		// creative's ID
-		$id = isset( $args['id'] ) ? (int) $args['id'] : '';
+		// Creative's ID
+		$id = isset( $args['id'] ) ? (int) $args['id'] : 0;
 
-		if ( ! $id ) {
+		if ( ! $creative = affwp_get_creative( $id ) ) {
 			return;
 		}
 
@@ -31,31 +31,31 @@ class Affiliate_WP_Creatives {
 		if ( ! empty( $args['link'] ) ) {
 			// set link to shortcode parameter
 			$link = $args['link'];
-		} elseif ( affiliate_wp()->creatives->get_column( 'url', $id ) ) {
+		} elseif ( $creative->url ) {
 			// set link to creative's link from creatives section
-			$link = affiliate_wp()->creatives->get_column( 'url', $id );
+			$link = $creative->url;
 		} else {
 			// set link to the site URL
 			$link = get_site_url();
 		}
 
 		// creative's image link
-		$image_link = ! empty( $args['image_link'] ) ? $args['image_link'] : affiliate_wp()->creatives->get_column( 'image', $id );	
+		$image_link = ! empty( $args['image_link'] ) ? $args['image_link'] : $creative->image;
 
 		// creative's text (shown in alt/title tags)
 		if ( ! empty( $args['text'] ) ) {
 			// set text to shortcode parameter if used
 			$text = $args['text'];
-		} elseif ( affiliate_wp()->creatives->get_column( 'text', $id ) ) {
+		} elseif ( $creative->text ) {
 			// set text to creative's text from the creatives section
-			$text = affiliate_wp()->creatives->get_column( 'text', $id );
+			$text = $creative->text;
 		} else {
 			// set text to name of blog
 			$text = get_bloginfo( 'name' );
 		}
 
 		// creative's description
-		$description = ! empty( $args['description'] ) ? $args['description'] : affiliate_wp()->creatives->get_column( 'description', $id );
+		$description = ! empty( $args['description'] ) ? $args['description'] : $creative->description;
 
 		// creative's preview parameter
 		$preview = ! empty( $args['preview'] ) ? $args['preview'] : 'yes';

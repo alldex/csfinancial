@@ -75,8 +75,12 @@ class Affiliate_WP_Upgrades {
 			$this->v1714_upgrades();
 		}
 
-		if ( version_compare( $version, '1.8.6', '<' ) ) {
-			$this->v186_upgrades();
+		if ( version_compare( $version, '1.9', '<' ) ) {
+			$this->v19_upgrade();
+		}
+
+		if ( version_compare( $version, '1.9.5', '<' ) ) {
+			$this->v195_upgrade();
 		}
 
 		// Inconsistency between current and saved version.
@@ -401,57 +405,36 @@ class Affiliate_WP_Upgrades {
 	}
 
 	/**
-	 * Perform database upgrades for version 1.8.6.
+	 * Performs database upgrades for version 1.9.
 	 *
-	 * Attempts to update core table charsets to utf8mb4.
-	 *
+	 * @since 1.9
 	 * @access private
-	 * @since 1.8.6
 	 */
-	private function v186_upgrades() {
+	private function v19_upgrade() {
+		@affiliate_wp()->referrals->create_table();
+		$this->log( 'Upgrade: The Referrals table upgrade for 1.9 has completed.' );
 
-		/**
-		 * Filters whether to skip the utf8mb4 table upgrade.
-		 *
-		 * Explicitly passing a true value to this hook will exit the table upgrade routine early.
-		 *
-		 * @since 1.8.6
-		 *
-		 * @param bool $skip Whether to skip the utf8mb4 upgrade routine. Default false.
-		 */
-		$skip_upgrade = apply_filters( 'affwp_skip_utf8mb4_upgrade', false );
+		@affiliate_wp()->affiliates->payouts->create_table();
+		$this->log( 'Upgrade: The Payouts table creation process for 1.9 has completed.' );
 
-		// If skipping, log that it was skipped.
-		if ( true === $skip_upgrade ) {
-			$this->log( __( 'The utf8mb4 upgrade was skipped.', 'affiliate-wp' ) );
+		@affiliate_wp()->REST->consumers->create_table();
+		$this->log( 'Upgrade: The API consumers table creation process for 1.9 has completed' );
 
-			return;
-		}
+		$this->upgraded = true;
+	}
 
-		$tables = array(
-			@affiliate_wp()->affiliate_meta->table_name,
-			@affiliate_wp()->affiliates->table_name,
-			@affiliate_wp()->creatives->table_name,
-			@affiliate_wp()->referrals->table_name,
-			@affiliate_wp()->visits->table_name
-		);
+	/**
+	 * Performs database upgrades for version 1.9.5.
+	 *
+	 * @since 1.9.5
+	 * @access private
+	 */
+	private function v195_upgrade() {
+		@affiliate_wp()->affiliates->payouts->create_table();
+		$this->log( 'Upgrade: The Payouts table upgrade for 1.9.5 has completed.' );
 
-		$success = __( "The character set for the %s table was successfully upgraded to utf8mb4.", 'affiliate-wp' );
-		$failure = __( "The character set for the %s table could not be upgraded or was already using utf8mb4.", 'affiliate-wp' );
-
-		// Upgrade core table charsets and log success or failure for each.
-		if ( ! empty( $tables ) ) {
-			/** Load WordPress Administration Upgrade API */
-			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
-			foreach ( $tables as $table ) {
-				$result = maybe_convert_table_to_utf8mb4( $table );
-
-				$message = sprintf( true === $result ? $success : $failure, $table );
-
-				$this->log( $message );
-			}
-		}
+		wp_cache_set( 'last_changed', microtime(), 'payouts' );
+		$this->log( 'Upgrade: The Payouts cache has been invalidated following the 1.9.5 upgrade routine.' );
 
 		$this->upgraded = true;
 	}

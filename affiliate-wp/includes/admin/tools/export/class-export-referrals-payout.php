@@ -29,6 +29,27 @@ class Affiliate_WP_Referral_Payout_Export extends Affiliate_WP_Referral_Export {
 	public $export_type = 'referrals_payout';
 
 	/**
+	 * Array of referrals to export.
+	 *
+	 * @access public
+	 * @since  1.9
+	 * @var    array
+	 */
+	public $referrals = array();
+
+	/**
+	 * Constructor.
+	 *
+	 * @access public
+	 * @since  1.9
+	 */
+	public function __construct() {
+		$this->referrals = $this->get_referrals_for_export();
+
+		add_action( 'affwp_export_referrals_payout_end', array( $this, 'generate_payouts' ) );
+	}
+
+	/**
 	 * Set the CSV columns
 	 *
 	 * @access public
@@ -52,13 +73,6 @@ class Affiliate_WP_Referral_Payout_Export extends Affiliate_WP_Referral_Export {
 	 * @return array $data Data for Export
 	 */
 	public function get_data() {
-
-		$args = array(
-			'status' => 'unpaid',
-			'date'   => ! empty( $this->date ) ? $this->date : '',
-			'number' => -1
-		);
-
 		// Final data to be exported
 		$data         = array();
 
@@ -69,7 +83,7 @@ class Affiliate_WP_Referral_Payout_Export extends Affiliate_WP_Referral_Export {
 		$to_maybe_pay = array();
 
 		// Retrieve the referrals from the database
-		$referrals    = affiliate_wp()->referrals->get_referrals( $args );
+		$referrals = $this->get_referrals_for_export();
 
 		// The minimum payout amount
 		$minimum      = ! empty( $_POST['minimum'] ) ? sanitize_text_field( affwp_sanitize_amount( $_POST['minimum'] ) ) : 0;
@@ -134,6 +148,46 @@ class Affiliate_WP_Referral_Payout_Export extends Affiliate_WP_Referral_Export {
 		$data = apply_filters( 'affwp_export_get_data_' . $this->export_type, $data );
 
 		return $data;
+	}
+
+	/**
+	 * Retrieves referrals for export.
+	 *
+	 * @access public
+	 * @since  1.9
+	 *
+	 * @return array Array of referrals for export.
+	 */
+	public function get_referrals_for_export( $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'status' => 'unpaid',
+			'date'   => ! empty( $this->date ) ? $this->date : '',
+			'number' => -1
+		) );
+
+		return affiliate_wp()->referrals->get_referrals( $args );
+	}
+
+	/**
+	 * Generates payout objects batched by affiliate.
+	 *
+	 * @access public
+	 * @since  1.9
+	 */
+	public function generate_payouts() {
+		$referrals = wp_list_pluck( $this->referrals, 'referral_id' );
+
+		if ( ! empty( $referrals ) ) {
+			$batches = affiliate_wp()->affiliates->payouts->get_affiliate_ids_by_referrals( $referrals );
+
+			foreach ( $batches as $affiliate_id => $referrals ) {
+				affwp_add_payout( array(
+					'affiliate_id'  => $affiliate_id,
+					'referrals'     => $referrals,
+					'payout_method' => 'manual',
+				) );
+			}
+		}
 	}
 
 }

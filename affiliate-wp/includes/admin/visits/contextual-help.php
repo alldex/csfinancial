@@ -36,7 +36,7 @@ function affwp_visits_contextual_help() {
 		'id'	    => 'affwp-visits-overview',
 		'title'	    => __( 'Overview', 'affiliate-wp' ),
 		'content'	=>
-			'<p>' . __( "This screen provides access to your site's visit history.", 'affiliate-wp' ) . '</p>' . 
+			'<p>' . __( "This screen provides access to your site&#8217;s visit history.", 'affiliate-wp' ) . '</p>' .
 			'<p>' . __( "<strong>Landing Page</strong>: this is the page on your site that the visitor first landed on. It is the URL that the affiliate link pointed to.", 'affiliate-wp' ) . '</p>' . 
 			'<p>' . __( "<strong>Referring URL</strong>: this is the source URL of the affiliate link. It is the web page that the visitor found a link to your site on.", 'affiliate-wp' ) . '</p>' . 
 			'<p>' . __( "<strong>Affiliate</strong>: this the affiliate that the visit was attributed to.", 'affiliate-wp' ) . '</p>' . 
@@ -54,9 +54,9 @@ function affwp_visits_contextual_help() {
 				<li>' . __( 'You can enter an IP address to find all visits from a specific IP', 'affiliate-wp' ) . '</li>
 				<li>' . __( 'You can enter a complete URL to find all visits that landed on or came from a specific URL', 'affiliate-wp' ) . '</li>
 				<li>' . __( 'You can enter a partial URL to find all visits that landed on or came from a specific site', 'affiliate-wp' ) . '</li>
-				<li>' . __( 'You can enter the referral\'s ID number prefixed by \'referral:\'', 'affiliate-wp' ) . '</li>
-				<li>' . __( 'You can enter the affiliate\'s ID number prefixed by \'affiliate:\'', 'affiliate-wp' ) . '</li>
-				<li>' . __( 'You can enter a URL campaign prefixed by \'campaign:\'', 'affiliate-wp' ) . '</li>
+				<li>' . __( 'You can enter the referral&#8217;s ID number prefixed by &#8220;referral:&#8221;', 'affiliate-wp' ) . '</li>
+				<li>' . __( 'You can enter the affiliate&#8217;s ID number prefixed by &#8220;affiliate:&#8221;', 'affiliate-wp' ) . '</li>
+				<li>' . __( 'You can enter a URL campaign prefixed by &#8220;campaign:&#8221;', 'affiliate-wp' ) . '</li>
 			</ul>'
 	) );
 

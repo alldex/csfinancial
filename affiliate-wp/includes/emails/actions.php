@@ -82,20 +82,23 @@ add_action( 'affwp_auto_register_user', 'affwp_notify_on_registration', 10, 3 );
  */
 function affwp_notify_on_approval( $affiliate_id = 0, $status = '', $old_status = '' ) {
 
-	if( empty( $affiliate_id ) ) {
+	if( empty( $affiliate_id ) || 'active' !== $status ) {
 		return;
 	}
 
 	/*
-	 * Only send approval email if:
+	 * Skip sending the acceptance email for a now-'active' affiliate under
+	 * certain conditions:
 	 *
-	 * - Affiliate was inactive now active
-	 * - Affiliate was pending now active
-	 * - Affiliate was rejected now active
+	 * 1. The affiliate was previously of 'inactive' or 'rejected' status.
+	 * 2. The affiliate was previously of 'pending' status, where the status
+	 *    transition wasn't triggered by a registration.
+	 * 3. The affiliate's 'active' status didn't change, and the status
+	 *    "transition" wasn't triggered by a registration, i.e. the affiliate
+	 *    was updated in a bulk action and the 'active' status didn't change.
 	 */
-	if (! ( 'active' == $status && 'inactive' == $old_status )
-		|| ( 'active' == $status && 'pending' == $old_status )
-		|| ( 'active' == $status && 'rejected' == $old_status )
+	if ( ! in_array( $old_status, array( 'active', 'pending' ), true )
+		&& ! did_action( 'affwp_affiliate_register' )
 	) {
 		return;
 	}
@@ -121,8 +124,16 @@ function affwp_notify_on_approval( $affiliate_id = 0, $status = '', $old_status 
 	$args         = array( 'affiliate_id' => $affiliate_id );
 	$subject      = apply_filters( 'affwp_application_accepted_subject', $subject, $args );
 	$message      = apply_filters( 'affwp_application_accepted_email', $message, $args );
+	$user_id      = affwp_get_affiliate_user_id( $affiliate_id );
 
-	if ( apply_filters( 'affwp_notify_on_approval', true ) ) {
+	/**
+	 * Filters whether to notify an affiliate upon approval of their application.
+	 *
+	 * @since 1.6
+	 *
+	 * @param bool $notify Whether to notify the affiliate upon approval. Default true.
+	 */
+	if ( apply_filters( 'affwp_notify_on_approval', true ) && ! get_user_meta( $user_id, 'affwp_disable_affiliate_email', true ) ) {
 		$emails->send( $email, $subject, $message );
 	}
 
@@ -157,7 +168,7 @@ function affwp_notify_on_pending_affiliate_registration( $affiliate_id = 0, $sta
 	if ( empty( $message ) ) {
 		$message  = sprintf( __( 'Hi %s!', 'affiliate-wp' ), affiliate_wp()->affiliates->get_affiliate_name( $affiliate_id ) ) . "\n\n";
 		$message .= __( 'Thanks for your recent affiliate registration on {site_name}.', 'affiliate-wp' ) . "\n\n";
-		$message .= __( 'We\'re currently reviewing your affiliate application and will be in touch soon!', 'affiliate-wp' ) . "\n\n";
+		$message .= __( 'We&#8217;re currently reviewing your affiliate application and will be in touch soon!', 'affiliate-wp' ) . "\n\n";
 	}
 
 	if ( apply_filters( 'affwp_notify_on_pending_affiliate_registration', true ) ) {

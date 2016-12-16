@@ -13,7 +13,7 @@ class Affiliate_WP_Sprout_Invoices extends Affiliate_WP_Base {
 
 		add_action( 'payment_authorized', array( $this, 'add_pending_referral' ) );
 		add_action( 'payment_complete', array( $this, 'mark_referral_complete' ) );
-		add_action( 'si_void_payment', array( $this, 'revoke_referral_on_void' ), 10, 2 );
+		add_action( 'si_void_payment', array( $this, 'revoke_referral_on_refund' ) );
 
 		add_filter( 'affwp_referral_reference_column', array( $this, 'reference_link' ), 10, 2 );
 
@@ -63,7 +63,7 @@ class Affiliate_WP_Sprout_Invoices extends Affiliate_WP_Base {
 	 * @since   1.6
 	 */
 	public function revoke_referral_on_refund( $payment_id = 0 ) {
-		
+
 		if( ! affiliate_wp()->settings->get( 'revoke_on_refund' ) ) {
 			return;
 		}

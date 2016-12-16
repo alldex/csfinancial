@@ -24,6 +24,7 @@ function affwp_is_admin_page() {
 		'affiliate-wp',
 		'affiliate-wp-affiliates',
 		'affiliate-wp-referrals',
+		'affiliate-wp-payouts',
 		'affiliate-wp-visits',
 		'affiliate-wp-creatives',
 		'affiliate-wp-reports',
@@ -69,6 +70,9 @@ function affwp_admin_scripts() {
 	}
 
 	wp_enqueue_script( 'jquery-ui-datepicker' );
+
+	// Enqueue postbox for core meta boxes.
+	wp_enqueue_script( 'postbox' );
 }
 add_action( 'admin_enqueue_scripts', 'affwp_admin_scripts' );
 
@@ -83,8 +87,7 @@ function affwp_admin_styles() {
 	$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
 	// Dashicons and our main admin CSS need to be on all pages for the menu icon
-	wp_enqueue_style( 'dashicons' );
-	wp_enqueue_style( 'affwp-admin', AFFILIATEWP_PLUGIN_URL . 'assets/css/admin' . $suffix . '.css', AFFILIATEWP_VERSION );
+	wp_enqueue_style( 'affwp-admin', AFFILIATEWP_PLUGIN_URL . 'assets/css/admin' . $suffix . '.css', array( 'dashicons' ), AFFILIATEWP_VERSION );
 
 	if( ! affwp_is_admin_page() ) {
 		return;
@@ -111,25 +114,37 @@ function affwp_frontend_scripts_and_styles() {
 	}
 
 	$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-	wp_register_style( 'affwp-forms', AFFILIATEWP_PLUGIN_URL . 'assets/css/forms' . $suffix . '.css', AFFILIATEWP_VERSION );
+	wp_register_style( 'affwp-forms', AFFILIATEWP_PLUGIN_URL . 'assets/css/forms' . $suffix . '.css', array( 'dashicons' ), AFFILIATEWP_VERSION );
 
-	if ( has_shortcode( $post->post_content, 'affiliate_area' ) || has_shortcode( $post->post_content, 'affiliate_registration' ) || apply_filters( 'affwp_force_frontend_scripts', false ) ) {
+	wp_register_script( 'affwp-recaptcha', 'https://www.google.com/recaptcha/api.js', array(), AFFILIATEWP_VERSION );
+	wp_register_script( 'affwp-frontend', AFFILIATEWP_PLUGIN_URL . 'assets/js/frontend' . $suffix . '.js', array( 'jquery' ), AFFILIATEWP_VERSION );
 
-		wp_enqueue_script( 'affwp-frontend', AFFILIATEWP_PLUGIN_URL . 'assets/js/frontend' . $suffix . '.js', array( 'jquery' ), AFFILIATEWP_VERSION );
-		wp_localize_script( 'affwp-frontend', 'affwp_vars', array(
-			'affwp_version'         => AFFILIATEWP_VERSION,
-			'permalinks'            => get_option( 'permalink_structure' ),
-			'pretty_affiliate_urls' => affwp_is_pretty_referral_urls(),
-			'currency_sign'         => affwp_currency_filter(''),
-			'currency_pos'          => affiliate_wp()->settings->get( 'currency_position', 'before' ),
-		));
+	wp_localize_script( 'affwp-frontend', 'affwp_vars', array(
+		'affwp_version'         => AFFILIATEWP_VERSION,
+		'permalinks'            => get_option( 'permalink_structure' ),
+		'pretty_affiliate_urls' => affwp_is_pretty_referral_urls(),
+		'currency_sign'         => affwp_currency_filter(''),
+		'currency_pos'          => affiliate_wp()->settings->get( 'currency_position', 'before' ),
+		'invalid_url'           => __( 'Please enter a valid URL for this site', 'affiliate-wp' )
+	));
 
-		wp_enqueue_style( 'affwp-forms' );
-		wp_enqueue_style( 'dashicons' );
+	/**
+	 * Filters whether to force frontend scripts to be enqueued.
+	 *
+	 * @since 1.0
+	 *
+	 * @param bool $force Whether to force frontend scripts. Default false.
+	 */
+	if ( true === apply_filters( 'affwp_force_frontend_scripts', false ) ) {
+		affwp_enqueue_script( 'affwp-frontend', 'force_frontend_scripts' );
+	}
 
-		if ( affwp_is_recaptcha_enabled() ) {
-			wp_enqueue_script( 'affwp-recaptcha', 'https://www.google.com/recaptcha/api.js', array(), AFFILIATEWP_VERSION );
-		}
+	// Always enqueue the 'affwp-forms' stylesheet.
+	affwp_enqueue_style( 'affwp-forms' );
+
+	// Enqueue the 'affwp-recaptcha' script if reCAPTCHA is enabled
+	if ( affwp_is_recaptcha_enabled() ) {
+		affwp_enqueue_script( 'affwp-recaptcha' );
 	}
 
 }

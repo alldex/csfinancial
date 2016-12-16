@@ -1,6 +1,33 @@
 <?php
-
+/**
+ * Class Affiliate_WP_Creatives_DB
+ *
+ * @see Affiliate_WP_DB
+ *
+ * @property-read \AffWP\Creative\REST\v1\Endpoints $REST Creatives REST endpoints.
+ */
 class Affiliate_WP_Creatives_DB extends Affiliate_WP_DB {
+
+	/**
+	 * Cache group for queries.
+	 *
+	 * @internal DO NOT change. This is used externally both as a cache group and shortcut
+	 *           for accessing db class instances via affiliate_wp()->{$cache_group}->*.
+	 *
+	 * @since 1.9
+	 * @access public
+	 * @var string
+	 */
+	public $cache_group = 'creatives';
+
+	/**
+	 * Object type to query for.
+	 *
+	 * @since 1.9
+	 * @access public
+	 * @var string
+	 */
+	public $query_object_type = 'AffWP\Creative';
 
 	/**
 	 * Get things started
@@ -9,7 +36,7 @@ class Affiliate_WP_Creatives_DB extends Affiliate_WP_DB {
 	 * @since   1.2
 	*/
 	public function __construct() {
-		global $wpdb;
+		global $wpdb, $wp_version;
 
 		if ( defined( 'AFFILIATE_WP_NETWORK_WIDE' ) && AFFILIATE_WP_NETWORK_WIDE ) {
 			// Allows a single creatives table for the whole network
@@ -19,6 +46,26 @@ class Affiliate_WP_Creatives_DB extends Affiliate_WP_DB {
 		}
 		$this->primary_key = 'creative_id';
 		$this->version     = '1.0';
+
+		// REST endpoints.
+		if ( version_compare( $wp_version, '4.4', '>=' ) ) {
+			$this->REST = new \AffWP\Creative\REST\v1\Endpoints;
+		}
+	}
+
+	/**
+	 * Retrieves a creative object.
+	 *
+	 * @since 1.9
+	 * @access public
+	 *
+	 * @see Affiliate_WP_DB::get_core_object()
+	 *
+	 * @param int|AffWP\Creative $creative Creative ID or object.
+	 * @return AffWP\Creative|false Creative object, otherwise false.
+	 */
+	public function get_object( $creative ) {
+		return $this->get_core_object( $creative, $this->query_object_type );
 	}
 
 	/**
@@ -53,22 +100,37 @@ class Affiliate_WP_Creatives_DB extends Affiliate_WP_DB {
 	}
 
 	/**
-	 * Retrieve creatives from the database
+	 * Retrieves creatives from the database.
 	 *
-	 * @access  public
-	 * @since   1.2
-	 * @param   array $args
-	 * @param   bool  $count  Return only the total number of results found (optional)
+	 * @access public
+	 * @since  1.2
+	 *
+	 * @param array $args {
+	 *     Optional. Arguments for querying creatives. Default empty array.
+	 *
+	 *     @type int       $number      Number of creatives to query for. Default 20.
+	 *     @type int       $offset      Number of creatives to offset the query for. Default 0.
+	 *     @type int|array $creative_id Creative ID or array of creative IDs to explicitly retrieve. Default 0.
+	 *     @type string    $status      Creative status. Default empty (all).
+	 *     @type string    $order       How to order returned creative results. Accepts 'ASC' or 'DESC'.
+	 *                                  Default 'DESC'.
+	 *     @type string    $orderby     Creatives table column to order results by. Accepts any AffWP\Creative
+	 *                                  field. Default 'creative_id'.
+	 *     @type string    $fields      Fields to limit the selection for. Accepts 'ids' or '*' (all). Default '*'.
+	 * }
+	 * @param bool $count Whether to retrieve only the total number of results found. Default false.
 	 */
 	public function get_creatives( $args = array(), $count = false ) {
 		global $wpdb;
 
 		$defaults = array(
-			'number'  => 20,
-			'offset'  => 0,
-			'status'  => '',
-			'orderby' => $this->primary_key,
-			'order'   => 'ASC',
+			'number'      => 20,
+			'offset'      => 0,
+			'creative_id' => 0,
+			'status'      => '',
+			'orderby'     => $this->primary_key,
+			'order'       => 'ASC',
+			'fields'      => '',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -77,18 +139,37 @@ class Affiliate_WP_Creatives_DB extends Affiliate_WP_DB {
 			$args['number'] = 999999999999;
 		}
 
-		$where = '';
+		$where = $join = '';
 
+		// Specific creative ID or IDs.
+		if ( ! empty( $args['creative_id'] ) ) {
+
+			$where .= empty( $where ) ? "WHERE " : "AND ";
+
+			if( is_array( $args['creative_id'] ) ) {
+				$creatives = implode( ',', array_map( 'intval', $args['creative_id'] ) );
+			} else {
+				$creatives = intval( $args['creative_id'] );
+			}
+
+			$where .= "`creative_id` IN( {$creatives} ) ";
+		}
+
+		// Status.
 		if ( ! empty( $args['status'] ) ) {
+
+			$where .= empty( $where ) ? "WHERE " : "AND ";
+
 			$status = esc_sql( $args['status'] );
 
 			if ( ! empty( $where ) ) {
-				$where .= "AND `status` = '" . $status . "' ";
+				$where .= "`status` = '" . $status . "' ";
 			} else {
-				$where .= "WHERE `status` = '" . $status . "' ";
+				$where .= "`status` = '" . $status . "' ";
 			}
 		}
 
+		// There can be only two orders.
 		if ( 'ASC' === strtoupper( $args['order'] ) ) {
 			$order = 'ASC';
 		} else {
@@ -101,31 +182,35 @@ class Affiliate_WP_Creatives_DB extends Affiliate_WP_DB {
 		$args['orderby'] = $orderby;
 		$args['order']   = $order;
 
-		$cache_key = ( true === $count ) ? md5( 'affwp_creatives_count' . serialize( $args ) ) : md5( 'affwp_creatives_' . serialize( $args ) );
+		$fields = "*";
 
-		$results = wp_cache_get( $cache_key, 'creatives' );
+		if ( ! empty( $args['fields'] ) ) {
+			if ( 'ids' === $args['fields'] ) {
+				$fields = "$this->primary_key";
+			} elseif ( array_key_exists( $args['fields'], $this->get_columns() ) ) {
+				$fields = $args['fields'];
+			}
+		}
+
+		$key = ( true === $count ) ? md5( 'affwp_creatives_count' . serialize( $args ) ) : md5( 'affwp_creatives_' . serialize( $args ) );
+
+		$last_changed = wp_cache_get( 'last_changed', $this->cache_group );
+		if ( ! $last_changed ) {
+			wp_cache_set( 'last_changed', microtime(), $this->cache_group );
+		}
+
+		$cache_key = "{$key}:{$last_changed}";
+
+		$results = wp_cache_get( $cache_key, $this->cache_group );
 
 		if ( false === $results ) {
 
-			if ( true === $count ) {
+			$clauses = compact( 'fields', 'join', 'where', 'orderby', 'order', 'count' );
 
-				$results = absint( $wpdb->get_var( "SELECT COUNT({$this->primary_key}) FROM {$this->table_name} {$where};" ) );
-
-			} else {
-
-				$results = $wpdb->get_results(
-					$wpdb->prepare(
-						"SELECT * FROM {$this->table_name} {$where} ORDER BY {$orderby} {$order} LIMIT %d, %d;",
-						absint( $args['offset'] ),
-						absint( $args['number'] )
-					)
-				);
-
-			}
-
-			wp_cache_set( $cache_key, $results, 'creatives', HOUR_IN_SECONDS );
-
+			$results = $this->get_results( $clauses, $args, 'affwp_get_creative' );
 		}
+
+		wp_cache_add( $cache_key, $results, $this->cache_group, HOUR_IN_SECONDS );
 
 		return $results;
 
@@ -158,11 +243,9 @@ class Affiliate_WP_Creatives_DB extends Affiliate_WP_DB {
 
 		$args = wp_parse_args( $data, $defaults );
 
-		$add  = $this->insert( $args, 'creative' );
+		$add = $this->insert( $args, 'creative' );
 
 		if ( $add ) {
-			wp_cache_flush();
-
 			do_action( 'affwp_insert_creative', $add );
 			return $add;
 		}
@@ -185,7 +268,7 @@ class Affiliate_WP_Creatives_DB extends Affiliate_WP_DB {
 			date datetime NOT NULL,
 			PRIMARY KEY  (creative_id),
 			KEY creative_id (creative_id)
-			) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;";
+			) CHARACTER SET utf8 COLLATE utf8_general_ci;";
 
 		dbDelta( $sql );
 

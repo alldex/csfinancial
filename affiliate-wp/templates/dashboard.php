@@ -75,6 +75,12 @@
 			</li>
 			<?php endif; ?>
 
+			<?php if ( affwp_affiliate_area_show_tab( 'payouts' ) ) : ?>
+			<li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'payouts' ? ' active' : ''; ?>">
+				<a href="<?php echo esc_url( affwp_get_affiliate_area_page_url( 'payouts' ) ); ?>"><?php _e( 'Payouts', 'affiliate-wp' ); ?></a>
+			</li>
+			<?php endif; ?>
+
 			<?php if ( affwp_affiliate_area_show_tab( 'visits' ) ) : ?>
 			<li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'visits' ? ' active' : ''; ?>">
 				<a href="<?php echo esc_url( affwp_get_affiliate_area_page_url( 'visits' ) ); ?>"><?php _e( 'Visits', 'affiliate-wp' ); ?></a>
@@ -92,7 +98,26 @@
 				<a href="<?php echo esc_url( affwp_get_affiliate_area_page_url( 'settings' ) ); ?>"><?php _e( 'Settings', 'affiliate-wp' ); ?></a>
 			</li>
 			<?php endif; ?>
-			<?php do_action( 'affwp_affiliate_dashboard_tabs', affwp_get_affiliate_id(), $active_tab ); ?>
+
+			<?php
+			/**
+			 * Fires immediately after core Affiliate Area tabs are output,
+			 * but before the 'Log Out' tab is output (if enabled).
+			 *
+			 * @since 0.2
+			 *
+			 * @param int    $affiliate_id ID of the current affiliate.
+			 * @param string $active_tab   Slug of the active tab.
+			 */
+			do_action( 'affwp_affiliate_dashboard_tabs', affwp_get_affiliate_id(), $active_tab );
+			?>
+
+			<?php if ( affiliate_wp()->settings->get( 'logout_link' ) ) : ?>
+			<li class="affwp-affiliate-dashboard-tab">
+				<a href="<?php echo esc_url( affwp_get_logout_url() ); ?>"><?php _e( 'Log out', 'affiliate-wp' ); ?></a>
+			</li>
+			<?php endif; ?>
+
 		</ul>
 
 		<?php

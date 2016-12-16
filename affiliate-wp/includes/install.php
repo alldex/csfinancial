@@ -15,6 +15,7 @@ function affiliate_wp_install() {
 	$affiliate_wp_install->creatives      = new Affiliate_WP_Creatives_DB;
 	$affiliate_wp_install->settings       = new Affiliate_WP_Settings;
 	$affiliate_wp_install->rewrites       = new Affiliate_WP_Rewrites;
+	$affiliate_wp_install->REST           = new Affiliate_WP_REST;
 
 	$affiliate_wp_install->affiliates->create_table();
 	$affiliate_wp_install->affiliate_meta->create_table();
@@ -22,6 +23,8 @@ function affiliate_wp_install() {
 	$affiliate_wp_install->visits->create_table();
 	$affiliate_wp_install->campaigns->create_view();
 	$affiliate_wp_install->creatives->create_table();
+	$affiliate_wp_install->affiliates->payouts->create_table();
+	$affiliate_wp_install->REST->consumers->create_table();
 
 	if ( ! get_option( 'affwp_is_installed' ) ) {
 		$affiliate_area = wp_insert_post(
@@ -29,7 +32,7 @@ function affiliate_wp_install() {
 				'post_title'     => __( 'Affiliate Area', 'affiliate-wp' ),
 				'post_content'   => '[affiliate_area]',
 				'post_status'    => 'publish',
-				'post_author'    => 1,
+				'post_author'    => get_current_user_id(),
 				'post_type'      => 'page',
 				'comment_status' => 'closed'
 			)

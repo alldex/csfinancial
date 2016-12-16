@@ -36,7 +36,7 @@ function affwp_referrals_contextual_help() {
 		'id'	    => 'affwp-referrals-overview',
 		'title'	    => __( 'Overview', 'affiliate-wp' ),
 		'content'	=>
-			'<p>' . __( "This screen provides access to your site's referral history.", 'affiliate-wp' ) . '</p>' . 
+			'<p>' . __( "This screen provides access to your site&#8217;s referral history.", 'affiliate-wp' ) . '</p>' .
 			'<p>' . __( "<strong>Reference</strong>: this refers to the order number (or similar) that created this referral.", 'affiliate-wp' ) . '</p>' . 
 			'<p>' . __( "Referral statuses:", 'affiliate-wp' ) . '</p>' . 
 			'<ul>' .
@@ -53,11 +53,11 @@ function affwp_referrals_contextual_help() {
 		'content'	=>
 			'<p>' . __( 'Referrals can be searched in several different ways:', 'affiliate-wp' ) . '</p>' .
 			'<ul>
-				<li>' . __( 'You can enter the referral\'s ID number', 'affiliate-wp' ) . '</li>
-				<li>' . __( 'You can enter the referral reference prefixed by \'ref:\'', 'affiliate-wp' ) . '</li>
-				<li>' . __( 'You can enter the referral context prefixed by \'context:\'', 'affiliate-wp' ) . '</li>
-				<li>' . __( 'You can enter the affiliate\'s ID number prefixed by \'affiliate:\'', 'affiliate-wp' ) . '</li>
-				<li>' . __( 'You can enter a URL campaign prefixed by \'campaign:\'', 'affiliate-wp' ) . '</li>
+				<li>' . __( 'You can enter the referral&#8217;s ID number', 'affiliate-wp' ) . '</li>
+				<li>' . __( 'You can enter the referral reference prefixed by &#8220;ref:&#8221;', 'affiliate-wp' ) . '</li>
+				<li>' . __( 'You can enter the referral context prefixed by &#8220;context:&#8221;', 'affiliate-wp' ) . '</li>
+				<li>' . __( 'You can enter the affiliate&#8217;s ID number prefixed by &#8220;affiliate:&#8221;', 'affiliate-wp' ) . '</li>
+				<li>' . __( 'You can enter a URL campaign prefixed by &#8220;campaign:&#8221;', 'affiliate-wp' ) . '</li>
 			</ul>'
 	) );
 
@@ -65,8 +65,8 @@ function affwp_referrals_contextual_help() {
 		'id'	    => 'affwp-referrals-export',
 		'title'	    => __( 'Exporting Referrals', 'affiliate-wp' ),
 		'content'	=>
-			'<p>' . __( 'Referrals can be exported directly to a CSV file in order to make it easier for your own accounting needs and for you to payout your affiliates\'s earnings.', 'affiliate-wp' ) . '</p>' .
-			'<p>' . __( 'The CSV file generated is structured properly for PayPal\'s Mass Payment system so you can easily payout all of your affiliates at once via PayPal.', 'affiliate-wp' ) . '</p>'
+			'<p>' . __( 'Referrals can be exported directly to a CSV file in order to make it easier for your own accounting needs and for you to payout your affiliates&#8217;s earnings.', 'affiliate-wp' ) . '</p>' .
+			'<p>' . __( 'The CSV file generated is structured properly for PayPal&#8217;s Mass Payment system so you can easily payout all of your affiliates at once via PayPal.', 'affiliate-wp' ) . '</p>'
 	) );
 
 	do_action( 'affwp_referrals_contextual_help', $screen );

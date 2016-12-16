@@ -1,6 +1,33 @@
 <?php
-
+/**
+ * Class Affiliate_WP_Referrals_DB
+ *
+ * @see Affiliate_WP_DB
+ *
+ * @property-read \AffWP\Referral\REST\v1\Endpoints $REST Referral REST endpoints.
+ */
 class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
+
+	/**
+	 * Cache group for queries.
+	 *
+	 * @internal DO NOT change. This is used externally both as a cache group and shortcut
+	 *           for accessing db class instances via affiliate_wp()->{$cache_group}->*.
+	 *
+	 * @since 1.9
+	 * @access public
+	 * @var string
+	 */
+	public $cache_group = 'referrals';
+
+	/**
+	 * Object type to query for.
+	 *
+	 * @since 1.9
+	 * @access public
+	 * @var string
+	 */
+	public $query_object_type = 'AffWP\Referral';
 
 	/**
 	 * Get things started
@@ -9,8 +36,7 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 	 * @since   1.0
 	*/
 	public function __construct() {
-
-		global $wpdb;
+		global $wpdb, $wp_version;
 
 		if( defined( 'AFFILIATE_WP_NETWORK_WIDE' ) && AFFILIATE_WP_NETWORK_WIDE ) {
 			// Allows a single referrals table for the whole network
@@ -21,6 +47,25 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 		$this->primary_key = 'referral_id';
 		$this->version     = '1.1';
 
+		// REST endpoints.
+		if ( version_compare( $wp_version, '4.4', '>=' ) ) {
+			$this->REST = new \AffWP\Referral\REST\v1\Endpoints;
+		}
+	}
+
+	/**
+	 * Retrieves a referral object.
+	 *
+	 * @since 1.9
+	 * @access public
+	 *
+	 * @see Affiliate_WP_DB::get_core_object()
+	 *
+	 * @param int|object|AffWP\Referral $referral Referral ID or object.
+	 * @return AffWP\Referral|null Referral object, null otherwise.
+	 */
+	public function get_object( $referral ) {
+		return $this->get_core_object( $referral, $this->query_object_type );
 	}
 
 	/**
@@ -43,6 +88,7 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 			'campaign'    => '%s',
 			'reference'   => '%s',
 			'products'    => '%s',
+			'payout_id'   => '%d',
 			'date'        => '%s',
 		);
 	}
@@ -119,20 +165,16 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 	}
 
 	/**
-	 * Update a referral
+	 * Update a referral.
 	 *
 	 * @access  public
 	 * @since   1.5
+	 *
+	 * @param int|AffWP\Referral $referral Referral ID or object.
 	*/
-	public function update_referral( $referral_id = 0, $data = array() ) {
+	public function update_referral( $referral = 0, $data = array() ) {
 
-		if( empty( $referral_id ) ) {
-			return false;
-		}
-
-		$referral = $this->get( $referral_id );
-
-		if( ! $referral ) {
+		if ( ! $referral = affwp_get_referral( $referral ) ) {
 			return false;
 		}
 
@@ -148,13 +190,13 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 			$data['date'] = date_i18n( 'Y-m-d H:i:s', strtotime( $data['date'] ) );
 		}
 
-		$update = $this->update( $referral_id, $data, '', 'referral' );
+		$update = $this->update( $referral->ID, $data, '', 'referral' );
 
 		if( $update ) {
 
 			if( ! empty( $data['status'] ) && $referral->status !== $data['status'] ) {
 
-				affwp_set_referral_status( $referral, $data['status'] );
+				affwp_set_referral_status( $referral->ID, $data['status'] );
 
 			} elseif( 'paid' === $referral->status ) {
 
@@ -205,8 +247,43 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 	 *
 	 * @access  public
 	 * @since   1.0
-	 * @param   array $args
-	 * @param   bool  $count  Return only the total number of results found (optional)
+	 * @param array $args {
+	 *     Optional. Arguments to retrieve referrals from the database.
+	 *
+	 *     @type int          $number         Number of referrals to retrieve. Accepts -1 for all. Default 20.
+	 *     @type int          $offset         Number of referrals to offset in the query. Default 0.
+	 *     @type int|array    $referral_id    Specific referral ID or array of IDs to query for. Default 0 (all).
+	 *     @type int|array    $affiliate_id   Affiliate ID or array of IDs to query referrals for. Default 0 (all).
+	 *     @type int|array    $payout_id      Payout ID or array of IDs to query referrals for. Default 0 (all).
+	 *     @type float|array  $amount {
+	 *         Specific amount to query for or min/max range. If float, can be used with `$amount_compare`.
+	 *         If array, `BETWEEN` is used.
+	 *
+	 *         @type float $min Minimum amount to query for.
+	 *         @type float $max Maximum amount to query for.
+	 *     }
+	 *     @type string       $amount_compare Comparison operator to use with `$amount`. Accepts '>', '<', '>=',
+	 *                                        '<=', '=', or '!='. Default '='.
+	 *     @type string|array $date {
+	 *         Date string or start/end range to retrieve referrals for.
+	 *
+	 *         @type string $start Start date to retrieve referrals for.
+	 *         @type string $end   End date to retrieve referrals for.
+	 *     }
+	 *     @type string       $reference      Specific reference to query referrals for (usually an order number).
+	 *                                        Default empty.
+	 *     @type string       $context        Specific context to query referrals for. Default empty.
+	 *     @type string       $campaign       Specific campaign to query referrals for. Default empty.
+	 *     @type string|array $status         Referral status or array of statuses to query referrals for.
+	 *                                        Default empty (all).
+	 *     @type string       $orderby        Column to order results by. Accepts any valid referrals table column.
+	 *                                        Default 'referral_id'.
+	 *     @type string       $order          How to order results. Accepts 'ASC' (ascending) or 'DESC' (descending).
+	 *                                        Default 'DESC'.
+	 *     @type bool         $search         Whether a search query is being performed. Default false.
+	 *     @type string       $fields         Fields to query for. Accepts 'ids' or '*' (all). Default '*'.
+	 * }
+	 * @param   bool  $count  Optional. Whether to return only the total number of results found. Default false.
 	*/
 	public function get_referrals( $args = array(), $count = false ) {
 
@@ -216,14 +293,18 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 			'number'       => 20,
 			'offset'       => 0,
 			'referral_id'  => 0,
+			'payout_id'    => 0,
 			'affiliate_id' => 0,
+			'amount'       => 0,
+			'amount_compare' => '=',
 			'reference'    => '',
 			'context'      => '',
 			'campaign'     => '',
 			'status'       => '',
 			'orderby'      => 'referral_id',
 			'order'        => 'DESC',
-			'search'       => false
+			'search'       => false,
+			'fields'       => '',
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
@@ -232,7 +313,7 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 			$args['number'] = 999999999999;
 		}
 
-		$where    = '';
+		$where = $join = '';
 
 		// Specific referrals
 		if( ! empty( $args['referral_id'] ) ) {
@@ -258,6 +339,49 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 
 			$where .= "WHERE `affiliate_id` IN( {$affiliate_ids} ) ";
 
+		}
+
+		// Referrals for specific payouts
+		if( ! empty( $args['payout_id'] ) ) {
+
+			if( is_array( $args['payout_id'] ) ) {
+				$payout_ids = implode( ',', array_map( 'intval', $args['payout_id'] ) );
+			} else {
+				$payout_ids = intval( $args['payout_id'] );
+			}
+
+			$where .= "WHERE `payout_id` IN( {$payout_ids} ) ";
+
+		}
+
+		// Amount.
+		if ( ! empty( $args['amount'] ) ) {
+
+			$amount = $args['amount'];
+
+			$where .= empty( $where ) ? " WHERE" : " AND";
+
+			if ( is_array( $amount ) && ! empty( $amount['min'] ) && ! empty( $amount['max'] ) ) {
+
+				$minimum = absint( $amount['min'] );
+				$maximum = absint( $amount['max'] );
+
+				$where .= " `amount` BETWEEN {$minimum} AND {$maximum}";
+			} else {
+
+				$amount  = absint( $amount );
+				$compare = '=';
+
+				if ( ! empty( $args['amount_compare'] ) ) {
+					$compare = $args['amount_compare'];
+
+					if ( ! in_array( $compare, array( '>', '<', '>=', '<=', '=', '!=' ) ) ) {
+						$compare = '=';
+					}
+				}
+
+				$where .= " `amount` {$compare} {$amount}";
+			}
 		}
 
 		if( ! empty( $args['status'] ) ) {
@@ -417,31 +541,35 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 		$args['orderby'] = $orderby;
 		$args['order']   = $order;
 
-		$cache_key = ( true === $count ) ? md5( 'affwp_referrals_count' . serialize( $args ) ) : md5( 'affwp_referrals_' . serialize( $args ) );
+		$fields = "*";
 
-		$results = wp_cache_get( $cache_key, 'referrals' );
+		if ( ! empty( $args['fields'] ) ) {
+			if ( 'ids' === $args['fields'] ) {
+				$fields = "$this->primary_key";
+			} elseif ( array_key_exists( $args['fields'], $this->get_columns() ) ) {
+				$fields = $args['fields'];
+			}
+		}
+
+		$key = ( true === $count ) ? md5( 'affwp_referrals_count' . serialize( $args ) ) : md5( 'affwp_referrals_' . serialize( $args ) );
+
+		$last_changed = wp_cache_get( 'last_changed', $this->cache_group );
+		if ( ! $last_changed ) {
+			wp_cache_set( 'last_changed', microtime(), $this->cache_group );
+		}
+
+		$cache_key = "{$key}:{$last_changed}";
+
+		$results = wp_cache_get( $cache_key, $this->cache_group );
 
 		if ( false === $results ) {
 
-			if ( true === $count ) {
+			$clauses = compact( 'fields', 'join', 'where', 'orderby', 'order', 'count' );
 
-				$results = absint( $wpdb->get_var( "SELECT COUNT({$this->primary_key}) FROM {$this->table_name} {$where};" ) );
-
-			} else {
-
-				$results = $wpdb->get_results(
-					$wpdb->prepare(
-						"SELECT * FROM {$this->table_name} {$where} ORDER BY {$orderby} {$order} LIMIT %d, %d;",
-						absint( $args['offset'] ),
-						absint( $args['number'] )
-					)
-				);
-
-			}
-
-			wp_cache_set( $cache_key, $results, 'referrals', HOUR_IN_SECONDS );
-
+			$results = $this->get_results( $clauses, $args, 'affwp_get_referral' );
 		}
+
+		wp_cache_add( $cache_key, $results, $this->cache_group, HOUR_IN_SECONDS );
 
 		return $results;
 
@@ -476,16 +604,25 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 
 		if( ! empty( $date ) ) {
 
-			switch( $date ) {
+			// Back-compat for string date rates.
+			if ( is_string( $date ) ) {
+				switch ( $date ) {
 
-				case 'month' :
+					case 'month' :
 
-					$date = array(
-						'start' => date( 'Y-m-01 00:00:00', current_time( 'timestamp' ) ),
-						'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 00:00:00', current_time( 'timestamp' ) ),
-					);
-					break;
+						$date = array(
+							'start' => date( 'Y-m-01 00:00:00', current_time( 'timestamp' ) ),
+							'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 23:59:59', current_time( 'timestamp' ) ),
+						);
+						break;
 
+					case 'last-month':
+						$date = array(
+							'start' => date( 'Y-m-01 00:00:00', ( current_time( 'timestamp' ) - MONTH_IN_SECONDS ) ),
+							'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 23:59:59', ( current_time( 'timestamp' ) - MONTH_IN_SECONDS ) ),
+						);
+						break;
+				}
 			}
 
 			$args['date'] = $date;
@@ -528,16 +665,26 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 
 		if( ! empty( $date ) ) {
 
-			switch( $date ) {
+			if ( is_string( $date ) ) {
+				switch( $date ) {
 
-				case 'month' :
+					case 'month' :
 
-					$date = array(
-						'start' => date( 'Y-m-01 00:00:00', current_time( 'timestamp' ) ),
-						'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 00:00:00', current_time( 'timestamp' ) ),
-					);
-					break;
+						$date = array(
+							'start' => date( 'Y-m-01 00:00:00', current_time( 'timestamp' ) ),
+							'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 23:59:59', current_time( 'timestamp' ) ),
+						);
+						break;
 
+					case 'last-month' :
+
+						$date = array(
+							'start' => date( 'Y-m-01 00:00:00', ( current_time( 'timestamp' ) - MONTH_IN_SECONDS ) ),
+							'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 23:59:59', ( current_time( 'timestamp' ) - MONTH_IN_SECONDS ) ),
+						);
+						break;
+
+				}
 			}
 
 			$args['date'] = $date;
@@ -556,37 +703,68 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 	}
 
 	/**
-	 * Count the total number of unpaid referrals
+	 * Counts the total number of referrals for the given status.
 	 *
-	 * @access  public
-	 * @since   1.0
-	*/
-	public function unpaid_count( $date = '', $affiliate_id = 0 ) {
+	 * @access public
+	 * @since  1.8.6
+	 *
+	 * @param string $status       Referral status.
+	 * @param int    $affiliate_id Optional. Affiliate ID. Default 0.
+	 * @param string $date         Optional. Date range in which to search. Accepts 'month'. Default empty.
+	 * @return int Number of referrals for the given status or 0 if the affiliate doesn't exist.
+	 */
+	public function count_by_status( $status, $affiliate_id = 0, $date = '' ) {
 
 		$args = array(
+			'status'       => $status,
 			'affiliate_id' => absint( $affiliate_id ),
-			'status'       => 'unpaid',
 		);
 
 		if ( ! empty( $date ) ) {
 
-			switch ( $date ) {
-
-				case 'month' :
-
-					$date = array(
-						'start' => date( 'Y-m-01 00:00:00', current_time( 'timestamp' ) ),
-						'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 00:00:00', current_time( 'timestamp' ) ),
-					);
-
-					break;
-
+			// Whitelist for back-compat string values.
+			if ( is_string( $date ) && ! in_array( $date, array( 'month', 'last-month' ) ) ) {
+				$date = '';
 			}
 
+			if ( is_string( $date ) ) {
+				switch( $date ) {
+					case 'month':
+						$date = array(
+							'start' => date( 'Y-m-01 00:00:00', current_time( 'timestamp' ) ),
+							'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 23:59:59', current_time( 'timestamp' ) ),
+						);
+						break;
+
+					case 'last-month':
+						$date = array(
+							'start' => date( 'Y-m-01 00:00:00', ( current_time( 'timestamp' ) - MONTH_IN_SECONDS ) ),
+							'end'   => date( 'Y-m-' . cal_days_in_month( CAL_GREGORIAN, date( 'n' ), date( 'Y' ) ) . ' 23:59:59', ( current_time( 'timestamp' ) - MONTH_IN_SECONDS ) ),
+						);
+						break;
+				}
+			}
 			$args['date'] = $date;
 		}
 
 		return $this->count( $args );
+	}
+
+	/**
+	 * Count the total number of unpaid referrals
+	 *
+	 * @access  public
+	 * @since   1.0
+	 * @since   1.8.6 Converted to a wrapper for count_by_status()
+	 *
+	 * @see count_by_status()
+	 *
+	 * @param string $date         Optional. Date range in which to search. Accepts 'month'. Default empty.
+	 * @param int    $affiliate_id Optional. Affiliate ID. Default 0.
+	 * @return int Number of referrals for the given status or 0 if the affiliate doesn't exist.
+	*/
+	public function unpaid_count( $date = '', $affiliate_id = 0 ) {
+		return $this->count_by_status( 'unpaid', $affiliate_id, $date );
 	}
 
 	/**
@@ -643,10 +821,11 @@ class Affiliate_WP_Referrals_DB extends Affiliate_WP_DB  {
 		campaign varchar(30) NOT NULL,
 		reference mediumtext NOT NULL,
 		products mediumtext NOT NULL,
+		payout_id bigint(20) NOT NULL,
 		date datetime NOT NULL,
 		PRIMARY KEY  (referral_id),
 		KEY affiliate_id (affiliate_id)
-		) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;";
+		) CHARACTER SET utf8 COLLATE utf8_general_ci;";
 
 		dbDelta( $sql );
 
