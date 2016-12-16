@@ -60,6 +60,14 @@ class Affiliate_WP_Admin_Notices {
 					$migrate          = new Affiliate_WP_Migrate_Users;
 					$total_affiliates = (int) $migrate::get_items_total( 'affwp_migrate_users_total_count' );
 
+					/*
+					 * If $total_affiliates is 0 and we know 'affiliate_added' has been fired,
+					 * it was a manual addition, and therefore 1 affiliate was added.
+					 */
+					if ( 0 === $total_affiliates ) {
+						$total_affiliates = 1;
+					}
+
 					$message = sprintf( _n(
 						'%d affiliate was added successfully.',
 						'%d affiliates were added successfully',

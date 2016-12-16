@@ -21,10 +21,12 @@ function affwp_get_creative( $creative = null ) {
 }
 
 /**
- * Adds a new creative to the database
+ * Adds a new creative to the database.
  *
  * @since 1.1.4
- * @return bool
+ * @since 1.9.6 Modified to return the creative ID on success vs true.
+ *
+ * @return int|false ID of the newly-created creative, otherwise false.
  */
 function affwp_add_creative( $data = array() ) {
 
@@ -37,9 +39,8 @@ function affwp_add_creative( $data = array() ) {
 		'status'      => ! empty( $data['status'] ) ? sanitize_text_field( $data['status'] ) : '',	
 	);
 
-	if ( affiliate_wp()->creatives->add( $args ) ) {
-
-		return true;
+	if ( $creative_id = affiliate_wp()->creatives->add( $args ) ) {
+		return $creative_id;
 	}
 
 	return false;

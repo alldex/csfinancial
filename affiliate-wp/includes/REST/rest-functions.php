@@ -5,7 +5,7 @@
  * @since 1.9
  *
  * @param int|AffWP\REST\Consumer $consumer Consumer ID or object.
- * @return \AffWP\Affiliate|false Consumer object, otherwise false.
+ * @return \AffWP\REST\Consumer|false Consumer object, otherwise false.
  */
 function affwp_get_rest_consumer( $consumer = null ) {
 

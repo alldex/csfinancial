@@ -118,6 +118,9 @@ jQuery(document).ready( function($) {
 		// clean URL to remove any instances of multiple slashes
 		url = url.replace(/([^:])(\/\/+)/g, '$1/');
 
+		// encode any spaces in the URL
+		url = url.replace(/ /g, '%20');
+
 		if( affwp_is_valid_url( url ) ) {
 
 			$( '.affwp-wrap.affwp-base-url-wrap' ).find( '.affwp-errors' ).remove();

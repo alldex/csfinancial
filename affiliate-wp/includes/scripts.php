@@ -114,7 +114,7 @@ function affwp_frontend_scripts_and_styles() {
 	}
 
 	$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-	wp_register_style( 'affwp-forms', AFFILIATEWP_PLUGIN_URL . 'assets/css/forms' . $suffix . '.css', array( 'dashicons' ), AFFILIATEWP_VERSION );
+	wp_register_style( 'affwp-forms', AFFILIATEWP_PLUGIN_URL . 'assets/css/forms' . $suffix . '.css', array(), AFFILIATEWP_VERSION );
 
 	wp_register_script( 'affwp-recaptcha', 'https://www.google.com/recaptcha/api.js', array(), AFFILIATEWP_VERSION );
 	wp_register_script( 'affwp-frontend', AFFILIATEWP_PLUGIN_URL . 'assets/js/frontend' . $suffix . '.js', array( 'jquery' ), AFFILIATEWP_VERSION );
