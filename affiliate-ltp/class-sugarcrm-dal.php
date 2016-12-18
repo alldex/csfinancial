@@ -49,9 +49,14 @@ class SugarCRMDAL {
     }
     
     public function getAccountById($accountId) {
-        $entries = $this->getAccountByQuery("accounts.id = $accountId");
+        if (!$this->isAuthenticated()) {
+            $this->authenticate();
+        }
+        
+        // TODO: stephen see how SuiteCRM wants to handle input data parameters.
+        $entries = $this->getAccountByQuery("accounts.id = '$accountId'", 1);
         if (!empty($entries)) {
-            return $entries[0];
+            return $entries[$accountId];
         }
         return null;
     }
@@ -62,10 +67,6 @@ class SugarCRMDAL {
             $this->authenticate();
         }
         
-        $mapping = $this->getAccountMapping();
-        
-        $selectFields = array_values($mapping);
-        
         $searchClause = "";
         if (!empty($searchValue)) {
             // apparently need to use the module name and make it lowercase
@@ -73,7 +74,7 @@ class SugarCRMDAL {
             $searchClause = "contract_number_c LIKE '%$searchValue%'";
         }
         
-        return $this->getAccountByQuery($searchClause);
+        return $this->getAccountByQuery($searchClause, $limit);
     }
     
     public function isAuthenticated() {
@@ -91,7 +92,11 @@ class SugarCRMDAL {
     }
     
     
-    private function getAccountByQuery($query) {
+    private function getAccountByQuery($query, $limit) {
+        $mapping = $this->getAccountMapping();
+        
+        $selectFields = array_values($mapping);
+        
         $parameters = array(
             //session id
             'session' => $this->sessionId,
@@ -131,8 +136,6 @@ class SugarCRMDAL {
             'favorites' => false,
          );
         
-        error_log(var_export($parameters, true));
-        
         $getEntryListResult = $this->call('get_entry_list', $parameters, self::URL);
         
         if (!(isset($getEntryListResult) && isset($getEntryListResult->result_count))) {
@@ -142,7 +145,6 @@ class SugarCRMDAL {
         if ($getEntryListResult->result_count < 1) {
             return array();
         }
-        $mapping = $this->getAccountMapping();
         $sugarKeys = array_flip($mapping);
         $results = array();
         foreach ($getEntryListResult->entry_list as $entry) {

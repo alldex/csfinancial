@@ -54,10 +54,10 @@ class AffiliateLTPReferrals {
         // load up the template.. defaults to our templates/admin-referral-edit.php
         // if no one else has overridden it.
         
-        $referralId = $referral->id;
-        $agentRate = $this->referralMetaDb->get_meta($referralId, 'agent_rate');
-        $points = $this->referralMetaDb->get_meta($referralId, 'points');
-        $clientId = $this->referralMetaDb->get_meta($referralId, 'client_id');
+        $referralId = $referral->referral_id;
+        $agentRate = $this->referralMetaDb->get_meta($referralId, 'agent_rate', true);
+        $points = $this->referralMetaDb->get_meta($referralId, 'points', true);
+        $clientId = $this->referralMetaDb->get_meta($referralId, 'client_id', true);
         
         if (!empty($clientId)) {
             $instance = SugarCRMDAL::instance();

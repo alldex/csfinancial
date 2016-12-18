@@ -9,7 +9,7 @@
 
         <td>
             <input class="medium-text" type="text" name="client_contract_number" id="client_contract_number" value="<?php echo esc_attr($client["contract_number"]); ?>" disabled="disabled"/>
-            <p class="description"><?php _e('The unique contract number of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+            <p class="description"><?php _e('The unique contract number of the Client this commission belongs to. None of the client values can be changed.', 'affiliate-ltp'); ?></p>
         </td>
 
     </tr>
