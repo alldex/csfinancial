@@ -30,14 +30,39 @@
     <tr class="form-row form-required">
 
         <th scope="row">
-            <label for="client_address"><?php _e('Client Address', 'affiliate-ltp'); ?></label>
+            <label for="client_street_address"><?php _e('Street Address', 'affiliate-ltp'); ?></label>
         </th>
 
         <td>
-            <textarea class="medium-text" name="client_address" id="client_address" disabled="disabled"><?php echo esc_attr($client["address"]); ?></textarea>
-            <p class="description"><?php _e('The address of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+            <textarea class="medium-text" name="client_street_address" id="client_street_address" disabled="disabled"><?php echo esc_attr($client["street_address"]); ?></textarea>
+            <p class="description"><?php _e('The street address of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
         </td>
 
+    </tr>
+    
+    <tr class="form-row form-required">
+
+        <th scope="row">
+            <label for="client_city_address"><?php _e('City', 'affiliate-ltp'); ?></label>
+        </th>
+
+        <td>
+            <input class="medium-text" type="text" name="client_city_address" id="client_city_address" value="<?php echo esc_attr($client["city"]); ?>" disabled="disabled" />
+            <p class="description"><?php _e('The city of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+        </td>
+
+    </tr>
+    
+    <tr class="form-row form-required">
+
+        <th scope="row">
+            <label for="client_zip_address"><?php _e('Zipcode', 'affiliate-ltp'); ?></label>
+        </th>
+
+        <td>
+            <input class="medium-text" type="text" name="client_zip_address" id="client_zip_address" value="<?php echo esc_attr($client["zip"]); ?>" disabled="disabled"/>
+            <p class="description"><?php _e('The zipcode of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+        </td>
     </tr>
     
     <tr class="form-row form-required">
