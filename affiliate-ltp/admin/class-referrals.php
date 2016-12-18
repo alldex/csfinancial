@@ -6,6 +6,10 @@
  */
 class AffiliateLTPReferrals {
     
+    /**
+     *
+     * @var Affiliate_WP_Referral_Meta_DB
+     */
     private $referralMetaDb;
     
     public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
@@ -46,14 +50,28 @@ class AffiliateLTPReferrals {
     public function addEditReferralClientFields( $referral ) {
         // load up the template.. defaults to our templates/admin-referral-edit.php
         // if no one else has overridden it.
-        $client = array(
-            "name" => "John"
-            ,"street_address" => "105S 3rd E"
-            ,"city_address" => "Rexburg"
-            ,"zipcode" => "83440"
-            ,"phone" => "801-610-9014"
-            ,"email" => "stephen@nielson.org"
-        );
+        
+        $referralId = $referral->id;
+        $agentRate = $this->referralMetaDb->get_meta($referralId, 'agent_rate');
+        $points = $this->referralMetaDb->get_meta($referralId, 'points');
+        $clientId = $this->referralMetaDb->get_meta($referralId, 'client_id');
+        
+        if (!empty($clientId)) {
+            $instance = SugarCRMDAL::instance();
+            $client = $instance->getAccountById($clientId);
+        }
+        else {
+            $client = array(
+                "contract_number" => ""
+                ,"name" => ""
+                ,"street_address" => ""
+                ,"city_address" => ""
+                ,"zipcode" => ""
+                ,"phone" => ""
+                ,"email" => ""
+            );
+        }
+        
         $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 
                 'edit', false);
         
@@ -86,10 +104,12 @@ class AffiliateLTPReferrals {
         try {
             $referralData = $this->getReferralDataFromRequest( $requestData );
             $data = $this->processCompanyCommission($referralData);
-            $this->createReferralHeirarchy($data['affiliate_id'], $data['amount'], 
-                    $data['context'], $data['reference'], $data['description'], $data['status']);
+            $clientId = $this->createClient($data['client']);
+            $data['client']['id'] = $clientId;
+            $this->createReferralHeirarchy($data);
             
-            $this->createClient($referralData['client']);
+            $this->connectCompanyToClient($data, $data['client']);
+            
             
             wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added' ) );
         }
@@ -100,16 +120,29 @@ class AffiliateLTPReferrals {
         exit;
     }
     
+    /**
+     * Do any work to connect the company referral information to the client.
+     * @param array $companyData
+     * @param array $clientData
+     */
+    private function connectCompanyToClient($companyData, $clientData) {
+        $this->connectReferralToClient($companyData['company_referral_id'], $clientData);
+    }
+    
+    /**
+     * Creates the client and returns the id of the client that was created.
+     * @param type $clientData
+     * @return string
+     */
     private function createClient($clientData) {
         // we already have a client id we don't need to create a client here
         if (!empty($clientData['id'])) {
-            // TODO: stephen add the connection between the referrals and the
-            // clients here.
-            return;
+            // we return the id to keep the code flow the same.
+            return $clientData['id'];
         }
         // create the client on the sugar CRM system.
         $instance = SugarCRMDAL::instance();
-        $instance->createAccount($clientData);
+        return $instance->createAccount($clientData);
     }
     
     private function processCompanyCommission( $data ) {
@@ -137,23 +170,27 @@ class AffiliateLTPReferrals {
         // create the records for the company commission
         
         $data['amount'] = $amountRemaining;
-        
+        $data['points'] = $amount;
         
         // Process cart and get amount
-        $companyData = array();
+        $companyData = array(); // copy the array
         $companyData['affiliate_id'] = absint($companyAgentId);
         $companyData['description']  = "Company commission for " . $data['reference'];
         $companyData['amount']       = $companyAmount;
-        $companyData['reference']    = $data['reference'];
         $companyData['custom']       = 'indirect';
         $companyData['context']      = 'ltp-commission';
         $companyData['status']       = 'paid';
+        $companyData['points']       = $amount; // the original amount is the points we track.
         
         // create referral
         $referral_id = affiliate_wp()->referrals->add( $companyData );
         if (empty($referral_id)) {
             error_log("Failed to calculate company commission.  Data array: "
                     . var_export($companyData, true));
+        }
+        else {
+            $data['company_referral_id'] = $referral_id;
+            $this->addReferralMeta($referral_id, $companyCommission, $data['points']);
         }
         
         return $data;
@@ -168,7 +205,7 @@ class AffiliateLTPReferrals {
 
             $user_id      = absint( $data['user_id'] );
             $affiliate_id = affiliate_wp()->affiliates->get_column_by( 'affiliate_id', 'user_id', $user_id );
-
+            
             if ( ! empty( $affiliate_id ) ) {
 
                     $data['affiliate_id'] = $affiliate_id;
@@ -207,7 +244,8 @@ class AffiliateLTPReferrals {
         return $args;
     }
     
-    function createReferral($affiliateId, $amount, $reference, $directAffiliate, $levelCount = 0) {
+    private function createReferral($affiliateId, $amount, $reference, $directAffiliate, $levelCount = 0,
+            $paymentRate = 0, $points = 0) {
 
         $custom = 'direct';
         $description = 'Direct referral';
@@ -227,17 +265,37 @@ class AffiliateLTPReferrals {
         $data['custom']       = $custom; // Add referral type as custom referral data
         $data['context']      = 'ltp-commission';
         $data['status']       = 'paid';
-
-
+        
+        
         // create referral
         $referral_id = affiliate_wp()->referrals->add( $data );
 
         if ( $referral_id ) {
+            $this->addReferralMeta($referral_id, $paymentRate, $points);
+            
             do_action( 'affwp_ltp_referral_created', $referral_id, $description, $amount, $reference, $custom, $context, $status);
+            return $referral_id;
+        }
+        else {
+            // TODO: stephen add more details here.
+            throw new \Exception("Failed to create referral id");
         }
     }
     
-    function createReferralHeirarchy($directAffiliateId, $amount, $context, $reference, $description, $status = 'paid') {
+    private function addReferralMeta($referralId, $paymentRate, $points) {
+        // TODO: stephen should we refactor so we add in the client info here?
+        $this->referralMetaDb->add_meta($referralId, 'agent_rate', $paymentRate);
+        $this->referralMetaDb->add_meta($referralId, 'points', $points);
+    }
+    
+    function createReferralHeirarchy($referralData) {
+        $directAffiliateId = $referralData['affiliate_id'];
+        $amount = $referralData['amount'];
+        $context = $referralData['context'];
+        $reference = $referralData['reference'];
+        $description = $referralData['description'];
+        $status = 'paid';
+        $points = $referralData['points'];
         
         $upline = affwp_mlm_get_upline( $directAffiliateId );
         if ($upline) {
@@ -260,10 +318,15 @@ class AffiliateLTPReferrals {
             $priorAffiliateRate = $affiliateRate;
             
             $directAffiliate = ($levelCount === 1);
-            $this->createReferral($affiliateId, $adjustedAmount, $reference, 
-                    $directAffiliate, $levelCount);
+            $referralId = $this->createReferral($affiliateId, $adjustedAmount, $reference, 
+                    $directAffiliate, $levelCount, $adjustedRate, $points);
+            $this->connectReferralToClient($referralId, $referralData['client']);
             
         } while (!empty($affiliates));
-        
+    }
+    
+    private function connectReferralToClient($referralId, $clientData) {
+        // add the connection for the client.
+        $this->referralMetaDb->add_meta($referralId, 'client_id', $clientData['id']);
     }
 }

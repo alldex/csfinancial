@@ -48,6 +48,14 @@ class SugarCRMDAL {
         $this->setAccount($accountData);
     }
     
+    public function getAccountById($accountId) {
+        $entries = $this->getAccountByQuery("accounts.id = $accountId");
+        if (!empty($entries)) {
+            return $entries[0];
+        }
+        return null;
+    }
+    
     public function searchAccounts($searchValue="", $limit = 5) {
         
         if (!$this->isAuthenticated()) {
@@ -65,6 +73,25 @@ class SugarCRMDAL {
             $searchClause = "contract_number_c LIKE '%$searchValue%'";
         }
         
+        return $this->getAccountByQuery($searchClause);
+    }
+    
+    public function isAuthenticated() {
+        if (empty($this->sessionId)) {
+            // check the session
+            $id = get_transient(self::SESSION_TRANSIENT_ID);
+            if (!empty($id)) {
+                $this->sessionId = $id;
+                return true;
+            }
+            
+            return false;
+        }
+        return true;
+    }
+    
+    
+    private function getAccountByQuery($query) {
         $parameters = array(
             //session id
             'session' => $this->sessionId,
@@ -73,7 +100,7 @@ class SugarCRMDAL {
             'module_name' => 'Accounts',
 
             //The SQL WHERE clause without the word "where".
-            'query' => $searchClause, 
+            'query' => $query, 
 
             //The SQL ORDER BY clause without the phrase "order by".
             'order_by' => "name",
@@ -135,20 +162,6 @@ class SugarCRMDAL {
             $results[$key] = $account;
         }
         return $results;
-    }
-    
-    public function isAuthenticated() {
-        if (empty($this->sessionId)) {
-            // check the session
-            $id = get_transient(self::SESSION_TRANSIENT_ID);
-            if (!empty($id)) {
-                $this->sessionId = $id;
-                return true;
-            }
-            
-            return false;
-        }
-        return true;
     }
     
     private function call($method, $parameters, $url)

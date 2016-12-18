@@ -129,7 +129,7 @@ class Affiliate_WP_Referral_Meta_DB extends Affiliate_WP_DB {
 	 * @return bool False for failure. True for success.
 	 */
 	function delete_meta( $affiliate_id = 0, $meta_key = '', $meta_value = '' ) {
-		return delete_metadata( 'affiliate', $affiliate_id, $meta_key, $meta_value );
+		return delete_metadata( 'referral', $affiliate_id, $meta_key, $meta_value );
 	}
 
 	/**

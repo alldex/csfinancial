@@ -17,7 +17,7 @@
             ,"client_email"
         ];
         items.forEach(function(item) {
-            $('#' + item).prop("disabled", false)
+            $('#' + item).prop("readonly", false)
                     .val("");
         });
         
@@ -30,7 +30,7 @@
 		var	$this    = $( this ),
 			$action  = 'affwp_ltp_search_clients',
 			$search  = $this.val(),
-			$user_id = $( '#client_id' );
+			$client_id = $( '#client_id' );
 
 		$this.autocomplete( {
 			source: ajaxurl + '?action=' + $action + '&term=' + $search,
@@ -38,24 +38,24 @@
 			minLength: 2,
 			position: { offset: '0, -1' },
 			select: function( event, data ) {
-				$user_id.val( data.item.user_id );
+				$client_id.val( data.item.client_id );
                                 $('.readonly-description').removeClass('hidden');
                                 $('#client_name')
-                                        .prop("disabled", true)
+                                        .prop("readonly", true)
                                         .val(data.item.name);
                                 $('#client_street_address')
-                                        .prop("disabled", true)
+                                        .prop("readonly", true)
                                         .val(data.item.street_address);
                                 $('#client_city_address')
-                                        .prop("disabled", true)
+                                        .prop("readonly", true)
                                         .val(data.item.city);
                                 $('#client_zip_address')
-                                        .prop("disabled", true)
+                                        .prop("readonly", true)
                                         .val(data.item.zip);
                                 $('#client_phone')
-                                        .prop("disabled", true)
+                                        .prop("readonly", true)
                                         .val(data.item.phone);
-                                $('#client_email').prop("disabled", true)
+                                $('#client_email').prop("readonly", true)
                                         .val(data.item.email);
 			},
 			open: function() {

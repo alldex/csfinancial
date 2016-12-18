@@ -12,14 +12,24 @@
 
 class AffiliateLTP {
     
+    const AFFILIATEWP_LTP_VERSION = "0.1.0";
+    
     private $settings;
+    
     /**
      * The meta object for interacting with referrals.
      * @var Affiliate_WP_Referral_Meta_DB 
      */
-    private $referralMeta;
+    public $referralMeta;
+    
+    /**
+     *
+     * @var AffiliateLTP
+     */
+    private static $instance = null;
     
     public function __construct() {
+        
         require_once "class-sugarcrm-dal.php";
         
         if( is_admin() ) {
@@ -27,6 +37,7 @@ class AffiliateLTP {
             require_once $includePath . '/admin/class-referrals.php';
             require_once $includePath . '/admin/class-menu.php';
             require_once $includePath . "/admin/class-settings.php";
+            require_once $includePath . "/admin/class-upgrades.php";
             
             // setup the settings.
             $this->settings = new AffiliateLTPSettings();
@@ -206,8 +217,12 @@ class AffiliateLTP {
            return $file_paths;
    }
    
-            
-
+   public static function instance() {
+       if (self::$instance == null) {
+           self::$instance = new AffiliateLTP();
+       }
+       return self::$instance;
+   }
 }
 
-new AffiliateLTP();
+AffiliateLTP::instance();
