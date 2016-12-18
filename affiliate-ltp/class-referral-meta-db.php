@@ -128,8 +128,8 @@ class Affiliate_WP_Referral_Meta_DB extends Affiliate_WP_DB {
 	 * @param mixed  $meta_value   Optional. Meta data value. Default empty.
 	 * @return bool False for failure. True for success.
 	 */
-	function delete_meta( $affiliate_id = 0, $meta_key = '', $meta_value = '' ) {
-		return delete_metadata( 'referral', $affiliate_id, $meta_key, $meta_value );
+	function delete_meta( $referral_id = 0, $meta_key = '', $meta_value = '' ) {
+		return delete_metadata( 'referral', $referral_id, $meta_key, $meta_value );
 	}
 
 	/**

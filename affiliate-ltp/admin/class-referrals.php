@@ -20,6 +20,9 @@ class AffiliateLTPReferrals {
         add_action( 'affwp_edit_referral_bottom', array($this, 'addEditReferralClientFields'), 10, 1);
         
         add_action( 'wp_ajax_affwp_ltp_search_clients', array($this, 'ajaxSearchClients') );
+        
+        add_action( 'affwp_delete_referral', array($this, 'cleanupReferralMetadata'), 10, 1 );
+        
         $this->referralMetaDb = $referralMetaDb;
     }
     
@@ -120,6 +123,14 @@ class AffiliateLTPReferrals {
         exit;
     }
     
+    public function cleanupReferralMetadata( $referralId ) {
+        // delete all the meta information.
+        $this->referralMetaDb->delete_meta($referralId, 'client_id');
+        $this->referralMetaDb->delete_meta($referralId, 'client_contract_number');
+        $this->referralMetaDb->delete_meta($referralId, 'points');
+        $this->referralMetaDb->delete_meta($referralId, 'agent_rate');
+    }
+    
     /**
      * Do any work to connect the company referral information to the client.
      * @param array $companyData
@@ -176,6 +187,7 @@ class AffiliateLTPReferrals {
         $companyData = array(); // copy the array
         $companyData['affiliate_id'] = absint($companyAgentId);
         $companyData['description']  = "Company commission for " . $data['reference'];
+        $companyData['reference'] = $data['reference'];
         $companyData['amount']       = $companyAmount;
         $companyData['custom']       = 'indirect';
         $companyData['context']      = 'ltp-commission';
@@ -231,11 +243,12 @@ class AffiliateLTPReferrals {
 		'affiliate_id' => absint( $data['affiliate_id'] ),
 		'amount'       => ! empty( $data['amount'] )      ? sanitize_text_field( $data['amount'] )      : '',
 		'description'  => ! empty( $data['description'] ) ? sanitize_text_field( $data['description'] ) : '',
-		'reference'    => ! empty( $data['reference'] )   ? sanitize_text_field( $data['reference'] )   : '',
+//		'reference'    => ! empty( $data['reference'] )   ? sanitize_text_field( $data['reference'] )   : '',
 		'context'      => ! empty( $data['context'] )     ? sanitize_text_field( $data['context'] )     : '',
 		'status'       => 'paid',
                 'client'       => $client_args
 	);
+        $args['reference'] = $client_args['contract_number'];
        
 	if ( ! empty( $data['date'] ) ) {
 		$args['date'] = date_i18n( 'Y-m-d H:i:s', strtotime( $data['date'] ) );
@@ -328,5 +341,6 @@ class AffiliateLTPReferrals {
     private function connectReferralToClient($referralId, $clientData) {
         // add the connection for the client.
         $this->referralMetaDb->add_meta($referralId, 'client_id', $clientData['id']);
+        $this->referralMetaDb->add_meta($referralId, 'client_contract_number', $clientData['contract_number']);
     }
 }
