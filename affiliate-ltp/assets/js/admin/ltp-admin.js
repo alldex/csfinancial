@@ -1,5 +1,7 @@
 (function($) {
     
+    var rowId = 1;
+    
     /**
      * Clears up the search and resets all the fields
      * @returns
@@ -23,10 +25,47 @@
         
         $('.readonly-description').addClass('hidden');
     }
+    function setupAgentSearch(selector) {
+        		var	$this    = $( selector ),
+			$action  = 'affwp_search_users',
+			$search  = $this.val(),
+			$status  = $this.data( 'affwp-status'),
+			$agent_id = $this.siblings(".agent_id");
+
+		$this.autocomplete( {
+			source: ajaxurl + '?action=' + $action + '&term=' + $search + '&status=' + $status,
+			delay: 500,
+			minLength: 2,
+			position: { offset: '0, -1' },
+			select: function( event, data ) {
+				$agent_id.val( data.item.user_id );
+			},
+			open: function() {
+				$this.addClass( 'open' );
+			},
+			close: function() {
+				$this.removeClass( 'open' );
+			}
+		} );
+
+		// Unset the user_id input if the input is cleared.
+		$this.on( 'keyup', function() {
+			if ( ! this.value ) {
+				$agent_id.val( '' );
+			}
+		} );
+    }
+    // allows us to change this around if needed.
+    function getRowId() {
+        return rowId++;
+    }
+    
     function addSplitRow(evt, agentRate) {
         if (!agentRate) {
             agentRate = 0;
         }
+        
+        var rowId = getRowId();
         
         var splitRow = [];
            splitRow.push("<tr>");
@@ -34,14 +73,14 @@
            // agent search
            splitRow.push("<td>");
            splitRow.push("<span class='affwp-ajax-search-wrap'>");
-           splitRow.push("<input class='agent_name' type='text' name='agents[]['user_name'] class='affwp-user-search' data-affwp-status='active' autocomplete='off' />");
-           splitRow.push("<input class='agent_id' type='hidden' name='agents[]['user_id'] value='' />");
+           splitRow.push("<input class='agent_name affwp-agent-search' type='text' name=\"agents[" + rowId + "]['user_name']\" data-affwp-status='active' autocomplete='off' />");
+           splitRow.push("<input class='agent_id' type='hidden' name=\"agents[" + rowId + "]['user_id']\" value='' />");
            splitRow.push("</span>");
            splitRow.push("</td>");
            
            // rate
            splitRow.push("<td>");
-           splitRow.push("<input class='agent_rate' type='text' name='agents[]['agent_rate'] value='" + agentRate + "' />");
+           splitRow.push("<input class='agent_rate' type='text' name=\"agents[" + rowId + "]['agent_rate']\" value='" + agentRate + "' />");
            splitRow.push("</td>");
            
            // actions
@@ -54,7 +93,32 @@
            $("#affwp_add_referral .split-list tbody tr:last-child .remove-row").click(function removeSplitRow() {
                $(this).closest("tr").remove();
            });
+           setupAgentSearch("#affwp_add_referral .split-list tbody tr:last-child .affwp-agent-search");
+           $("#affwp_add_referral .split-list .agent_rate").change(calculateAgentSplitTotal);
     }
+    function calculateAgentSplitTotal(evt) {
+        var total = 0;
+        $("#affwp_add_referral .split-list .agent_rate").each(function() {
+            $this = $(this);
+            $this.removeClass("error");
+            var value = +$this.val();
+            if (!isNaN(value) && value >= 0 && value <= 100) {
+                total += value;
+            }
+            else {
+                $this.addClass("error");
+            }
+        });
+        $splitTotal = $("#affwp_add_referral .split-list .split-total");
+        $splitTotal.html(total);
+        if (total < 100 || total > 100) {
+            $splitTotal.addClass("error");
+        }
+        else {
+            $splitTotal.removeClass("error");
+        }
+    }
+    
     function setupAddReferralScreen() {
         var firstTimeSplitShown = true;
         // hide the different pieces of the site based on the check value.

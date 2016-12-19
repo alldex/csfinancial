@@ -55,6 +55,13 @@
                                         </thead>
                                         <tbody>
                                         </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th><?php _e( 'Total Split %:', 'affiliate-ltp') ;?></th>
+                                                <th><span class="split-total">100</span></th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
 				</td>
 			</tr>

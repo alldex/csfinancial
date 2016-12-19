@@ -116,10 +116,14 @@ class AffiliateLTP {
 		return;
 	}
 
-	//$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+        $suffix = "";
+//	$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
         $plugin_url = plugin_dir_url( __FILE__ );
         $url = $plugin_url . 'assets/js/admin/ltp-admin' . $suffix . '.js';
 	wp_enqueue_script( 'affiliate-ltp-admin', $url, array( 'jquery', 'jquery-ui-autocomplete'  ));
+        
+        wp_enqueue_style( 'affwp-admin', $plugin_url . 'assets/css/admin' . $suffix . '.css', array());
+        
     }
 
     public function log_hookpress_fired( $desc ) {

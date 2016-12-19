@@ -153,6 +153,8 @@ class AffiliateLTPReferrals {
 	}
         
         try {
+            echo "<pre>", print_r($requestData, true), "</pre>";
+            exit;
             $referralData = $this->getReferralDataFromRequest( $requestData );
             $data = $this->processCompanyCommission($referralData);
             $clientId = $this->createClient($data['client']);
