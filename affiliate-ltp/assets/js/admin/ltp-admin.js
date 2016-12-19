@@ -30,7 +30,7 @@
 			$action  = 'affwp_search_users',
 			$search  = $this.val(),
 			$status  = $this.data( 'affwp-status'),
-			$agent_id = $this.siblings(".agent_id");
+			$agent_id = $this.siblings(".agent-id");
 
 		$this.autocomplete( {
 			source: ajaxurl + '?action=' + $action + '&term=' + $search + '&status=' + $status,
@@ -60,9 +60,15 @@
         return rowId++;
     }
     
-    function addSplitRow(evt, agentRate) {
-        if (!agentRate) {
-            agentRate = 0;
+    /**
+     * Adds a row to the split list that an agent and a split percentage can be added to.
+     * @param Event evt
+     * @param number agentSplit The percentage of the commission that goes to the agent.
+     * @returns {undefined}
+     */
+    function addSplitRow(evt, agentSplit) {
+        if (!agentSplit) {
+            agentSplit = 0;
         }
         
         var rowId = getRowId();
@@ -73,14 +79,14 @@
            // agent search
            splitRow.push("<td>");
            splitRow.push("<span class='affwp-ajax-search-wrap'>");
-           splitRow.push("<input class='agent_name affwp-agent-search' type='text' name=\"agents[" + rowId + "]['user_name']\" data-affwp-status='active' autocomplete='off' />");
-           splitRow.push("<input class='agent_id' type='hidden' name=\"agents[" + rowId + "]['user_id']\" value='' />");
+           splitRow.push("<input class='agent-name affwp-agent-search' type='text' name=\"agents[" + rowId + "]['agent_name']\" data-affwp-status='active' autocomplete='off' />");
+           splitRow.push("<input class='agent-id' type='hidden' name=\"agents[" + rowId + "]['agent_id']\" value='' />");
            splitRow.push("</span>");
            splitRow.push("</td>");
            
            // rate
            splitRow.push("<td>");
-           splitRow.push("<input class='agent_rate' type='text' name=\"agents[" + rowId + "]['agent_rate']\" value='" + agentRate + "' />");
+           splitRow.push("<input class='agent_rate' type='text' name=\"agents[" + rowId + "]['agent_split']\" value='" + agentSplit + "' />");
            splitRow.push("</td>");
            
            // actions
@@ -135,6 +141,8 @@
         });
         
         $( '#affwp_add_referral .split-add').click(addSplitRow);
+        
+        setupAgentSearch("#affwp_add_referral .commission_row_single .affwp-agent-search");
         
     }
     $(document).ready(function() {
