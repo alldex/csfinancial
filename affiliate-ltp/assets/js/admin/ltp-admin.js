@@ -23,7 +23,59 @@
         
         $('.readonly-description').addClass('hidden');
     }
+    function addSplitRow(evt, agentRate) {
+        if (!agentRate) {
+            agentRate = 0;
+        }
+        
+        var splitRow = [];
+           splitRow.push("<tr>");
+           
+           // agent search
+           splitRow.push("<td>");
+           splitRow.push("<span class='affwp-ajax-search-wrap'>");
+           splitRow.push("<input class='agent_name' type='text' name='agents[]['user_name'] class='affwp-user-search' data-affwp-status='active' autocomplete='off' />");
+           splitRow.push("<input class='agent_id' type='hidden' name='agents[]['user_id'] value='' />");
+           splitRow.push("</span>");
+           splitRow.push("</td>");
+           
+           // rate
+           splitRow.push("<td>");
+           splitRow.push("<input class='agent_rate' type='text' name='agents[]['agent_rate'] value='" + agentRate + "' />");
+           splitRow.push("</td>");
+           
+           // actions
+           splitRow.push("<td>");
+           splitRow.push("<input type='button' class='remove-row' value='Remove' />");
+           splitRow.push("</td>");
+           
+           splitRow.push("</tr>");
+           $("#affwp_add_referral .split-list tbody").append(splitRow.join(""));
+           $("#affwp_add_referral .split-list tbody tr:last-child .remove-row").click(function removeSplitRow() {
+               $(this).closest("tr").remove();
+           });
+    }
+    function setupAddReferralScreen() {
+        var firstTimeSplitShown = true;
+        // hide the different pieces of the site based on the check value.
+        $( '#affwp_add_referral #cb_split_commission' ).click(function() {
+            $('#affwp_add_referral .commission_row_single').toggleClass('hidden');
+            $('#affwp_add_referral .commission_row_multiple').toggleClass('hidden');
+            
+            // add a row with the default being zero
+            if (firstTimeSplitShown) {
+                firstTimeSplitShown = false;
+                addSplitRow({}, 50);
+                addSplitRow({}, 50);
+            }
+        });
+        
+        $( '#affwp_add_referral .split-add').click(addSplitRow);
+        
+    }
     $(document).ready(function() {
+        setupAddReferralScreen();
+        
        $( '.affwp-client-search-reset').click(resetClientSearch);
        
        $( '.affwp-client-search' ).each( function() {

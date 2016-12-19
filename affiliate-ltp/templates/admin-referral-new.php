@@ -9,8 +9,21 @@
 		<p><?php _e( 'Use this screen to manually create a new referral record for an affiliate.', 'affiliate-wp' ); ?></p>
 
 		<table class="form-table">
+                    
+                        <tr class="form-row form-required">
 
-			<tr class="form-row form-required">
+				<th scope="row">
+					<label for="cb_split_commission"><?php _e( 'Split Commission?', 'affiliate-ltp' ); ?></label>
+				</th>
+
+				<td>
+                                    <input type="checkbox" name="cb_split_commission" id="cb_split_commission" />
+                                    <p class="description"><?php _e( 'If the commission is split up between two or more agents.', 'affiliate-ltp' ); ?></p>
+				</td>
+
+			</tr>
+
+			<tr class="form-row form-required commission_row_single">
 
 				<th scope="row">
 					<label for="user_name"><?php _e( 'Affiliate', 'affiliate-wp' ); ?></label>
@@ -25,6 +38,27 @@
 				</td>
 
 			</tr>
+                        
+                        <tr class="form-row form-required commission_row_multiple hidden">
+
+				<th scope="row">
+					<label><?php _e( 'Splits', 'affiliate-ltp' ); ?></label>
+				</th>
+
+				<td>
+                                    <input type="button" class="split-add" value="Add Split" />
+                                    <table class="split-list">
+                                        <thead>
+                                            <th><?php _e( 'Agent', 'affiliate-ltp') ; ?></th>
+                                            <th><?php _e( 'Split %', 'affiliate-ltp') ; ?></th>
+                                            <th></th>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+				</td>
+			</tr>
+                        
 
 			<tr class="form-row form-required">
 
