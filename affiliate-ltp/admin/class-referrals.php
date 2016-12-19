@@ -21,9 +21,18 @@ class AffiliateLTPReferrals {
         
         add_action( 'affwp_delete_referral', array($this, 'cleanupReferralMetadata'), 10, 1 );
         
+        // TODO: stephen when dealing with rejecting / overridding commissions uncomment this piece.
+        //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
+        
         $this->referralMetaDb = $referralMetaDb;
     }
     
+    public function disableEditsForOverrideCommissions($actions, $referral) {
+        if (isset($referral) && $referral->custom == 'indirect') {
+            $actions = array();
+        }
+        return $actions;
+    }
     public function handleDisplayListReferralsScreen() {
         $referrals_table = new AffWP_Referrals_Table();
         $referrals_table->prepare_items();
