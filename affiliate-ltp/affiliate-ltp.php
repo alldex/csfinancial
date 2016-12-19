@@ -80,6 +80,8 @@ class AffiliateLTP {
         
         if (is_admin()) {
             $this->adminReferrals = new AffiliateLTPReferrals($this->referralMeta);
+            // TODO: stephen look at renaming the AdminMenu to keep with our naming convention
+            $adminMenu = new AffiliateLTP_WP_Admin_Menu($this->adminReferrals);
         }
     }
 

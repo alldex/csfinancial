@@ -11,13 +11,11 @@ class AffiliateLTPReferrals {
      * @var Affiliate_WP_Referral_Meta_DB
      */
     private $referralMetaDb;
+    const STATUS_DEFAULT = 'paid';
     
     public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
         remove_action('affwp_add_referral', 'affwp_process_add_referral');
         add_action('affwp_add_referral', array($this, 'processAddReferralRequest'));
-        
-        add_action( 'affwp_new_referral_bottom', array($this, 'addNewReferralClientFields'), 10, 1);
-        add_action( 'affwp_edit_referral_bottom', array($this, 'addEditReferralClientFields'), 10, 1);
         
         add_action( 'wp_ajax_affwp_ltp_search_clients', array($this, 'ajaxSearchClients') );
         
@@ -25,6 +23,34 @@ class AffiliateLTPReferrals {
         
         $this->referralMetaDb = $referralMetaDb;
     }
+    
+    public function handleDisplayListReferralsScreen() {
+        $referrals_table = new AffWP_Referrals_Table();
+        $referrals_table->prepare_items();
+        
+        $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 
+                'list', false);
+        
+        include_once $templatePath;
+    }
+    
+    /**
+     * Handles the display of the different admin referral pages.
+     */
+    public function handleAdminSubMenuPage() {
+        // filter our post variables
+        $action = filter_input(INPUT_GET, 'action');
+        
+        if( isset( $action ) && 'add_referral' == $action ) {
+            $this->handleDisplayNewReferralScreen();
+
+	} else if( isset( $action ) && 'edit_referral' == $action ) {
+            $this->handleDisplayEditReferralScreen();
+	} else {
+            $this->handleDisplayListReferralsScreen();
+        }
+    }
+
     
     /**
      * Handle ajax requests for searching through a list of clients.
@@ -34,6 +60,7 @@ class AffiliateLTPReferrals {
         // to what we return to the client instead of what it's returning now?
         $instance = SugarCRMDAL::instance();
         
+        // TODO: stephen have this use the filter_input functions.
         $searchQuery = htmlentities2( trim( $_REQUEST['term'] ) );
         
         $results = $instance->searchAccounts($searchQuery);
@@ -50,9 +77,21 @@ class AffiliateLTPReferrals {
         wp_die(json_encode($jsonResults)); // this is required to terminate immediately and return a proper response
     }
     
-    public function addEditReferralClientFields( $referral ) {
+    public function handleDisplayEditReferralScreen( ) {
         // load up the template.. defaults to our templates/admin-referral-edit.php
         // if no one else has overridden it.
+        
+        $referral_id = filter_input(INPUT_GET, 'referral_id');
+        $referral = affwp_get_referral( absint( $referral_id ) );
+
+        $payout = affwp_get_payout( $referral->payout_id );
+
+        $disabled    = disabled( (bool) $payout, true, false );
+        $payout_link = add_query_arg( array(
+                'page'      => 'affiliate-wp-payouts',
+                'action'    => 'view_payout',
+                'payout_id' => $payout ? $payout->ID : 0
+        ), admin_url( 'admin.php' ) );
         
         $referralId = $referral->referral_id;
         $agentRate = $this->referralMetaDb->get_meta($referralId, 'agent_rate', true);
@@ -82,7 +121,7 @@ class AffiliateLTPReferrals {
         
     }
     
-    public function addNewReferralClientFields( $referral ) {
+    public function handleDisplayNewReferralScreen( ) {
         // load up the template.. defaults to our templates/admin-referral-edit.php
         // if no one else has overridden it.
         $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 
@@ -186,12 +225,12 @@ class AffiliateLTPReferrals {
         // Process cart and get amount
         $companyData = array(); // copy the array
         $companyData['affiliate_id'] = absint($companyAgentId);
-        $companyData['description']  = "Company commission for " . $data['reference'];
+        $companyData['description']  = __("Override", "affiliate-ltp");
         $companyData['reference'] = $data['reference'];
         $companyData['amount']       = $companyAmount;
         $companyData['custom']       = 'indirect';
         $companyData['context']      = 'ltp-commission';
-        $companyData['status']       = 'paid';
+        $companyData['status']       = self::STATUS_DEFAULT;
         $companyData['points']       = $amount; // the original amount is the points we track.
         
         // create referral
@@ -242,10 +281,6 @@ class AffiliateLTPReferrals {
 	$args = array(
 		'affiliate_id' => absint( $data['affiliate_id'] ),
 		'amount'       => ! empty( $data['amount'] )      ? sanitize_text_field( $data['amount'] )      : '',
-		'description'  => ! empty( $data['description'] ) ? sanitize_text_field( $data['description'] ) : '',
-//		'reference'    => ! empty( $data['reference'] )   ? sanitize_text_field( $data['reference'] )   : '',
-		'context'      => ! empty( $data['context'] )     ? sanitize_text_field( $data['context'] )     : '',
-		'status'       => 'paid',
                 'client'       => $client_args
 	);
         $args['reference'] = $client_args['contract_number'];
@@ -261,13 +296,10 @@ class AffiliateLTPReferrals {
             $paymentRate = 0, $points = 0) {
 
         $custom = 'direct';
-        $description = 'Direct referral';
+        $description = __("Personal sale", "affiliate-ltp");
         if (!$directAffiliate) {
             $custom = 'indirect';
-            $description = 'Indirect referral';
-            if ($levelCount > 0) {
-                $description .= ". Level $levelCount";
-            }
+            $description = __("Override", "affiliate-ltp");
         }
         // Process cart and get amount
         $data = array();
@@ -277,7 +309,7 @@ class AffiliateLTPReferrals {
         $data['reference']    = $reference;
         $data['custom']       = $custom; // Add referral type as custom referral data
         $data['context']      = 'ltp-commission';
-        $data['status']       = 'paid';
+        $data['status']       = self::STATUS_DEFAULT;
         
         
         // create referral
@@ -286,6 +318,7 @@ class AffiliateLTPReferrals {
         if ( $referral_id ) {
             $this->addReferralMeta($referral_id, $paymentRate, $points);
             
+            // TODO: stephen not sure this is needed anymore... or if it is pass the array of data.
             do_action( 'affwp_ltp_referral_created', $referral_id, $description, $amount, $reference, $custom, $context, $status);
             return $referral_id;
         }
@@ -304,10 +337,7 @@ class AffiliateLTPReferrals {
     function createReferralHeirarchy($referralData) {
         $directAffiliateId = $referralData['affiliate_id'];
         $amount = $referralData['amount'];
-        $context = $referralData['context'];
-        $reference = $referralData['reference'];
-        $description = $referralData['description'];
-        $status = 'paid';
+        $reference = $referralData['client']['contract_number'];
         $points = $referralData['points'];
         
         $upline = affwp_mlm_get_upline( $directAffiliateId );

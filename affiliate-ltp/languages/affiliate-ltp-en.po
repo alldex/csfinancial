@@ -1,0 +1,153 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: AffiliateWP LTP\n"
+"POT-Creation-Date: 2016-12-19 09:47-0700\n"
+"PO-Revision-Date: 2016-12-19 09:47-0700\n"
+"Last-Translator: Stephen Nielson <stephen@nielson.org>\n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop;_e\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../affiliate-ltp.php:202
+msgid "Organization"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:35
+msgid "ID"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:36
+#: ../templates/admin-referral-new.php:29
+msgid "Name"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:37
+msgid "Sub Agents"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:38
+#: ../templates/dashboard-tab-organization.php:143
+msgid "Status"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:90
+msgid "No Sub Agents yet."
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:93
+msgid ""
+"When a user registers as an agent using your commission URL they will become "
+"your sub-agent."
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:118
+msgid "Indirect Commissions"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:135
+msgid ""
+"These commissions were awarded to you due to the efforts of your Sub Agents. "
+"These are also shown on the commissions tab."
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:141
+msgid "Amount"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:142
+msgid "Description"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:144
+msgid "Date"
+msgstr ""
+
+#: ../templates/dashboard-tab-organization.php:163
+msgid "You have not made any commissions from sub agents yet."
+msgstr ""
+
+#: ../templates/admin-referral-new.php:8
+#: ../templates/admin-referral-edit.php:7
+msgid "Contract Number"
+msgstr ""
+
+#: ../templates/admin-referral-new.php:17
+msgid "The unique contract number of the Client this commission belongs to."
+msgstr ""
+
+#: ../templates/admin-referral-new.php:34
+#: ../templates/admin-referral-edit.php:25
+msgid "The name of the Client this commission belongs to."
+msgstr ""
+
+#: ../templates/admin-referral-new.php:42
+#: ../templates/admin-referral-edit.php:33
+msgid "Street Address"
+msgstr ""
+
+#: ../templates/admin-referral-new.php:47
+#: ../templates/admin-referral-edit.php:38
+msgid "The street address of the Client this commission belongs to."
+msgstr ""
+
+#: ../templates/admin-referral-new.php:55
+#: ../templates/admin-referral-edit.php:46
+msgid "City"
+msgstr ""
+
+#: ../templates/admin-referral-new.php:60
+#: ../templates/admin-referral-edit.php:51
+msgid "The city of the Client this commission belongs to."
+msgstr ""
+
+#: ../templates/admin-referral-new.php:68
+#: ../templates/admin-referral-edit.php:59
+msgid "Zipcode"
+msgstr ""
+
+#: ../templates/admin-referral-new.php:73
+#: ../templates/admin-referral-edit.php:64
+msgid "The zipcode of the Client this commission belongs to."
+msgstr ""
+
+#: ../templates/admin-referral-new.php:79
+msgid "Phone"
+msgstr ""
+
+#: ../templates/admin-referral-new.php:83
+#: ../templates/admin-referral-edit.php:74
+msgid "The phone number of the Client this commission belongs to."
+msgstr ""
+
+#: ../templates/admin-referral-new.php:88
+msgid "Email"
+msgstr ""
+
+#: ../templates/admin-referral-new.php:92
+#: ../templates/admin-referral-edit.php:83
+msgid "The email of the Client this commission belongs to."
+msgstr ""
+
+#: ../templates/admin-referral-edit.php:12
+msgid ""
+"The unique contract number of the Client this commission belongs to. None of "
+"the client values can be changed."
+msgstr ""
+
+#: ../templates/admin-referral-edit.php:20
+msgid "Client Name"
+msgstr ""
+
+#: ../templates/admin-referral-edit.php:70
+msgid "Client Phone"
+msgstr ""
+
+#: ../templates/admin-referral-edit.php:79
+msgid "Client Email"
+msgstr ""

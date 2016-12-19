@@ -2,16 +2,33 @@
 
 class AffiliateLTP_WP_Admin_Menu {
 
+    // TODO: stephen we should probably setup some kind of registry here
+    /**
+     * 
+     * @var AffiliateLTPReferrals
+     */
+    private $referrals;
 
-	public function __construct() {
+	public function __construct(AffiliateLTPReferrals $referrals) {
 		add_action( 'admin_menu', array( $this, 'register_menus' ), 100 );
+                $this->referrals = $referrals;
 	}
 
 	public function register_menus() {
+            global $wp_filter;
+                
 		//add_menu_page( __( 'Affiliates', 'affiliate-wp' ), __( 'Affiliates', 'affiliate-wp' ), 'view_affiliate_reports', 'affiliate-wp', 'affwp_affiliates_dashboard' );
             
                 remove_submenu_page('affiliate-wp', 'affiliate-wp-visits');
                 remove_submenu_page('affiliate-wp', 'affiliate-wp-creatives');
+                remove_submenu_page('affiliate-wp', 'affiliate-wp-referrals');
+                
+                // remove the actual action so we don't execute it.
+                $hookname = get_plugin_page_hookname( 'affiliate-wp-referrals', 'affiliate-wp');
+                remove_action($hookname, 'affwp_referrals_admin');
+                
+                // add it again but we are redoing the work here
+                add_submenu_page( 'affiliate-wp', __( 'Referrals', 'affiliate-wp' ), __( 'Referrals', 'affiliate-wp' ), 'manage_referrals', 'affiliate-wp-referrals', array($this->referrals, 'handleAdminSubMenuPage') );
             
 //                add_menu_page( __( 'Affiliates', 'affiliate-wp' ), __( 'Affiliates', 'affiliate-wp' ), 'view_affiliate_reports', 'affiliate-wp', 'affwp_affiliates_dashboard' );
 //		add_submenu_page( 'affiliate-wp', __( 'Overview', 'affiliate-wp' ), __( 'Overview', 'affiliate-wp' ), 'view_affiliate_reports', 'affiliate-wp', 'affwp_affiliates_dashboard' );
@@ -27,5 +44,3 @@ class AffiliateLTP_WP_Admin_Menu {
 	}
 
 }
-
-$affiliatewp_menu = new AffiliateLTP_WP_Admin_Menu;
