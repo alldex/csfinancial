@@ -79,14 +79,14 @@
            // agent search
            splitRow.push("<td>");
            splitRow.push("<span class='affwp-ajax-search-wrap'>");
-           splitRow.push("<input class='agent-name affwp-agent-search' type='text' name=\"agents[" + rowId + "]['agent_name']\" data-affwp-status='active' autocomplete='off' />");
-           splitRow.push("<input class='agent-id' type='hidden' name=\"agents[" + rowId + "]['agent_id']\" value='' />");
+           splitRow.push("<input class='agent-name affwp-agent-search' type='text' name=\"agents[" + rowId + "][user_name]\" data-affwp-status='active' autocomplete='off' />");
+           splitRow.push("<input class='agent-id' type='hidden' name=\"agents[" + rowId + "][user_id]\" value='' />");
            splitRow.push("</span>");
            splitRow.push("</td>");
            
            // rate
            splitRow.push("<td>");
-           splitRow.push("<input class='agent_rate' type='text' name=\"agents[" + rowId + "]['agent_split']\" value='" + agentSplit + "' />");
+           splitRow.push("<input class='agent_rate' type='text' name=\"agents[" + rowId + "][agent_split]\" value='" + agentSplit + "' />");
            splitRow.push("</td>");
            
            // actions

@@ -31,8 +31,9 @@
 
 				<td>
 					<span class="affwp-ajax-search-wrap">
-						<input class="agent-name affwp-agent-search" type="text" name="agent_name" data-affwp-status="active" autocomplete="off" />
-						<input class="agent-id" type="hidden" name="agent_id" value="" />
+						<input class="agent-name affwp-agent-search" type="text" name="agents[0][user_name]" data-affwp-status="active" autocomplete="off" />
+						<input class="agent-id" type="hidden" name="agents[0][user_id]" value="" />
+                                                <input class="agent-split" type="hidden" name="agents[0][agent_split]" value="100" />
 					</span>
 					<p class="description"><?php _e( 'Enter the name of the affiliate or enter a partial name or email to perform a search.', 'affiliate-wp' ); ?></p>
 				</td>

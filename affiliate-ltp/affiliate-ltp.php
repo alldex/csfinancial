@@ -14,6 +14,8 @@ class AffiliateLTP {
     
     const AFFILIATEWP_LTP_VERSION = "0.1.0";
     
+    const LOCALHOST_RESTRICTED = true;
+    
     private $settings;
     
     /**
@@ -31,6 +33,10 @@ class AffiliateLTP {
     public function __construct() {
         
         require_once "class-sugarcrm-dal.php";
+        
+        if (self::LOCALHOST_RESTRICTED) {
+            require_once "class-sugarcrm-dal-localhost.php";
+        }
         
         if( is_admin() ) {
             $includePath = plugin_dir_path( __FILE__ );
@@ -71,6 +77,19 @@ class AffiliateLTP {
         add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
                 return array_merge( $tabs, array( 'organization' ) );
         } );
+    }
+    
+    /**
+     * 
+     * @return SugarCRMDAL
+     */
+    public function getSugarCRM() {
+        if (LOCALHOST_RESTRICTED) {
+            return SugarCRMDALLocalhost::instance();
+        }
+        else {
+            return SugarCRMDAL::instance();
+        }
     }
     
     public function setup_dependent_objects() {
@@ -126,7 +145,7 @@ class AffiliateLTP {
         
     }
 
-    public function log_hookpress_fired( $desc ) {
+    public function log_hookpress_fired( $desc ) { 
 	error_log(var_export($desc, true));
     }
 
