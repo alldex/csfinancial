@@ -4,7 +4,6 @@
  * Update the affiliate
  *
  * @since  1.0
- * @todo  use new hook to do this
  */
 function affwp_mlm_process_update_affiliate( $data = array() ) {
 
@@ -18,13 +17,6 @@ function affwp_mlm_process_update_affiliate( $data = array() ) {
 
 	if ( ! current_user_can( 'manage_affiliates' ) ) {
 		wp_die( __( 'You do not have permission to manage affiliates', 'affiliate-wp' ) );
-	}
-
-	// If no parent affiliate, delete
-	if ( empty( $data['parent_affiliate_id'] ) ) {
-		affwp_mlm_delete_parent_affiliate( $data['affiliate_id'] );
-
-		return;
 	}
 
 	$affiliate_id = absint( $data['affiliate_id'] );
@@ -42,17 +34,63 @@ function affwp_mlm_process_update_affiliate( $data = array() ) {
 add_action( 'affwp_update_affiliate', 'affwp_mlm_process_update_affiliate', 5, 1 );
 
 /**
- * Delete parent affiliate connection when an affiliate is deleted
+ * Set the Parent Affiliate on the Add New Affiliate Form
+ *
+ * @since  1.1
+ */
+function affwp_mlm_process_add_new_affiliate( $add ) {
+
+	// Make sure this runs for admin only
+	if ( current_user_can('edit_users') ) {
+	
+		if ( !empty( $add ) ) {
+		
+			global $_REQUEST;
+			
+			$user_id = affwp_get_affiliate_user_id( $add );
+			$affiliate_id = affwp_get_affiliate_id( $user_id );
+			$parent_affiliate_id = $_REQUEST['parent_affiliate_id'];
+			
+			if ( !empty( $affiliate_id ) && !empty( $parent_affiliate_id ) ) {
+
+				// Add affiliates level in the overall matrix
+				$parent_connections = affwp_mlm_get_affiliate_connections( $parent_affiliate_id );
+				$matrix_level = !empty( $parent_connections->matrix_level ) ? $parent_connections->matrix_level : 0;
+				$matrix_level++;
+			
+				// Add parent affiliate & direct affiliate
+				$mlm_data = array(
+					'parent_affiliate_id' => $parent_affiliate_id,
+					'direct_affiliate_id' => $parent_affiliate_id,
+					'matrix_level' 		  => $matrix_level,
+					'affiliate_id'        => $affiliate_id
+				);
+				
+				if ( affwp_mlm_add_affiliate_connections( $mlm_data ) ) {
+					
+					do_action( 'affwp_mlm_affiliates_connected', $affiliate_id, $mlm_data );
+				
+				}					
+
+			}
+		
+		}
+	
+	}
+		
+}
+add_action( 'affwp_post_insert_affiliate', 'affwp_mlm_process_add_new_affiliate' );
+
+/**
+ * Delete affiliate connections when an affiliate is deleted
  *
  * @since  1.0
  */
 function affwp_mlm_process_affiliate_deletion( $affiliate_id, $delete_data ) {
 
-	if ( ! is_admin() ) {
-		return;
-	}
-
-	affwp_mlm_delete_parent_affiliate( $affiliate_id );
+	if ( ! is_admin() ) return;
+	
+	affwp_mlm_delete_affiliate_connections( $affiliate_id );
 
 }
 add_action( 'affwp_affiliate_deleted', 'affwp_mlm_process_affiliate_deletion', 10, 2 );
@@ -87,7 +125,7 @@ function affwp_mlm_connect_affiliates( $affiliate_id ) {
 		
 	}
 	
-	if ( affwp_mlm_sub_affiliate_allowed( $direct_affiliate_id ) && 'active' == affwp_get_affiliate_status( $direct_affiliate_id ) ) {
+	if ( affwp_mlm_sub_affiliate_allowed( $direct_affiliate_id ) ) {
 	
 		$parent_affiliate_id = $direct_affiliate_id;
 	
@@ -133,9 +171,9 @@ function affwp_mlm_add_affiliate_connections( $data = array() ) {
 	global $wpdb;
 
 	$affiliate_id        = absint( $data['affiliate_id'] );
-	$parent_affiliate_id = absint( $data['parent_affiliate_id'] );
+	$parent_affiliate_id = ! empty( $data['parent_affiliate_id'] ) ? absint( $data['parent_affiliate_id'] ) : '';
 	$direct_affiliate_id = ! empty( $data['direct_affiliate_id'] ) ? absint( $data['direct_affiliate_id'] ) : '';
-	$matrix_level = ! empty( $data['matrix_level'] ) ? absint( $data['matrix_level'] ) : '';
+	$matrix_level = ! empty( $data['matrix_level'] ) ? absint( $data['matrix_level'] ) : 0;
 
 	$affiliate_connection_table = affwp_mlm_get_connections_table();
 

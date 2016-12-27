@@ -34,28 +34,48 @@ function affwp_mlm_get_connections_table() {
  * @since 1.0
  * @return object
  */
-function affwp_mlm_get_sub_affiliates( $affiliate_id = 0 ) {
+function affwp_mlm_get_sub_affiliates( $affiliate_id ) {
+
+	if ( empty( $affiliate_id ) ) return;
 
 	global $wpdb;
 
 	$affiliate_connection_table = affwp_mlm_get_connections_table();
 
-	$affiliate_data = $wpdb->get_results( $wpdb->prepare(
-			"
-			SELECT     *
-			FROM       $affiliate_connection_table
-			WHERE      affiliate_parent_id = %d
-			",
-			$affiliate_id
-		)
-	);
+	// Get sub affiliates for several parents
+	if ( is_array( $affiliate_id ) ) {
+		
+		$affiliate_ids = implode( ',', array_map( 'intval', $affiliate_id ) );
+		
+		$sub_affiliates = $wpdb->get_results(
+				"
+				SELECT		*
+				FROM		$affiliate_connection_table
+				WHERE		affiliate_parent_id 
+				IN			( {$affiliate_ids} )
+				ORDER BY    affiliate_id ASC
+				"
+		);
+		
+	} else {
 
-	// Return false if nothing returned
-	if ( null ===  $affiliate_data ) {
-		return false;
+		// Get sub affiliates for 1 parent
+		$sub_affiliates = $wpdb->get_results( $wpdb->prepare(
+				"
+				SELECT     *
+				FROM       $affiliate_connection_table
+				WHERE      affiliate_parent_id = %d
+				",
+				$affiliate_id
+			)
+		);
 	}
 
-	return $affiliate_data;
+	if ( null === $sub_affiliates ) {
+		return;
+	}
+
+	return $sub_affiliates;
 
 }
 
@@ -65,28 +85,45 @@ function affwp_mlm_get_sub_affiliates( $affiliate_id = 0 ) {
  * @since 1.0.4
  * @return object
  */
-function affwp_mlm_get_direct_sub_affiliates( $affiliate_id = 0 ) {
+function affwp_mlm_get_direct_sub_affiliates( $affiliate_id ) {
 
 	global $wpdb;
 
 	$affiliate_connection_table = affwp_mlm_get_connections_table();
 
-	$affiliate_data = $wpdb->get_results( $wpdb->prepare(
-			"
-			SELECT     *
-			FROM       $affiliate_connection_table
-			WHERE      direct_affiliate_id = %d
-			",
-			$affiliate_id
-		)
-	);
-
-	// Return false if nothing returned
-	if ( null ===  $affiliate_data ) {
-		return false;
+	// Get sub affiliates for several parents
+	if ( is_array( $affiliate_id ) ) {
+		
+		$affiliate_ids = implode( ',', array_map( 'intval', $affiliate_id ) );
+		
+		$sub_affiliates = $wpdb->get_results(
+				"
+				SELECT		*
+				FROM		$affiliate_connection_table
+				WHERE		direct_affiliate_id 
+				IN			( {$affiliate_ids} )
+				ORDER BY    affiliate_id ASC
+				"
+		);
+		
+	} else {
+		
+		$sub_affiliates = $wpdb->get_results( $wpdb->prepare(
+				"
+				SELECT     *
+				FROM       $affiliate_connection_table
+				WHERE      direct_affiliate_id = %d
+				",
+				$affiliate_id
+			)
+		);
+	}
+	
+	if ( null ===  $sub_affiliates ) {
+		return;
 	}
 
-	return $affiliate_data;
+	return $sub_affiliates;
 
 }
 
@@ -126,7 +163,7 @@ function affwp_mlm_get_affiliate_connections( $affiliate_id = 0 ) {
  *
  * @since 1.0.4
  */
-function affwp_mlm_get_parent_affiliate( $affiliate_id ) {
+function affwp_mlm_get_parent_affiliate( $affiliate_id = 0 ) {
 
 	// Get the affiliate's direct affiliate
 	$affiliate_connections = affwp_mlm_get_affiliate_connections( $affiliate_id );
@@ -140,7 +177,7 @@ function affwp_mlm_get_parent_affiliate( $affiliate_id ) {
  *
  * @since 1.0.4
  */
-function affwp_mlm_get_direct_affiliate( $affiliate_id ) {
+function affwp_mlm_get_direct_affiliate( $affiliate_id = 0 ) {
 
 	// Get the affiliate's direct affiliate
 	$affiliate_connections = affwp_mlm_get_affiliate_connections( $affiliate_id );
@@ -154,7 +191,7 @@ function affwp_mlm_get_direct_affiliate( $affiliate_id ) {
  *
  * @since 1.0.5
  */
-function affwp_mlm_get_matrix_level( $affiliate_id ) {
+function affwp_mlm_get_matrix_level( $affiliate_id = 0 ) {
 
 	// Get the affiliate's direct affiliate
 	$affiliate_connections = affwp_mlm_get_affiliate_connections( $affiliate_id );
@@ -164,76 +201,135 @@ function affwp_mlm_get_matrix_level( $affiliate_id ) {
 }
 
 /**
+ * Get an affiliate's spillover affiliates
+ *
+ * @since 1.1
+ * @return array
+ */
+function affwp_mlm_get_spillover_affiliates( $affiliate_id = 0 ) {
+	
+	$sub_affiliates = affwp_mlm_get_direct_sub_affiliates( $affiliate_id );
+	$sub_ids = wp_list_pluck( $sub_affiliates, 'affiliate_id' );
+	$spillover_ids = array();
+	
+	foreach ( $sub_ids as $sub_id ) {
+		
+		$parent_id = affwp_mlm_get_parent_affiliate( $sub_id );
+		
+		// Check for spillover affiliate
+		if ( $parent_id != $affiliate_id ) {
+			
+			$spillover_ids[] = $sub_id;
+			
+		}
+	}
+	
+	return $spillover_ids;	
+}
+
+/**
  * Get the upline of an affiliate
  *
  * @since 1.0
  */
-function affwp_mlm_get_upline( $affiliate_id = 0, $upline = array() ) {
+function affwp_mlm_get_upline( $affiliate_id = 0, $max = 0 ) {
 
 	// Stop no affiliate is given
-	if ( empty( $affiliate_id ) ) {
-		return $upline;
-	}
-
-	static $level_count = 0;	
-	$level_count++;
-	$level_max = apply_filters( 'affwp_mlm_upline_level_max', 15, $affiliate_id, $upline );	
-
-	// Get the affiliate's parent affiliate
-	$parent_affiliate_id = affwp_mlm_get_parent_affiliate( $affiliate_id );
+	if ( empty( $affiliate_id ) ) return $upline;
 	
-	// Stop if the affiliate has no upline
-	if ( empty( $parent_affiliate_id ) ) {
-		return $upline;
-	}
+	$matrix_depth = affiliate_wp()->settings->get( 'affwp_mlm_matrix_depth' );
+	$upline = array();
 	
-	// Check level count to prevent endless loop or exceeding max memory limit
-	if ( $level_count <= $level_max && $parent_affiliate_id && $parent_affiliate_id != $affiliate_id ) {
-				
-		// Check if affiliates are already in the array to prevent duplicates
-		if ( ! in_array( $parent_affiliate_id, $upline ) ) { 
-			$upline[] = $parent_affiliate_id;
-		}
+	// Get 15 levels if no max or matrix depth is set
+	if ( empty( $max ) )
+		$max = !empty( $matrix_depth ) ? $matrix_depth : apply_filters( 'affwp_mlm_upline_level_max', 15, $affiliate_id, $upline );
+	
+	$max--; // Offset the max value to return the correct amount of levels
+	
+	if ( affwp_mlm_is_sub_affiliate( $affiliate_id ) ) {
 		
-		// Get the parent affiliate's parent
-		return affwp_mlm_get_upline( $parent_affiliate_id, $upline );
+		$upline[0] = affwp_mlm_get_parent_affiliate( $affiliate_id );
+		
+		// Loop through levels and add parents
+		for ( $level = 1; $level <= $max; $level++ ) {
+			
+			$sub_level = $level - 1;			
+			$parent_id = $upline[$sub_level];
+			$parent_id = affwp_mlm_get_parent_affiliate( $parent_id );
+			
+			if ( empty( $parent_id ) ) {
+				break;
+			} else{
+				$upline[$level] = $parent_id;
+			}	
+		}
 	}
 
 	return $upline;
-	
 }
 
 /**
  * Get the downline of an affiliate
  *
- * @since 1.0
+ * @since 1.1
  */
-function affwp_mlm_get_downline( $affiliate_id, $downline = array() ) {
+function affwp_mlm_get_downline( $affiliate_id = 0, $max_depth = 0 ) {
 	
-	// Get the affiliate's sub affiliates
-	$sub_affiliates = affwp_mlm_get_sub_affiliates( $affiliate_id );
-	$sub_affiliate_ids = wp_list_pluck( $sub_affiliates, 'affiliate_id' );
+	if ( empty( $affiliate_id ) ) return;
 	
-	if( $sub_affiliate_ids ) {
+	$matrix_depth = affiliate_wp()->settings->get( 'affwp_mlm_matrix_depth' );
+	$downline = array();
+	
+	// Get 15 levels if no max or matrix depth is set
+	if ( empty( $max_depth ) )
+		$max_depth = !empty( $matrix_depth ) ? $matrix_depth : 15;
+	
+	if ( affwp_mlm_is_parent_affiliate( $affiliate_id ) ) {
 		
-		// Check if affiliates are already in the array to prevent duplicates
-		if ( ! in_array( $sub_affiliate_ids, $downline ) )
-			$downline[] = $sub_affiliate_ids;
-				
-		// Get sub affiliates for each sub affiliate
-		foreach ( $sub_affiliate_ids as $sub_id ) {
+		$downline[0] = array( $affiliate_id );
 		
-			// Check if the affiliate is already in the array to prevent duplicates
-			if ( ! in_array( $sub_id, $downline ) )
-				$downline[] = $sub_id;
+		// Loop through levels and add sub affiliates
+		for ( $level = 1; $level <= $max_depth; $level++ ) {
 			
-			return affwp_mlm_get_downline( $sub_id, $downline );
-							
+			$parent_level = $level - 1;			
+			$parent_ids = $downline[$parent_level];
+			$sub_ids = affwp_mlm_get_sub_affiliates( $parent_ids );
+			$sub_ids = wp_list_pluck( $sub_ids, 'affiliate_id' );
+			
+			if ( empty( $sub_ids ) ) {
+				break;
+			} else{
+				$downline[$level] = $sub_ids;
+			}	
 		}
 	}
 
 	return $downline;
+}
+
+/**
+ * Get the downline of an affiliate (In a one-dimensional array)
+ *
+ * @since 1.1
+ */
+function affwp_mlm_get_downline_array( $affiliate_id = 0, $max_depth = 0 ) {
 	
+	if ( empty( $affiliate_id ) ) return;
+	
+	$downline = array();
+	$downline_lvls = affwp_mlm_get_downline( $affiliate_id, $max_depth );
+	
+	foreach ( $downline_lvls as $lvl ) {
+	
+		foreach ( $lvl as $sub_id ) {
+		
+			$downline[] = $sub_id;
+		
+		}
+	
+	}
+
+	return $downline;
 }
 
 /**
@@ -241,50 +337,27 @@ function affwp_mlm_get_downline( $affiliate_id, $downline = array() ) {
  *
  * @since 1.0
  */
-function affwp_mlm_find_open_affiliate( $affiliate_ids ) {
+function affwp_mlm_find_open_affiliate( $affiliate_id = 0 ) {
 
-	global $wpdb;
+	if ( empty( $affiliate_id ) ) return;
 
-	$affiliate_ids = is_array( $affiliate_ids ) ? implode( ',', array_map( 'intval', $affiliate_ids ) ) : $affiliate_ids;
-
-	$affiliate_connection_table = affwp_mlm_get_connections_table(); 
-
-	if( !empty( $affiliate_ids ) ) {
-		$sub_affiliates = $wpdb->get_results(
-				"
-				SELECT		*
-				FROM		$affiliate_connection_table
-				WHERE		affiliate_parent_id 
-				IN			( {$affiliate_ids} )
-				ORDER BY    affiliate_id ASC
-				"
-		);
-	}
-
-	$affiliate_ids = array();
-
-	if( ! empty( $sub_affiliates ) ) {
-		
-		foreach ( $sub_affiliates as $sub_aff ) {
-			
-			$sub_aff_id = $sub_aff->affiliate_id;
-			
-			// Check for open and active sub affiliates
-			if ( affwp_mlm_sub_affiliate_allowed( $sub_aff_id ) && 'active' == affwp_get_affiliate_status( $sub_aff_id ) ) {
-				
-				return $sub_aff_id;
-				break;
-			
-			}
-			
-			$affiliate_ids[] = $sub_aff_id;
-		
-		}
-		
-		return affwp_mlm_find_open_affiliate( $affiliate_ids );
+	$downline = affwp_mlm_get_downline( $affiliate_id );
+	$level_count = 0;
 	
-	}
+	foreach ( $downline as $lvl ) {
+		
+		$level_count++;
 
+		foreach( $lvl as $sub_id ) {
+
+			// Check for open and active sub affiliates
+			if ( affwp_mlm_sub_affiliate_allowed( $sub_id ) ) {
+				
+				return $sub_id;
+				break;
+			}
+		}
+	}
 }
 
 /**
@@ -382,7 +455,7 @@ function affwp_mlm_update_affiliate_connections( $data = array() ) {
 	$parent_affiliate_id = absint( $data['parent_affiliate_id'] );
 	$direct_affiliate_id = absint( $data['direct_affiliate_id'] );
 	
-	// Add affiliates level in the overall matrix
+	// Add affiliate's level in the overall matrix
 	$matrix_level 	 	 = absint( $data['matrix_level'] );
 	$parent_connections  = affwp_mlm_get_affiliate_connections( $parent_affiliate_id );
 	
@@ -394,8 +467,18 @@ function affwp_mlm_update_affiliate_connections( $data = array() ) {
 	}
 
 	$affiliate_connection_table = affwp_mlm_get_connections_table();
+	
+	$old_connections = affwp_mlm_get_affiliate_connections( $affiliate_id );
+	
+	// Convert object to array
+	$old_connections = array(
+		'affiliate_id'        => $old_connections->affiliate_id,
+		'affiliate_parent_id' => $old_connections->parent_affiliate_id,
+		'direct_affiliate_id' => $old_connections->direct_affiliate_id,
+		'matrix_level' 		  => $old_connections->matrix_level
+	);
 
-	$affiliate_data = array(
+	$new_connections = array(
 		'affiliate_id'        => $affiliate_id,
 		'affiliate_parent_id' => $parent_affiliate_id,
 		'direct_affiliate_id' => $direct_affiliate_id,
@@ -403,7 +486,11 @@ function affwp_mlm_update_affiliate_connections( $data = array() ) {
 	);
 
 	// Insert data
-	$sql = $wpdb->replace( $affiliate_connection_table, $affiliate_data );
+	$sql = $wpdb->replace( $affiliate_connection_table, $new_connections );
+	
+	if ( $sql ) {
+		do_action( 'affwp_mlm_connections_updated', $affiliate_id, $old_connections, $new_connections );
+	}
 
 	return $sql;
 
@@ -414,7 +501,7 @@ function affwp_mlm_update_affiliate_connections( $data = array() ) {
  * 
  * @since 1.0
  */
-function affwp_mlm_delete_parent_affiliate( $affiliate_id = 0, $parent_affiliate_id = 0 ) {
+function affwp_mlm_delete_affiliate_connections( $affiliate_id = 0 ) {
 
 	if ( empty( $affiliate_id ) )
 		return;
@@ -423,15 +510,10 @@ function affwp_mlm_delete_parent_affiliate( $affiliate_id = 0, $parent_affiliate
 	
 	$affiliate_connection_table = affwp_mlm_get_connections_table();
 	
-	if ( !empty( $parent_affiliate_id ) ) {
+	do_action( 'affwp_mlm_before_connections_deleted', $affiliate_id );
 	
-		$wpdb->delete( $affiliate_connection_table, array( 'affiliate_id' => $affiliate_id, 'affiliate_parent_id' => $parent_affiliate_id ), array( '%d' ) );
+	$wpdb->delete( $affiliate_connection_table, array( 'affiliate_id' => $affiliate_id ), array( '%d' ) );	
 	
-	} else{
-	
-		$wpdb->delete( $affiliate_connection_table, array( 'affiliate_id' => $affiliate_id ), array( '%d' ) );	
-	}
-	
-	do_action( 'affwp_mlm_parent_deleted', $affiliate_id, $parent_affiliate_id );
+	do_action( 'affwp_mlm_after_connections_deleted', $affiliate_id );
 
 }

@@ -37,70 +37,11 @@ class AffiliateWP_MLM_PMP extends AffiliateWP_MLM_Base {
 	/**
 	 * Process referral
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function process_referral( $referral_id, $data ) {
-
-		// Check for Paid Membership Pro
-		if ( ( 'pmp' !== $data['context'] ) ) {
-			return;
-		}
 		
-		$data['custom'] = maybe_unserialize( $data['custom'] );
-		$integrations = affiliate_wp()->settings->get( 'affwp_mlm_integrations' );
-		
-		if ( ! $integrations['pmp'] ) {
-			return; // MLM integration for Paid Membership Pro is disabled 
-		}
-
-		$referral = affiliate_wp()->referrals->get_by( 'referral_id', $referral_id, $this->context );
-		$referral_type = 'direct';
-
-		if( empty( $referral->custom ) ) {
-			
-			// Prevent overwriting subscription id
-			if( empty( $data['custom'] ) ) {
-				
-				// Add referral type as custom referral data for direct referral
-				affiliate_wp()->referrals->update( $referral->referral_id, array( 'custom' => $referral_type ), '', 'referral' );
-			
-			}
-		
-		} elseif( $referral->custom == 'indirect' ) {
-			return; // Prevent looping through indirect referrals
-		}
-
-		if( ! (bool) apply_filters( 'affwp_mlm_create_indirect_referral', true, $this->context ) ) {
-			return false; // Allow extensions to prevent indirect referrals from being created
-		}
-
-		// Get affiliate ID from referral
-		$affiliate_id = $data['affiliate_id'];
-
-		// Get the affiliate's upline
-		$upline = affwp_mlm_get_upline( $affiliate_id );
-		$matrix_depth = affiliate_wp()->settings->get( 'affwp_mlm_matrix_depth' );
-		
-		if ( $upline ) {
-			
-			// Filter upline by the default active status 
-			$active_upline = affwp_mlm_filter_by_status( $upline );
-			
-			// Filter upline by depth setting if set
-			$parent_affiliates = ! empty( $matrix_depth ) ?  affwp_mlm_filter_by_level( $active_upline, $matrix_depth ) : $active_upline;
-			
-			$level_count = 0;
-			
-			foreach( $parent_affiliates as $parent_affiliate_id ) {
-				
-				$level_count++;
-
-				// Create the parent affiliate's referral
-				$this->create_parent_referral( $parent_affiliate_id, $referral_id, $data, $level_count, $affiliate_id );
-			
-			}
-		
-		}
+		$this->prepare_indirect_referrals( $referral_id, $data );
 
 	}
 
@@ -190,8 +131,23 @@ class AffiliateWP_MLM_PMP extends AffiliateWP_MLM_Base {
 		
 			$this->complete_referral( $referral, $reference );
 			
-		}
+			$order = new MemberOrder( $order->id );
+			
+			// Prevent infinite loop
+			remove_action( 'pmpro_updated_order', array( $this, 'mark_referrals_complete' ), 10 );
 
+			$amount              = html_entity_decode( affwp_currency_filter( affwp_format_amount( $referral->amount ) ), ENT_QUOTES, 'UTF-8' );
+			$name                = affiliate_wp()->affiliates->get_affiliate_name( $referral->affiliate_id );
+			$note                = sprintf( __( 'Indirect Referral #%d for %s recorded for %s', 'affiliatewp-multi-level-marketing' ), $referral->referral_id, $amount, $name );
+			
+			if( empty( $order->notes ) ) {
+				$order->notes = $note;
+			} else {
+				$order->notes = $order->notes . "\n\n" . $note;
+			}
+			$order->saveOrder();
+			
+		}
 	}
 
 	/**

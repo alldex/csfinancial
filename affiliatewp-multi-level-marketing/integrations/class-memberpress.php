@@ -38,70 +38,11 @@ class AffiliateWP_MLM_MemberPress extends AffiliateWP_MLM_Base {
 	/**
 	 * Process referral
 	 *
-	 * @since 1.0.1
+	 * @since 1.1
 	 */
 	public function process_referral( $referral_id, $data ) {
-
-		// Check for MemberPress
-		if ( ( 'memberpress' !== $data['context'] ) ) {
-			return;
-		}
-
-		$data['custom'] = maybe_unserialize( $data['custom'] );		
-		$integrations = affiliate_wp()->settings->get( 'affwp_mlm_integrations' );
 		
-		if ( ! $integrations['memberpress'] ) {
-			return; // MLM integration for MemberPress is disabled 
-		}
-
-		$referral = affiliate_wp()->referrals->get_by( 'referral_id', $referral_id, $this->context );
-		$referral_type = 'direct';
-		
-		if( empty( $referral->custom ) ) {
-			
-			// Prevent overwriting subscription id
-			if( empty( $data['custom'] ) ) {
-				
-				// Add referral type as custom referral data for direct referral
-				affiliate_wp()->referrals->update( $referral->referral_id, array( 'custom' => $referral_type ), '', 'referral' );
-			
-			}
-		
-		} elseif( $referral->custom == 'indirect' ) {
-			return; // Prevent looping through indirect referrals
-		}
-
-		if( ! (bool) apply_filters( 'affwp_mlm_create_indirect_referral', true, $this->context ) ) {
-			return false; // Allow extensions to prevent indirect referrals from being created
-		}
-
-		// Get affiliate ID from referral
-		$affiliate_id = $data['affiliate_id'];
-
-		// Get the affiliate's upline
-		$upline = affwp_mlm_get_upline( $affiliate_id );
-		$matrix_depth = affiliate_wp()->settings->get( 'affwp_mlm_matrix_depth' );
-		
-		if ( $upline ) {
-			
-			// Filter upline by the default active status 
-			$active_upline = affwp_mlm_filter_by_status( $upline );
-			
-			// Filter upline by depth setting if set
-			$parent_affiliates = ! empty( $matrix_depth ) ?  affwp_mlm_filter_by_level( $active_upline, $matrix_depth ) : $active_upline;
-			
-			$level_count = 0;
-			
-			foreach( $parent_affiliates as $parent_affiliate_id ) {
-				
-				$level_count++;
-
-				// Create the parent affiliate's referral
-				$this->create_parent_referral( $parent_affiliate_id, $referral_id, $data, $level_count, $affiliate_id );
-			
-			}
-		
-		}
+		$this->prepare_indirect_referrals( $referral_id, $data );
 
 	}
 

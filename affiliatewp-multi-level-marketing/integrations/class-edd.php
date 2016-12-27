@@ -20,75 +20,17 @@ class AffiliateWP_MLM_EDD extends AffiliateWP_MLM_Base {
 
 		// Process referral
 		add_action( 'affwp_post_insert_referral', array( $this, 'process_referral' ), 10, 2 );
+		
 	}
 
 	/**
 	 * Process referral
 	 *
-	 * @since 1.0.5
+	 * @since 1.1
 	 */
 	public function process_referral( $referral_id, $data ) {
-
-		// Check for Easy Digital Downloads
-		if ( ( 'edd' !== $data['context'] ) ) {
-			return;
-		}
 		
-		$data['custom'] = maybe_unserialize( $data['custom'] );
-		$integrations = affiliate_wp()->settings->get( 'affwp_mlm_integrations' );
-		
-		if ( ! $integrations['edd'] ) {
-			return; // MLM integration for EDD is disabled 
-		}
-		
-		$referral = affiliate_wp()->referrals->get_by( 'referral_id', $referral_id, $this->context );
-		$referral_type = 'direct';
-
-		if( empty( $referral->custom ) ) {
-			
-			// Prevent overwriting subscription id
-			if( empty( $data['custom'] ) ) {
-				
-				// Add referral type as custom referral data for direct referral
-				affiliate_wp()->referrals->update( $referral->referral_id, array( 'custom' => $referral_type ), '', 'referral' );
-			
-			}
-		
-		} elseif( $referral->custom == 'indirect' ) {
-			return; // Prevent looping through indirect referrals
-		}
-
-		if( ! (bool) apply_filters( 'affwp_mlm_create_indirect_referral', true, $this->context ) ) {
-			return false; // Allow extensions to prevent indirect referrals from being created
-		}
-
-		// Get affiliate ID from referral
-		$affiliate_id = $data['affiliate_id'];
-
-		// Get the affiliate's upline
-		$upline = affwp_mlm_get_upline( $affiliate_id );
-		$matrix_depth = affiliate_wp()->settings->get( 'affwp_mlm_matrix_depth' );
-		
-		if ( $upline ) {
-			
-			// Filter upline by the default active status 
-			$active_upline = affwp_mlm_filter_by_status( $upline );
-			
-			// Filter upline by depth setting if set
-			$parent_affiliates = ! empty( $matrix_depth ) ?  affwp_mlm_filter_by_level( $active_upline, $matrix_depth ) : $active_upline;
-			
-			$level_count = 0;
-			
-			foreach( $parent_affiliates as $parent_affiliate_id ) {
-				
-				$level_count++;
-
-				// Create the parent affiliate's referral
-				$this->create_parent_referral( $parent_affiliate_id, $referral_id, $data, $level_count, $affiliate_id );
-			
-			}
-		
-		}
+		$this->prepare_indirect_referrals( $referral_id, $data );
 
 	}
 
@@ -105,7 +47,7 @@ class AffiliateWP_MLM_EDD extends AffiliateWP_MLM_Base {
 		$amount = $this->process_cart( $parent_affiliate_id, $data, $level_count );
 
 		$data['affiliate_id'] = $parent_affiliate_id;
-		$data['description']  = $this->get_referral_description( $level_count, $direct_affiliate, $data['reference']  );
+		$data['description']  = $this->get_referral_description( $level_count, $direct_affiliate, $data['reference'] );
 		$data['amount']       = $amount;
 		$data['custom']       = 'indirect'; // Add referral type as custom referral data
 		$data['context']      = 'edd';
@@ -123,7 +65,7 @@ class AffiliateWP_MLM_EDD extends AffiliateWP_MLM_Base {
 			$name   	= affiliate_wp()->affiliates->get_affiliate_name( $parent_affiliate_id );
 			$payment_id = $data['reference'];
 			
-			edd_insert_payment_note( $payment_id, sprintf( __( 'Indirect Referral #%d for %s recorded for %s', 'affiliate-wp' ), $referral_id, $amount, $name ) );
+			edd_insert_payment_note( $payment_id, sprintf( __( 'Indirect Referral #%d for %s recorded for %s', 'affiliatewp-multi-level-marketing' ), $referral_id, $amount, $name ) );
 
 			do_action( 'affwp_mlm_indirect_referral_created', $referral_id, $data );
 
@@ -136,7 +78,7 @@ class AffiliateWP_MLM_EDD extends AffiliateWP_MLM_Base {
 	 *
 	 * @since 1.0.5
 	 */
-	public function process_cart( $parent_affiliate_id, $data, $level_count = 0  ) {
+	public function process_cart( $parent_affiliate_id, $data, $level_count = 0 ) {
 
 		$payment_id = $data['reference'];
 
@@ -310,6 +252,7 @@ class AffiliateWP_MLM_EDD extends AffiliateWP_MLM_Base {
 		
 		$downloads   = edd_get_payment_meta_downloads( $payment_id );
 		$description = array();
+		$item_names = array();
 
 		foreach ( $downloads as $key => $item ) {
 
@@ -317,10 +260,12 @@ class AffiliateWP_MLM_EDD extends AffiliateWP_MLM_Base {
 				continue; // Referrals are disabled on this product
 			}
 
-			$description[] = $direct_affiliate . ' | Level '. $level_count . ' | ' . get_the_title( $item['id'] );
+			$item_names[] = get_the_title( $item['id'] );
 
 		}
-
+		
+		$description[] = $direct_affiliate . ' | Level '. $level_count . ' | ' . implode( ', ', $item_names );
+		
 		return implode( ', ', $description );
 
 	}

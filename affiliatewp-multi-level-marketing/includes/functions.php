@@ -8,8 +8,8 @@
  */
 function affwp_mlm_is_sub_affiliate( $affiliate_id = 0 ) {
 	
-	if ( ! $affiliate_id ) {
-		return;
+	if ( empty( $affiliate_id ) ) {
+		$affiliate_id = affwp_get_affiliate_id();
 	}
 
 	if ( affwp_mlm_get_affiliate_connections( absint( $affiliate_id ) ) ) {
@@ -28,8 +28,8 @@ function affwp_mlm_is_sub_affiliate( $affiliate_id = 0 ) {
  */
 function affwp_mlm_is_parent_affiliate( $affiliate_id = 0 ) {
 	
-	if ( ! $affiliate_id ) {
-		return;
+	if ( empty( $affiliate_id ) ) {
+		$affiliate_id = affwp_get_affiliate_id();
 	}
 
 	// Parent affiliates must have sub-affiliates

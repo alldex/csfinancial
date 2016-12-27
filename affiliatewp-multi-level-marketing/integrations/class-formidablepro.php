@@ -1,27 +1,27 @@
 <?php
 
-class AffiliateWP_MLM_Gravity_Forms extends AffiliateWP_MLM_Base {
+class AffiliateWP_MLM_Formidable_Pro extends AffiliateWP_MLM_Base {
 
 	/**
-	 * The order total
+	 * The referral total
 	 *
-	 * @since 1.6.1
+	 * @since 1.1
 	 */
-	public $total;
+	public $referral_total;
 	
 	/**
 	 * Get things started
 	 *
 	 * @access public
-	 * @since  1.0
+	 * @since  1.1
 	*/
 	public function init() {
 
-		$this->context = 'gravityforms';
+		$this->context = 'formidablepro';
 
-		add_action( 'gform_post_payment_completed', array( $this, 'mark_referrals_complete' ), 10, 2 );
-		add_action( 'gform_post_payment_refunded', array( $this, 'revoke_referrals_on_refund' ), 10, 2);
-		
+		add_action( 'frm_after_payment_completed', array( $this, 'mark_referrals_complete' ), 10, 2 );
+		add_action( 'frm_after_payment_refunded', array( $this, 'revoke_referrals_on_refund' ), 10, 2 );
+
 		// Process referral
 		add_action( 'affwp_post_insert_referral', array( $this, 'process_referral' ), 10, 2 );
 
@@ -41,7 +41,7 @@ class AffiliateWP_MLM_Gravity_Forms extends AffiliateWP_MLM_Base {
 	/**
 	 * Creates the referral for the parent affiliate
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function create_parent_referral( $parent_affiliate_id, $referral_id, $data, $level_count = 0, $affiliate_id ) {
 
@@ -55,7 +55,7 @@ class AffiliateWP_MLM_Gravity_Forms extends AffiliateWP_MLM_Base {
 		$data['description']  = $direct_affiliate . ' | Level '. $level_count . ' | ' . $product;
 		$data['amount']       = $amount;
 		$data['custom']       = 'indirect'; // Add referral type as custom referral data
-		$data['context']      = 'gravityforms';
+		$data['context']      = 'formidablepro';
 
 		unset( $data['date'] );
 		unset( $data['currency'] );
@@ -68,7 +68,7 @@ class AffiliateWP_MLM_Gravity_Forms extends AffiliateWP_MLM_Base {
 
 			do_action( 'affwp_mlm_indirect_referral_created', $referral_id, $data );
 			
-			if ( empty( $this->total ) ) {
+			if ( empty( $this->referral_total ) ) {
 
 				$referral = affiliate_wp()->referrals->get_by( 'referral_id', $referral_id, $this->context );
 				$this->complete_referral( $referral, $this->context );
@@ -79,44 +79,28 @@ class AffiliateWP_MLM_Gravity_Forms extends AffiliateWP_MLM_Base {
 	/**
 	 * Process order
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function process_order( $parent_affiliate_id, $data, $level_count = 0 ) {
 		
+		global $frm_entry_meta, $frm_form;
+		
 		$entry_id = $data['reference'];
 		
-		// Get entry object by entry id
-		$entry = apply_filters( 'affwp_get_gravityforms_order', GFFormsModel::get_lead( $entry_id ) );
+		// Get form id by entry id
+		$entry = FrmEntry::getOne( $entry_id );
+		$form_id = $entry->form_id;
 		
-		$form = GFAPI::get_form( $entry['form_id'] ); 
-		$products = GFCommon::get_product_fields( $form, $entry );
-		$total = 0;
-		
-		foreach ( $products['products'] as $key => $product ) {	
-
-			$price = GFCommon::to_number( $product['price'] );
-			
-			if ( is_array( rgar( $product,'options' ) ) ) {
-				$count = sizeof( $product['options'] );
-				$index = 1;
-				foreach ( $product['options'] as $option ) {
-					$price += GFCommon::to_number( $option['price'] );
-				}
-			}
-			
-			$subtotal = floatval( $product['quantity'] ) * $price;
-			$total += $subtotal;
-
-		}
-
-		$total += floatval( $products['shipping']['price'] );
-		$this->total = $total;
-		$base_amount = $total;
-		$reference = $entry['id'];
-		$product_id = ''; // Leave empty until GF integration supports per-product rates
+		// Get form object by form id
+		$form = $frm_form->getOne( $form_id );
+		$purchase_amount = floatval( $frm_entry_meta->get_entry_meta_by_field( $entry_id, $form->options['affiliatewp']['purchase_amount_field'] ) );
+		$base_amount = $purchase_amount;
+		$reference = $entry_id;
+		$product_id = ''; // Leave empty until Formidable Pro integration supports per-product rates
 		
 		$referral_total = $this->calculate_referral_amount( $parent_affiliate_id, $base_amount, $reference, $product_id, $level_count );
-
+		$this->referral_total = $referral_total;
+		
 		if ( 0 == $referral_total && affiliate_wp()->settings->get( 'ignore_zero_referrals' ) ) {
 			return false; // Ignore a zero amount referral
 		}
@@ -128,26 +112,27 @@ class AffiliateWP_MLM_Gravity_Forms extends AffiliateWP_MLM_Base {
 	/**
 	 * Mark referrals as complete
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
-	public function mark_referrals_complete( $entry, $action ) {
+	public function mark_referrals_complete( $entry_id, $form_id ) {
 
-		$reference = $entry['id'];
+		global $frm_entry_meta;
+		
+		$reference = $entry_id;
 		$referrals = affwp_mlm_get_referrals_for_order( $reference, $this->context );
 
 		if ( empty( $referrals ) ) {
 			return false;
 		}
-
+		
 		foreach ( $referrals as $referral ) {
 		
 			$this->complete_referral( $referral, $reference );
 			
 			$amount   = affwp_currency_filter( affwp_format_amount( $referral->amount ) );
 			$name     = affiliate_wp()->affiliates->get_affiliate_name( $referral->affiliate_id );
-			$note     = sprintf( __( 'Indirect Referral #%d for %s recorded for %s', 'affiliatewp-multi-level-marketing' ), $referral->referral_id, $amount, $name );
-	
-			GFFormsModel::add_note( $entry["id"], 0, 'AffiliateWP', $note );
+			$note     = sprintf( __( 'AffiliateWP: Indirect Referral #%d for %s recorded for %s', 'affiliatewp-multi-level-marketing' ), $referral->referral_id, $amount, $name );
+			$frm_entry_meta->add_entry_meta( $entry_id, 0, '', array( 'comment' => $note, 'user_id' => 0 ) );
 		
 		}
 
@@ -156,16 +141,18 @@ class AffiliateWP_MLM_Gravity_Forms extends AffiliateWP_MLM_Base {
 	/**
 	 * Revoke referrals on refund
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
-	public function revoke_referrals_on_refund( $entry, $action ) {
+	public function revoke_referrals_on_refund( $entry_id, $form_id ) {
 
 
 		if( ! affiliate_wp()->settings->get( 'revoke_on_refund' ) ) {
 			return;
 		}
-
-		$reference = $entry['id'];
+		
+		global $frm_entry_meta;
+		
+		$reference = $entry_id;
 		$referrals = affwp_mlm_get_referrals_for_order( $reference, $this->context );
 
 		if ( empty( $referrals ) ) {
@@ -177,14 +164,13 @@ class AffiliateWP_MLM_Gravity_Forms extends AffiliateWP_MLM_Base {
 			$this->reject_referral( $referral );
 			
 			$amount   = affwp_currency_filter( affwp_format_amount( $referral->amount ) );
-			$name     = affiliate_wp()->affiliates->get_affiliate_name( $referral->affiliate_id );
-			$note     = sprintf( __( 'Referral #%d for %s for %s rejected', 'affiliate-wp' ), $referral->referral_id, $amount, $name );
-
-			GFFormsModel::add_note( $entry["id"], 0, 'AffiliateWP', $note );
+			$name     = affiliate_wp()->affiliates->get_affiliate_name( $referral->affiliate_id );		
+			$note     = sprintf( __( 'AffiliateWP: Referral #%d for %s for %s rejected', 'affiliate-wp' ), $referral->referral_id, $amount, $name );
+			$frm_entry_meta->add_entry_meta( $entry_id, 0, '', array( 'comment' => $note, 'user_id' => 0 ) );
 		
 		}
 
 	}
 
 }
-new AffiliateWP_MLM_Gravity_Forms;
+new AffiliateWP_MLM_Formidable_Pro;

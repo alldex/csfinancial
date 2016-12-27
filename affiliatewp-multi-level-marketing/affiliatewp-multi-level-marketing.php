@@ -5,7 +5,7 @@
  * Description: Turn your Affiliate Network into a full blown Multi-Level Marketing system, where your Affiliates can earn commissions on the referrals made by their Sub Affiliates on multiple levels.
  * Author: Christian Freeman and The Perfect Plugin Team
  * Author URI: http://theperfectplugin.com
- * Version: 1.0.6.1
+ * Version: 1.1
  * Text Domain: affiliatewp-multi-level-marketing
  * Domain Path: languages
  */
@@ -74,15 +74,13 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 			if ( ! isset( self::$instance ) && ! ( self::$instance instanceof AffiliateWP_Multi_Level_Marketing ) ) {
 				
 				self::$instance = new AffiliateWP_Multi_Level_Marketing;
-				self::$version  = '1.0.6.1';
+				self::$version  = '1.1';
 
 				self::$instance->setup_constants();
 				self::$instance->includes();
 				self::$instance->setup_objects();
 				self::$instance->hooks();
 				self::$instance->load_textdomain();
-				
-				self::$instance->edd_sl_affwp_mlm_updater();
 
 			}
 
@@ -165,14 +163,14 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 				define( 'AFFWP_MLM_PLUGIN_FILE', __FILE__ );
 			}
 			
-			// Software Licensing URL
-			if ( ! defined( 'EDD_SL_STORE_URL' ) ) {
-				define( 'EDD_SL_STORE_URL', 'http://theperfectplugin.com' );
+			// API URL
+			if ( ! defined( 'AFFWP_MLM_API_URL' ) ) {
+				define( 'AFFWP_MLM_API_URL', 'http://propluginmarketplace.com' );
 			}
 			
-			// EDD Product Name
-			if ( ! defined( 'EDD_SL_ITEM_NAME' ) ) {
-				define( 'EDD_SL_ITEM_NAME', 'AffiliateWP MLM' );
+			// Software Title
+			if ( ! defined( 'AFFWP_MLM_SOFTWARE_TITLE' ) ) {
+				define( 'AFFWP_MLM_SOFTWARE_TITLE', 'AffiliateWP MLM' );
 			}
 		}
 
@@ -192,8 +190,9 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 			require_once AFFWP_MLM_PLUGIN_DIR . 'includes/functions.php';
 			require_once AFFWP_MLM_PLUGIN_DIR . 'includes/scripts.php';
 			require_once AFFWP_MLM_PLUGIN_DIR . 'includes/actions.php';
-			require_once AFFWP_MLM_PLUGIN_DIR . 'includes/filters.php';
+			require_once AFFWP_MLM_PLUGIN_DIR . 'includes/display-functions.php';
 			require_once AFFWP_MLM_PLUGIN_DIR . 'includes/compatibility.php';
+			require_once AFFWP_MLM_PLUGIN_DIR . 'includes/shortcodes.php';
 
 			// require_once AFFWP_MLM_PLUGIN_DIR . 'includes/class-emails.php';
 			require_once AFFWP_MLM_PLUGIN_DIR . 'integrations/class-base.php';
@@ -206,11 +205,6 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 					require_once AFFWP_MLM_PLUGIN_DIR . 'integrations/class-' . $filename . '.php';
 				}
 
-			}
-			
-			if( !class_exists( 'EDD_SL_Plugin_Updater' ) ) {
-				// Load our custom updater
-				require_once AFFWP_MLM_PLUGIN_DIR . '/includes/EDD_SL_Plugin_Updater.php';
 			}
 			
 		}
@@ -226,22 +220,6 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 			self::$instance->settings = new AffiliateWP_MLM_Settings;
 			// self::$instance->emails = new AffiliateWP_MLM_Emails;
 			self::$instance->integrations = new AffiliateWP_MLM_Base;
-		}
-
-		public function edd_sl_affwp_mlm_updater() {
-		
-			// Get the license key from the DB
-			$license_key = trim( affiliate_wp()->settings->get( 'affwp_mlm_license_key' ) );
-		
-			// Setup the updater
-			$edd_updater = new EDD_SL_Plugin_Updater( EDD_SL_STORE_URL, __FILE__, array( 
-					'version' 	=> AFFWP_MLM_VERSION,
-					'license' 	=> $license_key,
-					'item_name' => EDD_SL_ITEM_NAME,
-					'author' 	=> 'Christian Freeman and The Perfect Plugin Team'
-				)
-			);
-		
 		}
 
 		/**
@@ -266,6 +244,9 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 			add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
 				return array_merge( $tabs, array( 'sub-affiliates' ) );
 			} );
+			
+			// Add indirect referrals table to referrals tab
+			add_action( 'affwp_referrals_dashboard_before_table', array( $this, 'display_indirect_referrals_in_tab' ) );
 
 		}
 		
@@ -281,7 +262,7 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 		public function plugin_meta( $links, $file ) {
 		    if ( $file == plugin_basename( __FILE__ ) ) {
 		        $plugins_link = array(
-		            '<a title="' . __( 'Get more add-ons for AffiliateWP', 'affiliatewp-multi-level-marketing' ) . '" href="http://theperfectplugin.com/downloads/category/affiliatewp" target="_blank">' . __( 'Get add-ons', 'affiliatewp-multi-level-marketing' ) . '</a>'
+		            '<a title="' . __( 'Get more add-ons for AffiliateWP', 'affiliatewp-multi-level-marketing' ) . '" href="http://propluginmarketplace.com/product-category/add-ons/affiliatewp/" target="_blank">' . __( 'Get add-ons', 'affiliatewp-multi-level-marketing' ) . '</a>'
 		        );
 
 		        $links = array_merge( $links, $plugins_link );
@@ -434,6 +415,20 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 			return count( $referrals );
 		}
 
+		/**
+		 * Display indirect referrals in the referrals tab of the affiliate area
+		 * 
+		 * @since  1.0
+		 * @param  integer $affiliate_id ID of the affiliate from the filter
+		 */
+		public function display_indirect_referrals_in_tab( $affiliate_id ) {
+			if ( isset( $_GET['tab'] ) && 'referrals' != $_GET['tab'] ) {
+				return;
+			}
+			
+			show_indirect_referrals( $affiliate_id, '#affwp-affiliate-dashboard-referrals', 'referrals' );
+		}
+
 	}
 
 	/**
@@ -443,7 +438,7 @@ if ( ! class_exists( 'AffiliateWP_Multi_Level_Marketing' ) ) {
 	 * Use this function like you would a global variable, except without needing
 	 * to declare the global.
 	 *
-	 * Example: <?php $affiliatewp_multi_level_marketing = affiliatewp_mlm(); ?>
+	 * Example: <?php $affiliatewp_multi_level_marketing = affiliate_wp_mlm(); ?>
 	 *
 	 * @since 1.0
 	 * @return object The one true AffiliateWP_Multi_Level_Marketing Instance
@@ -496,3 +491,18 @@ function affiliate_wp_mlm_load_plugin() {
 
 }
 add_action( 'admin_init', 'affiliate_wp_mlm_load_plugin' );
+
+
+class AFFWP_MLM_License {
+
+	static function init() {
+
+		if ( ! class_exists( 'AFFWP_MLM_License_Menu' ) ) {
+			require_once( plugin_dir_path( __FILE__ ) . 'am-license-menu.php' );
+			
+			AFFWP_MLM_License_Menu::instance( __FILE__, 'AffiliateWP MLM', '1.1', 'plugin', 'http://propluginmarketplace.com' );
+		}
+	}
+
+}
+AFFWP_MLM_License::init();

@@ -1,28 +1,45 @@
 <?php
 
-class AffiliateWP_MLM_Membermouse extends AffiliateWP_MLM_Base {
+class AffiliateWP_MLM_RCP extends AffiliateWP_MLM_Base {
 
 	/**
-	 * The affiliate data object
+	 * The post data
 	 *
 	 * @access  public
-	 * @since   1.0.5
+	 * @since   1.1
 	*/
-	public $aff_data;
+	public $post_data;
+	
+	/**
+	 * The user id
+	 *
+	 * @access  public
+	 * @since   1.1
+	*/
+	public $user_id;
+
+	/**
+	 * The price
+	 *
+	 * @access  public
+	 * @since   1.1
+	*/
+	public $price;
 
 	/**
 	 * Get things started
 	 *
 	 * @access public
-	 * @since  1.0.5
+	 * @since  1.1
 	*/
 	public function init() {
 
-		$this->context = 'membermouse';
+		$this->context = 'rcp';
 		
-		add_action( 'mm_commission_initial', array( $this, 'store_affiliate_data' ), -1, 1 );
-		add_action( 'affwp_complete_referral', array( $this, 'mark_referrals_complete' ), 10, 3 );
-		add_action( 'mm_refund_issued', array( $this, 'revoke_referrals_on_refund' ), 10 );
+		// Hook in before add_pending_referral() runs to save the data
+		add_action( 'rcp_form_processing', array( $this, 'get_order_data' ), -1, 3 );
+		add_action( 'rcp_insert_payment', array( $this, 'mark_referrals_complete' ), 10, 3 );
+		add_action( 'rcp_delete_payment', array( $this, 'revoke_referrals_on_delete' ), 10 );
 
 		// Process referral
 		add_action( 'affwp_post_insert_referral', array( $this, 'process_referral' ), 10, 2 );
@@ -30,14 +47,17 @@ class AffiliateWP_MLM_Membermouse extends AffiliateWP_MLM_Base {
 	}
 
 	/**
-	 * Store affiliate data for the order
+	 * Get the order data
 	 *
-	 * @since 1.0.5
+	 * @since 1.1
 	 */
-	public function store_affiliate_data( $affiliate_data ) {
+	public function get_order_data( $post_data, $user_id, $price ) {
 
-		$this->aff_data = $affiliate_data;
-	
+		// Store the data for later
+		$this->post_data = $post_data;
+		$this->user_id = $user_id;
+		$this->price = $price;
+		
 	}
 
 	/**
@@ -54,32 +74,30 @@ class AffiliateWP_MLM_Membermouse extends AffiliateWP_MLM_Base {
 	/**
 	 * Creates the referral for parent affiliate
 	 *
-	 * @since 1.0.5
+	 * @since 1.1
 	 */
 	public function create_parent_referral( $parent_affiliate_id, $referral_id, $data, $level_count = 0, $affiliate_id ) {
 
 		$direct_affiliate = affiliate_wp()->affiliates->get_affiliate_name( $affiliate_id );
+		$user_id = $this->user_id;
 
 		// Process order and get amount
 		$amount = $this->process_order( $parent_affiliate_id, $data, $level_count );
 
 		$data['affiliate_id'] = $parent_affiliate_id;
-		$data['description']  = $direct_affiliate . ' | Level '. $level_count . ' | ' . $data['description'];
+		$data['description']  =  $direct_affiliate . ' | Level '. $level_count . ' | ' . rcp_get_subscription( $user_id );
 		$data['amount']       = $amount;
 		$data['custom']       = 'indirect'; // Add referral type as custom referral data
-		$data['context']      = 'membermouse';
+		$data['context']      = 'rcp';
 
 		unset( $data['date'] );
 		unset( $data['currency'] );
 		unset( $data['status'] );
 
-		// create referral
+		// Create the referral
 		$referral_id = affiliate_wp()->referrals->add( apply_filters( 'affwp_mlm_insert_pending_referral', $data, $parent_affiliate_id, $affiliate_id, $referral_id, $level_count ) );
 
 		if ( $referral_id ) {
-
-			$amount = affwp_currency_filter( affwp_format_amount( $amount ) );
-			$name   = affiliate_wp()->affiliates->get_affiliate_name( $parent_affiliate_id );
 
 			do_action( 'affwp_mlm_indirect_referral_created', $referral_id, $data );
 
@@ -88,19 +106,20 @@ class AffiliateWP_MLM_Membermouse extends AffiliateWP_MLM_Base {
 	}
 
 	/**
-	 * Process order
+	 * Process the order
 	 *
-	 * @since 1.0.5
+	 * @since 1.1
 	 */
-	public function process_order( $parent_affiliate_id, $data, $level_count = 0  ) {
-		
-		$reference = $data['reference'];
-		$affiliate_data = $this->aff_data;
-		$order_total = $affiliate_data['order_total'];
+	public function process_order( $parent_affiliate_id, $data, $level_count = 0 ) {
 
-		$amount = $this->calculate_referral_amount( $parent_affiliate_id, $order_total, $reference, $product_id, $level_count );
+		$key = $data['reference'];
+		$post = $this->post_data;
+		$user_id = $this->user_id;
+		$price = $this->price;
+			
+		$amount = $this->calculate_referral_amount( $parent_affiliate_id, $price, $key, absint( $post['rcp_level'] ), $level_count );
 
-		if( 0 == $amount && affiliate_wp()->settings->get( 'ignore_zero_referrals' ) ) {
+		if ( 0 == $amount && affiliate_wp()->settings->get( 'ignore_zero_referrals' ) ) {
 			return false; // Ignore a zero amount referral
 		}
 
@@ -111,14 +130,15 @@ class AffiliateWP_MLM_Membermouse extends AffiliateWP_MLM_Base {
 	/**
 	 * Mark referrals as complete
 	 *
-	 * @since 1.0.5
+	 * @since 1.1
 	 */
-	public function mark_referrals_complete( $referral_id = 0, $referral = array(), $reference = '' ) {
+	public function mark_referrals_complete( $payment_id, $args, $amount ) {
 
-		if ( empty( $reference ) ) {
+		if ( empty( $args ) ) {
 			return false;
 		}
 
+		$reference = $args['subscription_key'];
 		$referrals = affwp_mlm_get_referrals_for_order( $reference, $this->context );
 		
 		if ( empty( $referrals ) ) {
@@ -134,13 +154,13 @@ class AffiliateWP_MLM_Membermouse extends AffiliateWP_MLM_Base {
 	}
 
 	/**
-	 * Revoke referrals when an order is refunded
+	 * Revoke referrals when a payment is refunded
 	 *
-	 * @since 1.0.5
+	 * @since 1.1
 	 */
-	public function revoke_referrals_on_refund( $data ) {
+	public function revoke_referrals_on_delete( $payment_id = 0 ) {
 	
-		if ( empty( $data ) ) {
+		if ( empty( $payment_id ) ) {
 			return;
 		}
 		
@@ -148,9 +168,9 @@ class AffiliateWP_MLM_Membermouse extends AffiliateWP_MLM_Base {
 			return;
 		}
 		
-		$reference = $data['member_id'] . '|' . $data['order_number'] . '-' . $data['order_transaction_id'];
-
-		$referrals = affwp_mlm_get_referrals_for_order( $reference, $this->context );
+		$payments = new RCP_Payments;
+		$payment  = $payments->get_payment( $payment_id );
+		$referrals = affwp_mlm_get_referrals_for_order( $payment->subscription_key, $this->context );
 
 		if ( empty( $referrals ) ) {
 			return;
@@ -165,4 +185,4 @@ class AffiliateWP_MLM_Membermouse extends AffiliateWP_MLM_Base {
 	}
 
 }
-new AffiliateWP_MLM_Membermouse;
+new AffiliateWP_MLM_RCP;

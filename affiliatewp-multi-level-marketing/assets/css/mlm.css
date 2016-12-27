@@ -1,0 +1,91 @@
+
+/* Tree View Styles */
+#affwp-mlm-sub-affiliates-tree {overflow: auto; max-width: auto; max-height: auto;}
+#buddypress #affwp-mlm-sub-affiliates-tree table tr, 
+#buddypress #affwp-mlm-sub-affiliates-tree table tr td {border: 0;} /* Hide Extra Lines */
+
+.google-visualization-orgchart-table * {padding: 0!important;}
+.google-visualization-orgchart-lineright {border-right: 1px solid #2e4453!important;} /* Vertical Lines */
+.google-visualization-orgchart-lineleft {border-left: 1px solid #2e4453!important;} /* Vertical Lines */
+.google-visualization-orgchart-linebottom {border-bottom: 1px solid #2e4453!important;} /* Horizontal Lines */
+
+#affwp-mlm-sub-affiliates-tree .sub_affiliate_node {
+	height: 68px;
+	padding: 0!important;
+    text-align: center;
+    vertical-align: middle;
+	border: 0;
+}
+
+/* Top Affiliate Node */
+#tree_div > table > tbody > tr:nth-child(2) > td.sub_affiliate_node.google-visualization-orgchart-node-medium {
+	height: 40px;
+}
+
+/* Sub Nodes */
+#affwp-mlm-sub-affiliates-tree .sub_affiliate_node .sub_node {
+	height: 68px;
+	width: 100%;
+	color: #2e4453;
+}
+
+/* Active Affiliates */
+#affwp-mlm-sub-affiliates-tree .sub_affiliate_node .sub_node.active {}
+
+/* Inactive Affiliates */
+#affwp-mlm-sub-affiliates-tree .sub_affiliate_node .sub_node.inactive {opacity: .4;}
+.affwp-mlm-level-wrap {}
+.affwp-mlm-level-count {}
+
+.affwp-mlm-aff {width: 6em; display: inline-block; margin: 1em;}
+.affwp-mlm-aff-name {width: 100%; display: block; font-weight: bold; text-align: center;}
+.affwp-mlm-aff-avatar img {
+	 width: 6em;
+	 height: 6em;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+	border-radius: 50%;
+}
+
+.affwp-mlm-aff-status {}
+
+ul.affwp-mlm-aff-data-wrap i {font-size: 1.5em;}
+ul.affwp-mlm-aff-data-wrap ul.affwp-mlm-aff-data {
+	display: none; /* visibility: hidden; */     
+    text-align: center;
+} 
+ul.affwp-mlm-aff-data-wrap:hover ul.affwp-mlm-aff-data {
+	display: block; /* visibility: visible; */
+	min-width: 16em;
+	padding: 1em 0!important;
+    float: left;
+	position: relative;
+	left: -2.5em;
+	text-align: center;
+    background: #fff;
+    border: 2px solid;
+}
+ul.affwp-mlm-aff-data {
+    width: auto;
+    text-align: left;
+    list-style: none!important;
+}
+ul.affwp-mlm-aff-data i {width: 2em; padding: 0 .5em!important; font-size: 1.5em; text-align: center;}
+ul.affwp-mlm-aff-data li {
+    width: 100%;
+    display: inline-block;
+    margin-left: 0;
+	text-align: left;
+} 
+ul.affwp-mlm-aff-data li span {display: inline-block; margin: 0; font-size: 1.5em; font-weight: bold;}
+ul.affwp-mlm-aff-data li ul {
+	display: none; /* visibility: hidden; */     
+    text-align: center;
+} 
+ul.affwp-mlm-aff-data li:hover ul {
+	display: block; /* visibility: visible; */
+	margin: 0;
+}
+ul.affwp-mlm-aff-data li:hover ul strong, ul.affwp-mlm-aff-data li:hover ul span {display: inline-block;}
+ul.affwp-mlm-aff-data li:hover ul strong {width: 45%; margin-right: 5%; text-align: right;}
+ul.affwp-mlm-aff-data li:hover ul span {width: 45%; text-align: left; vertical-align: top; font-size: 1em;}

@@ -8,7 +8,10 @@ class AffiliateWP_MLM_Settings {
 		add_filter( 'affwp_settings', array( $this, 'settings' ), 10, 1 );
 		add_action( 'admin_init', array( $this, 'level_rate_settings' ) );
 		add_filter( 'affwp_settings_rates_sanitize', array( $this, 'sanitize_rates' ) );
+		
+		// Affiliate Admin
 		add_action( 'affwp_edit_affiliate_bottom', array( $this, 'edit_affiliate' ), 10, 1 );
+		add_action( 'affwp_new_affiliate_end', array( $this, 'add_new_affiliate' ));
 		
 		// Remove data on uninstall
 		// add_filter( 'affwp_settings_misc', array( $this, 'settings_misc' ) );
@@ -16,9 +19,8 @@ class AffiliateWP_MLM_Settings {
 		// Variable rate settings
 		add_filter( 'affwp_settings_vrates', array( $this, 'settings_mlm_vrates' ) );
 		
-		// Licensing
-		add_action( 'admin_init', array( $this, 'activate_license' ) );
-		add_action( 'admin_init', array( $this, 'deactivate_license' ) );
+		// Per-level rank rate settings
+		add_filter( 'affwp_settings_ranks', array( $this, 'settings_mlm_rank_rates' ) );
 
 	}
 	
@@ -62,6 +64,28 @@ class AffiliateWP_MLM_Settings {
 	}
 
 	/**
+	 * Per-Level Rank Rate settings
+	 * 
+	 * @since 1.1
+	*/
+	public function settings_mlm_rank_rates( $settings = array() ) {
+
+		$settings[ 'affwp_ranks_mlm_referral_rate_type' ] = array(
+			'name' => __( 'Indirect Referral Rank Rate Type', 'affiliatewp-multi-level-marketing' ),
+			'desc' => '<p class="description">' . __( 'Should referrals made by Sub Affiliates be based on a percentage or flat rate amounts?', 'affiliatewp-multi-level-marketing' ) . '</p>',
+				'type' => 'select',
+				'options' => array(
+					'' => __( 'Site Default', 'affiliatewp-multi-level-marketing' ),
+					'percentage' => __( 'Percentage (%)', 'affiliatewp-multi-level-marketing' ),
+					'flat'       => sprintf( __( 'Flat %s', 'affiliatewp-multi-level-marketing' ), affwp_get_currency() ),
+				)
+			);
+
+		return $settings;
+
+	}
+
+	/**
 	 * Register the MLM Settings Tab
 	 *
 	 * @since 1.0
@@ -82,17 +106,6 @@ class AffiliateWP_MLM_Settings {
 			// MLM Settings			
 			'mlm' => apply_filters( 'affwp_settings_mlm',
 				array(
-					'affwp_mlm_license_header' => array(
-						'name' => '<strong>' . __( 'License Settings', 'affiliatewp-multi-level-marketing' ) . '</strong>',
-						'desc' => '',
-						'type' => 'header'
-					),
-					'affwp_mlm_license_key' => array(
-						'name' => __( 'License Key', 'affiliatewp-multi-level-marketing' ),
-						'desc' => $this->license_status_msg() . '<p class="description">' . sprintf( __( 'Please enter your AffiliateWP MLM license key. An active license key is needed for automatic updates and <a href="%s" target="_blank">support</a>.', 'affiliatewp-multi-level-marketing' ), 'http://theperfectplugin.com/support/' ) . '</p>',
-						'type' => 'text',
-						'size' => 'large'
-					),
 					'affwp_mlm_general_header' => array(
 						'name' => '<strong>' . __( 'General Settings', 'affiliatewp-multi-level-marketing' ) . '</strong>',
 						'type' => 'header',
@@ -103,13 +116,21 @@ class AffiliateWP_MLM_Settings {
 						'type' => 'multicheck',
 						'options' => apply_filters( 'affwp_mlm_integrations', array(
 							'edd'            => 'Easy Digital Downloads',
+							'formidablepro'  => 'Formidable Pro',
 							'gravityforms'   => 'Gravity Forms',
+							'exchange'       => 'iThemes Exchange',
+							'jigoshop'       => 'Jigoshop',
+							'marketpress'    => 'MarketPress',
 							'membermouse'    => 'MemberMouse',
 							'memberpress'    => 'MemberPress',
-							// 'ninja-forms'    => 'Ninja Forms',
+							'ninja-forms'    => 'Ninja Forms',
 							'pmp'            => 'Paid Memberships Pro',
-							// 'rcp'            => 'Restrict Content Pro',
+							'rcp'            => 'Restrict Content Pro',
+							's2member'       => 's2Member',
+							'shopp'	         => 'Shopp',
 							'woocommerce'    => 'WooCommerce',
+							'wpeasycart'     => 'WP EasyCart',
+							'wpec'           => 'WP eCommerce',
 						) )
 					),
 					'affwp_mlm_default_affiliate' => array(
@@ -154,6 +175,19 @@ class AffiliateWP_MLM_Settings {
 						'desc' => '<p class="description">' . __( 'Click to apply the depth setting to the total matrix.', 'affiliatewp-multi-level-marketing' ) . '</p>',
 						'type' => 'checkbox'
 					),
+					'affwp_mlm_view_header' => array(
+						'name' => '<strong>' . __( 'View Settings', 'affiliatewp-multi-level-marketing' ) . '</strong>',
+						'type' => 'header',
+					),
+					'affwp_mlm_view_subs' => array(
+						'name' => __( 'Sub Affiliate View', 'affiliatewp-multi-level-marketing' ),
+						'desc' => '<p class="description">' . __( 'Should Sub Affiliates be viewed in a Tree or a List?', 'affiliatewp-multi-level-marketing' ) . '</p>',
+						'type' => 'select',
+						'options' => array(
+							'tree' => __( 'Tree', 'affiliatewp-multi-level-marketing' ),
+							'list' => __( 'List', 'affiliatewp-multi-level-marketing' ),
+						)
+					),
 					'affwp_mlm_rates_header' => array(
 						'name' => '<strong>' . __( 'Rate Settings', 'affiliatewp-multi-level-marketing' ) . '</strong>',
 						'type' => 'header',
@@ -184,126 +218,6 @@ class AffiliateWP_MLM_Settings {
 		$settings = array_merge( $settings, $mlm_settings );
 		
 		return $settings;
-	}
-
-	/**
-	 * Show the License Status Message
-	 *
-	 * @since 1.0
-	 * @return void
-	 */
-	public function license_status_msg() {
-
-		$license_key = affiliate_wp()->settings->get( 'affwp_mlm_license_key' );
-		$license_status = affiliate_wp()->settings->get( 'affwp_mlm_license_status' );
-		
-		if( 'valid' === $license_status && ! empty( $license_key ) ) {
-
-			$status_msg = '<input type="submit" class="button" name="affwp_mlm_deactivate_license" value="' . esc_attr__( 'Deactivate License', 'affiliatewp-multi-level-marketing' ) . '"/>';
-			$status_msg .= '<span style="color:green;">&nbsp;' . __( 'Your license is valid!', 'affiliatewp-multi-level-marketing' ) . '</span>';
-			
-		} elseif( 'expired' === $license_status && ! empty( $license_key ) ) {
-		
-			$renewal_url = esc_url( add_query_arg( array( 'edd_license_key' => $license_key, 'download_id' => 750 ), 'http://theperfectplugin.com/checkout' ) );
-			
-			$status_msg = '<a href="' . esc_url( $renewal_url ) . '" class="button-primary" target="_blank">' . __( 'Renew Your License', 'affiliatewp-multi-level-marketing' ) . '</a>';
-			$status_msg .= '<br/><span style="color:red;">&nbsp;' . __( 'Your license has expired, renew today to continue getting updates and support!', 'affiliatewp-multi-level-marketing' ) . '</span>';
-		
-		} else{
-		
-			$status_msg = '<input type="submit" class="button" name="affwp_mlm_activate_license" value="' . esc_attr__( 'Activate License', 'affiliatewp-multi-level-marketing' ) . '"/>';
-			
-		}
-		
-		return $status_msg;
-	}
-
-	/**
-	 * Activate the License Key
-	 *
-	 * @since 1.0
-	 */
-	public function activate_license() {
-	
-		if( ! isset( $_POST['affwp_settings'] ) )
-			return;
-			
-		if( ! isset( $_POST['affwp_mlm_activate_license'] ) )
-			return;
-			
-		if( ! isset( $_POST['affwp_settings']['affwp_mlm_license_key'] ) )
-			return;
-			
-		// Retrieve the license from the database
-		$status  = affiliate_wp()->settings->get( 'affwp_mlm_license_status' );
-		$license = trim( $_POST['affwp_settings']['affwp_mlm_license_key'] );
-		
-		if( 'valid' == $status )
-			return; // License already activated and valid
-			
-		// Data to send in our API request
-		$api_params = array(
-			'edd_action'=> 'activate_license',
-			'license' 	=> $license,
-			'item_name' => EDD_SL_ITEM_NAME,
-			'url'       => home_url()
-		);
-		
-		// Call the custom API.
-		$response = wp_remote_post( EDD_SL_STORE_URL, array( 'body' => $api_params, 'timeout' => 15, 'sslverify' => false ) );
-		
-		// Make sure the response came back okay
-		if ( is_wp_error( $response ) )
-			return false;
-			
-		// Decode the license data
-		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
-		$options = affiliate_wp()->settings->get_all();
-		$options['affwp_mlm_license_status'] = $license_data->license;
-		update_option( 'affwp_settings', $options );
-		
-	}
-
-	/**
-	 * Deactivate the License Key
-	 *
-	 * @since 1.0
-	 */
-	public function deactivate_license() {
-	
-		if( ! isset( $_POST['affwp_settings'] ) )
-			return;
-			
-		if( ! isset( $_POST['affwp_mlm_deactivate_license'] ) )
-			return;
-			
-		if( ! isset( $_POST['affwp_settings']['affwp_mlm_license_key'] ) )
-			return;
-			
-		// Retrieve the license from the settings field
-		$license = trim( $_POST['affwp_settings']['affwp_mlm_license_key'] );
-		
-		// Data to send in our API request
-		$api_params = array(
-			'edd_action'=> 'deactivate_license',
-			'license' 	=> $license,
-			'item_name' => EDD_SL_ITEM_NAME,
-			'url'       => home_url()
-		);
-		
-		// Call the custom API.
-		$response = wp_remote_post( EDD_SL_STORE_URL, array( 'body' => $api_params, 'timeout' => 15, 'sslverify' => false ) );
-		
-		// Make sure the response came back okay
-		if ( is_wp_error( $response ) )
-			return false;
-			
-		$options = affiliate_wp()->settings->get_all();
-		$options['affwp_mlm_license_key'] = '';
-		$options['affwp_mlm_license_status'] = '';
-		
-		update_option( 'affwp_settings', $options );
-		
 	}
 
 	/**
@@ -571,57 +485,73 @@ class AffiliateWP_MLM_Settings {
     
                     <td>
                         <input class="small-text" type="text" name="matrix_level" id="matrix_level" value="<?php echo esc_attr( $matrix_level ); ?>" disabled="1" />
-                        <p class="description"><?php _e( 'The affiliate\'s level in the matrix. This cannot be changed.', 'affiliatewp-multi-level-marketing' ); ?></p>
+                        <p class="description"><?php _e( 'The affiliate\'s level in the matrix. This cannot be changed.', 'affiliate-wp' ); ?></p>
                     </td>
     
                 </tr>
                 
 			</table>
-                
-		<?php if ( $is_parent_affiliate ) : ?>
-			<style type="text/css">#sub_affiliates th { padding-left: 10px; }</style>
-            <h3><?php _e( 'Sub Affiliates', 'affiliatewp-multi-level-marketing' ); ?></h3>
-            <table id="sub_affiliates" class="form-table wp-list-table widefat">
-                <thead>
-                    <tr>
-                        <th><?php _e( 'ID', 'affiliatewp-multi-level-marketing' ); ?></th>
-                        <th><?php _e( 'Name', 'affiliatewp-multi-level-marketing' ); ?></th>
-                        <th><?php _e( 'Sub Affiliates', 'affiliatewp-multi-level-marketing' ); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                
-                    <?php
-    
-                    $sub_affiliates = affwp_mlm_get_sub_affiliates( $affiliate->affiliate_id );
-    
-                    $sub_affiliate_ids = wp_list_pluck( $sub_affiliates, 'affiliate_id' );
-    
-                    // DEBUG - var_dump( $sub_affiliate_ids );
-    
-                    if ( $sub_affiliate_ids ) {
-                        foreach ( $sub_affiliate_ids as $sub_id ) {
-                            $sub_name = affiliate_wp()->affiliates->get_affiliate_name( $sub_id );
-                            $sub_affiliate_count = count( affwp_mlm_get_sub_affiliates( $sub_id ) );
-                            
-                    ?>
-                    
-                    <tr>
-                        <td><?php echo $sub_id; ?></td>
-                        <td><?php echo $sub_name; ?></td>
-                        <td><?php echo $sub_affiliate_count; ?></td>
-                    </tr>  
-                    
-                    <?php
-                        }
-                    }
-                    ?>
-                </tbody>
-                            
-            </table>
-        <?php endif; ?>
+    	<?php            
+		show_sub_affiliates( $affiliate->affiliate_id, 'tree' );
 
-	<?php
+	
+	}
+
+	 
+	/**
+	 * Add Parent Affiliate Field to the Add New Affiliate Form
+	 *
+	 * @since 1.1
+	 * @return void
+	 */
+	public function add_new_affiliate() {
+		
+		// Get all affiliates
+		$all_affiliates = affiliate_wp()->affiliates->get_affiliates( array( 'number'  => 0 ) );
+
+		// Build an array of affiliate IDs and names for the drop down
+		$affiliate_dropdown = array();
+		
+		if ( $all_affiliates && ! empty( $all_affiliates ) ) {
+
+			foreach ( $all_affiliates as $a ) {
+
+				if ( $affiliate_name = affiliate_wp()->affiliates->get_affiliate_name( $a->affiliate_id ) ) {
+					$affiliate_dropdown[$a->affiliate_id] = $affiliate_name;
+				}
+
+			}
+
+			// Make sure to remove current affiliate from the array so they can't be their own parent affiliate
+			unset( $affiliate_dropdown[$affiliate->affiliate_id] );
+
+		}
+		
+		ob_start(); ?>
+				
+		<tr class="form-row">
+         
+            <th scope="row">
+                <label for="parent_affiliate_id"><?php _e( 'Parent Affiliate', 'affiliatewp-multi-level-marketing' ); ?></label>
+            </th>
+                
+            <td>
+				<select name="parent_affiliate_id" id="parent_affiliate_id">
+					<option value=""></option>
+						<?php foreach( $affiliate_dropdown as $affiliate_id => $affiliate_name ) : ?>
+						<option value="<?php echo esc_attr( $affiliate_id ); ?>"><?php echo esc_html( $affiliate_name ); ?></option>
+						<?php endforeach; ?>
+				</select>
+				<p class="description"><?php _e( 'Enter the name of the affiliate to perform a search.', 'affiliatewp-multi-level-marketing' ); ?></p>
+			</td>
+            
+         </tr>
+				
+		<?php			
+		$content = ob_get_contents();			
+		ob_end_clean();
+		echo $content;
+    
 	}
 
 }

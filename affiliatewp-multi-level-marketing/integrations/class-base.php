@@ -33,7 +33,110 @@ class AffiliateWP_MLM_Base {
 	 */
 	public function init() {
 		
+		add_filter( 'affwp_insert_pending_referral', array( $this, 'prepare_direct_referral' ), -1, 1 );
+
 	}
+
+	/**
+	 * Label direct referrals via custom referral data
+	 *
+	 * @access  public
+	 * @since   1.1
+	 */
+	public function prepare_direct_referral( $data ) {
+
+		$data['custom'] = maybe_unserialize( $data['custom'] );
+		
+		// Prevent overwriting subscription id or existing referral type
+		if ( empty( $data['custom'] ) )
+			$data['custom'] = 'direct'; // Add referral type as custom referral data for direct referral
+		
+		return $data;
+		
+		/* $spillover = $this->is_spillover_referral( $data['affiliate_id'] );
+				
+		// Check for spillover referral
+		if ( $spillover ) {
+			
+			$spillover_affiliate = affwp_mlm_get_spillover_affiliate( $data['affiliate_id'] );	
+			
+			if ( ! empty( $spillover_affiliate ) ) {
+				
+				$data['affiliate_id'] = $spillover_affiliate;
+				
+				// Prevent overwriting subscription id or existing referral type
+				if ( empty( $data['custom'] ) )
+					$data['custom'] = 'spillover'; // Add referral type as custom referral data for spillover referral
+					
+			}
+			
+		} else{
+			$data['custom'] = 'direct'; // Add referral type as custom referral data for direct referral
+		}
+
+		return $data; */
+	}
+	
+	/**
+	 * Determines if indirect referrals should be created and generates the upline.
+	 *
+	 * @access  public
+	 * @since   1.1
+	 */
+	public function prepare_indirect_referrals( $referral_id, $data ) {
+	
+		// Check for the integration
+		if ( ( $this->context !== $data['context'] ) ) {
+			return;
+		}
+
+		$data['custom'] = maybe_unserialize( $data['custom'] );
+		$integrations = affiliate_wp()->settings->get( 'affwp_mlm_integrations' );
+		$context = $this->context == 'it-exchange' && $integrations['exchange'] ? 'exchange' : $this->context;
+		
+		if ( ! $integrations[$context] ) {
+			return; // Indirect Referrals are disabled for this integration 
+		}
+
+		$referral = affiliate_wp()->referrals->get_by( 'referral_id', $referral_id, $this->context );
+		$referral_type = 'direct';
+
+		if ( ! empty( $referral->custom ) && $referral->custom == 'indirect' ) {
+			return; // Prevent looping through indirect referrals
+		}
+
+		if ( ! (bool) apply_filters( 'affwp_mlm_create_indirect_referral', true, $this->context ) ) {
+			return false; // Allow extensions to prevent indirect referrals from being created
+		}
+
+		// Get affiliate ID from referral
+		$affiliate_id = $data['affiliate_id'];
+
+		// Get the affiliate's upline
+		$upline = affwp_mlm_get_upline( $affiliate_id );
+		
+		if ( $upline ) {
+			
+			// Filter upline by the default active status 
+			$active_upline = affwp_mlm_filter_by_status( $upline );
+			
+			$parent_affiliates = $active_upline;
+			$level_count = 0;
+			
+			foreach( $parent_affiliates as $parent_affiliate_id ) {
+				
+				$level_count++;
+
+				// Create the parent affiliate's referral
+				$this->create_parent_referral( $parent_affiliate_id, $referral_id, $data, $level_count, $affiliate_id );
+			
+			}
+		
+		}
+	
+	}
+
+
 
 	/**
 	 * Completes a referral. Used when orders are marked as completed
@@ -120,7 +223,7 @@ class AffiliateWP_MLM_Base {
 
 		if ( 'percentage' == $type ) {
 			// Sanitize the rate and ensure it's in the proper format
-			if ( $rate > 1 ) {
+			if ( $rate > 0 ) {
 				$rate = $rate / 100;
 			}
 		}
@@ -248,8 +351,27 @@ class AffiliateWP_MLM_Base {
 			
 		}
 		
-		return $referral_amount;
+		return apply_filters( 'affwp_mlm_calc_referral_amount', (string) $referral_amount, $amount, $parent_affiliate_id, $reference, $rate, $product_id, $type, $level_count );
 
 	}
 
+	/**
+	 * Check for a spill-over referral
+	 *
+	 * @since 1.1
+	 */
+	public function is_spillover_referral( $affiliate_id = 0 ) {
+	
+		if ( empty( $affiliate_id ) ) return;
+
+		// Check if spillover commissions are disabled
+		if ( ! affiliate_wp()->settings->get( 'affwp_mlm_spillover_commissions' ) ) return false;
+		
+		// Check if forced matrix is disabled
+		if ( ! affiliate_wp()->settings->get( 'affwp_mlm_forced_matrix' ) ) return false;
+		
+		// ADD BELOW
+		
+	}
+	
 }

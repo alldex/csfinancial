@@ -37,75 +37,17 @@ class AffiliateWP_MLM_WooCommerce extends AffiliateWP_MLM_Base {
 
 		// Process referral
 		add_action( 'affwp_post_insert_referral', array( $this, 'process_referral' ), 10, 2 );
+		
 	}
 
 	/**
 	 * Process referral
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function process_referral( $referral_id, $data ) {
-
-		// Check for WooCommerce
-		if ( ( 'woocommerce' !== $data['context'] ) ) {
-			return;
-		}
-
-		$data['custom'] = maybe_unserialize( $data['custom'] );
-		$integrations = affiliate_wp()->settings->get( 'affwp_mlm_integrations' );
 		
-		if ( ! $integrations['woocommerce'] ) {
-			return; // MLM integration for WooCommerce is disabled 
-		}
-		
-		$referral = affiliate_wp()->referrals->get_by( 'referral_id', $referral_id, $this->context );
-		$referral_type = 'direct';
-
-		if( empty( $referral->custom ) ) {
-			
-			// Prevent overwriting subscription id
-			if( empty( $data['custom'] ) ) {
-				
-				// Add referral type as custom referral data for direct referral
-				affiliate_wp()->referrals->update( $referral->referral_id, array( 'custom' => $referral_type ), '', 'referral' );
-			
-			}
-		
-		} elseif( $referral->custom == 'indirect' ) {
-			return; // Prevent looping through indirect referrals
-		}
-
-		if( ! (bool) apply_filters( 'affwp_mlm_create_indirect_referral', true, $this->context ) ) {
-			return false; // Allow extensions to prevent indirect referrals from being created
-		}
-
-		// Get affiliate ID from referral
-		$affiliate_id = $data['affiliate_id'];
-
-		// Get the affiliate's upline
-		$upline = affwp_mlm_get_upline( $affiliate_id );
-		$matrix_depth = affiliate_wp()->settings->get( 'affwp_mlm_matrix_depth' );
-		
-		if ( $upline ) {
-			
-			// Filter upline by the default active status 
-			$active_upline = affwp_mlm_filter_by_status( $upline );
-			
-			// Filter upline by depth setting if set
-			$parent_affiliates = ! empty( $matrix_depth ) ?  affwp_mlm_filter_by_level( $active_upline, $matrix_depth ) : $active_upline;
-			
-			$level_count = 0;
-			
-			foreach( $parent_affiliates as $parent_affiliate_id ) {
-				
-				$level_count++;
-
-				// Create the parent affiliate's referral
-				$this->create_parent_referral( $parent_affiliate_id, $referral_id, $data, $level_count, $affiliate_id );
-			
-			}
-		
-		}
+		$this->prepare_indirect_referrals( $referral_id, $data );
 
 	}
 
@@ -139,7 +81,7 @@ class AffiliateWP_MLM_WooCommerce extends AffiliateWP_MLM_Base {
 			$amount = affwp_currency_filter( affwp_format_amount( $amount ) );
 			$name   = affiliate_wp()->affiliates->get_affiliate_name( $parent_affiliate_id );
 
-			$this->order->add_order_note( sprintf( __( 'Indirect Referral #%d for %s recorded for %s', 'affiliate-wp' ), $referral_id, $amount, $name ) );
+			$this->order->add_order_note( sprintf( __( 'Indirect Referral #%d for %s recorded for %s', 'affiliatewp-multi-level-marketing' ), $referral_id, $amount, $name ) );
 
 			do_action( 'affwp_mlm_indirect_referral_created', $referral_id, $data );
 
@@ -275,6 +217,7 @@ class AffiliateWP_MLM_WooCommerce extends AffiliateWP_MLM_Base {
 
 		$items       = $this->order->get_items();
 		$description = array();
+		$item_names = array();
 
 		foreach ( $items as $key => $item ) {
 
@@ -282,10 +225,12 @@ class AffiliateWP_MLM_WooCommerce extends AffiliateWP_MLM_Base {
 				continue; // Referrals are disabled on this product
 			}
 
-			$description[] = $direct_affiliate . ' | Level '. $level_count . ' | ' . $item['name'];
+			$item_names[] = $item['name'];
 
 		}
-
+		
+		$description[] = $direct_affiliate . ' | Level '. $level_count . ' | ' . implode( ', ', $item_names );
+		
 		return implode( ', ', $description );
 
 	}
