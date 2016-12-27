@@ -245,7 +245,7 @@ function show_sub_affiliates_tree( $affiliate_id = 0 ) {
 	
 	if ( empty( $affiliate_id ) ) return;
 
-	$affiliate_id = affwp_get_affiliate_id();
+	// $affiliate_id = affwp_get_affiliate_id();
 	$sub_affiliates = affwp_mlm_get_downline_array( $affiliate_id );
 	$level_count = 0;
 	?>
@@ -270,7 +270,7 @@ function show_sub_affiliates_tree( $affiliate_id = 0 ) {
                     // For each orgchart node, provide the name, parent, and tooltip to show.
                     data.addRows([
                     
-                    <? foreach ( $sub_affiliates as $sub_id ) :
+                    <?php foreach ( $sub_affiliates as $sub_id ) :
                     
                     $user_id = affwp_get_affiliate_user_id( $sub_id );
                     $sub_user = get_user_by( 'id', $user_id );
@@ -286,7 +286,7 @@ function show_sub_affiliates_tree( $affiliate_id = 0 ) {
                     
                     //$sub_node = show_affiliate_avatar( $sub_id );
                     $sub_data = show_affiliate_data( $sub_id );
-                    $sub_avatar = get_avatar( affwp_get_affiliate_user_id( $affiliate_id ) );
+					$sub_avatar = addslashes( get_avatar( affwp_get_affiliate_user_id( $affiliate_id ) ) );
                     $sub_node  = '<div class="sub_node '. $affiliate_status .' affwp-mlm-aff">';
                         $sub_node .= '<div class="affwp-mlm-aff-avatar">'. $sub_avatar .'</div>';
                         $sub_node .= '<span class="affwp-mlm-aff-name">'. $sub_name .'</span>';
@@ -297,9 +297,9 @@ function show_sub_affiliates_tree( $affiliate_id = 0 ) {
             
                     ?>
                     
-                    [{v:'<? echo $sub_name; ?>', f:'<? echo $sub_node; ?>'}, '<? echo $parent_name; ?>', '<? echo $tooltip; ?>'],
+                    [{v:'<?php echo $sub_name; ?>', f:'<?php echo $sub_node; ?>'}, '<?php echo $parent_name; ?>', '<?php echo $tooltip; ?>'],
                     
-                    <? endforeach; ?>
+                    <?php endforeach; ?>
                     
                     ]);
                     
