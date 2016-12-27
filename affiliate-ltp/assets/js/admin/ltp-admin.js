@@ -86,7 +86,7 @@
            
            // rate
            splitRow.push("<td>");
-           splitRow.push("<input class='agent_rate' type='text' name=\"agents[" + rowId + "][agent_split]\" value='" + agentSplit + "' />");
+           splitRow.push("<input class='agent-split' type='text' name=\"agents[" + rowId + "][agent_split]\" value='" + agentSplit + "' />");
            splitRow.push("</td>");
            
            // actions
@@ -100,11 +100,11 @@
                $(this).closest("tr").remove();
            });
            setupAgentSearch("#affwp_add_referral .split-list tbody tr:last-child .affwp-agent-search");
-           $("#affwp_add_referral .split-list .agent_rate").change(calculateAgentSplitTotal);
+           $("#affwp_add_referral .split-list .agent-split").change(calculateAgentSplitTotal);
     }
     function calculateAgentSplitTotal(evt) {
         var total = 0;
-        $("#affwp_add_referral .split-list .agent_rate").each(function() {
+        $("#affwp_add_referral .split-list .agent-split").each(function() {
             $this = $(this);
             $this.removeClass("error");
             var value = +$this.val();
@@ -129,18 +129,19 @@
         var firstTimeSplitShown = true;
         // hide the different pieces of the site based on the check value.
         $( '#affwp_add_referral #cb_split_commission' ).click(function() {
-            $('#affwp_add_referral .commission_row_single').toggleClass('hidden');
             $('#affwp_add_referral .commission_row_multiple').toggleClass('hidden');
             
             // add a row with the default being zero
             if (firstTimeSplitShown) {
                 firstTimeSplitShown = false;
-                addSplitRow({}, 50);
-                addSplitRow({}, 50);
+                addSplitRow({}, 0);
             }
         });
         
         $( '#affwp_add_referral .split-add').click(addSplitRow);
+        
+        // setup the initial split calculation for the first agent row.
+        $("#affwp_add_referral .split-list .agent-split").change(calculateAgentSplitTotal);
         
         setupAgentSearch("#affwp_add_referral .commission_row_single .affwp-agent-search");
         

@@ -10,6 +10,22 @@
 
 		<table class="form-table">
                     
+                        <tr class="form-row form-required commission_row_single">
+
+				<th scope="row">
+					<label for="user_name"><?php _e( 'Writing Agent', 'affiliate-ltp' ); ?></label>
+				</th>
+
+				<td>
+					<span class="affwp-ajax-search-wrap">
+						<input class="agent-name affwp-agent-search" type="text" name="agents[0][user_name]" data-affwp-status="active" autocomplete="off" />
+						<input class="agent-id" type="hidden" name="agents[0][user_id]" value="" />
+					</span>
+					<p class="description"><?php _e( 'Enter the name of the affiliate or enter a partial name or email to perform a search.', 'affiliate-wp' ); ?></p>
+				</td>
+
+			</tr>
+                        
                         <tr class="form-row form-required">
 
 				<th scope="row">
@@ -20,26 +36,8 @@
                                     <input type="checkbox" name="cb_split_commission" id="cb_split_commission" />
                                     <p class="description"><?php _e( 'If the commission is split up between two or more agents.', 'affiliate-ltp' ); ?></p>
 				</td>
-
 			</tr>
 
-			<tr class="form-row form-required commission_row_single">
-
-				<th scope="row">
-					<label for="user_name"><?php _e( 'Affiliate', 'affiliate-wp' ); ?></label>
-				</th>
-
-				<td>
-					<span class="affwp-ajax-search-wrap">
-						<input class="agent-name affwp-agent-search" type="text" name="agents[0][user_name]" data-affwp-status="active" autocomplete="off" />
-						<input class="agent-id" type="hidden" name="agents[0][user_id]" value="" />
-                                                <input class="agent-split" type="hidden" name="agents[0][agent_split]" value="100" />
-					</span>
-					<p class="description"><?php _e( 'Enter the name of the affiliate or enter a partial name or email to perform a search.', 'affiliate-wp' ); ?></p>
-				</td>
-
-			</tr>
-                        
                         <tr class="form-row form-required commission_row_multiple hidden">
 
 				<th scope="row">
@@ -55,6 +53,16 @@
                                             <th></th>
                                         </thead>
                                         <tbody>
+                                            <tr>
+                                                <td>
+                                                    <?php _e('Writing Agent', 'affiliate-ltp') ; ?>
+                                                </td>
+                                                <td>
+                                                    <input class="agent-split" type="text" name="agents[0][agent_split]" value="100" />
+                                                </td>
+                                                <td>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                         <tfoot>
                                             <tr>

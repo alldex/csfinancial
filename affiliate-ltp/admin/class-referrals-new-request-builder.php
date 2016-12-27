@@ -74,16 +74,17 @@ class AffiliateLTPReferralsNewRequestBuilder {
         if ( empty( $requestData['agents'] )) {
             throw new Exception("No agent information was submitted");
         }
-        echo "<pre>", print_r($requestData, true), "</pre>";
+        
+        // if there is no other split then we drop all the other agent pieces
+        // and force the commission to be 100.
         if (!isset($requestData['cb_split_commission'])) {
             $requestData['agents'] = array(
                 self::SINGLE_AGENT_ROW_NUMBER => $requestData['agents'][self::SINGLE_AGENT_ROW_NUMBER]
             );
+            // make sure that the split is always 100%
+            $requestData['agents'][self::SINGLE_AGENT_ROW_NUMBER]['agent_split'] = 100; 
         }
-        else {
-            // get rid of the single row data since it will have invalid properties.
-            unset($requestData['agents'][self::SINGLE_AGENT_ROW_NUMBER]);
-        }
+        
         foreach ( $requestData['agents'] as $rowNumber => $agent) {
             $request->agents[] = self::parseAgent($rowNumber, $agent);
         }
