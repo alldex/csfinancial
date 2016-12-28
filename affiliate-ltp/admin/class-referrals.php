@@ -18,7 +18,7 @@ class AffiliateLTPReferrals {
 
     private $referralsTable;
 
-    const STATUS_DEFAULT = 'paid';
+    const STATUS_DEFAULT = 'unpaid';
 
     public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
         remove_action('affwp_add_referral', 'affwp_process_add_referral');
@@ -238,7 +238,7 @@ class AffiliateLTPReferrals {
             , "reference" => $request->client['contract_number']
             , "amount" => $companyAmount
             , "custom" => "indirect"
-            , "context" => "ltp-commission"
+            , "context" => $request->type
             , "status" => self::STATUS_DEFAULT
             , "date" => $request->date
         );
@@ -257,7 +257,7 @@ class AffiliateLTPReferrals {
         return $request;
     }
 
-    private function createReferral($affiliateId, $amount, $reference, $directAffiliate, $paymentRate, $points, $date) {
+    private function createReferral($affiliateId, $amount, $reference, $directAffiliate, $paymentRate, $points, $date, $type) {
 
         $custom = 'direct';
         $description = __("Personal sale", "affiliate-ltp");
@@ -272,7 +272,7 @@ class AffiliateLTPReferrals {
             , "amount" => $amount
             , "reference" => $reference
             , "custom" => $custom
-            , "context" => "ltp-commission"
+            , "context" => $type
             , "status" => self::STATUS_DEFAULT
             , "date" => $date
         );
@@ -333,7 +333,7 @@ class AffiliateLTPReferrals {
             $priorAffiliateRate = $affiliateRate;
 
             $directAffiliate = ($levelCount === 1);
-            $referralId = $this->createReferral($affiliateId, $adjustedAmount, $reference, $directAffiliate, $adjustedRate, $points, $referralData->date);
+            $referralId = $this->createReferral($affiliateId, $adjustedAmount, $reference, $directAffiliate, $adjustedRate, $points, $referralData->date, $referralData->type);
             $this->connectReferralToClient($referralId, $referralData->client);
         } while (!empty($affiliates));
     }

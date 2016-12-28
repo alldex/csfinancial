@@ -8,73 +8,98 @@
 
 		<p><?php _e( 'Use this screen to manually create a new referral record for an affiliate.', 'affiliate-wp' ); ?></p>
 
-		<table class="form-table">
+        <table class="form-table">
                     
-                        <tr class="form-row form-required commission_row_single">
+            <tr class="form-row form-required commission_row_single">
 
-				<th scope="row">
-					<label for="user_name"><?php _e( 'Writing Agent', 'affiliate-ltp' ); ?></label>
-				</th>
+                <th scope="row">
+                    <label for="user_name"><?php _e( 'Writing Agent', 'affiliate-ltp' ); ?></label>
+                </th>
 
-				<td>
-					<span class="affwp-ajax-search-wrap">
-						<input class="agent-name affwp-agent-search" type="text" name="agents[0][user_name]" data-affwp-status="active" autocomplete="off" />
-						<input class="agent-id" type="hidden" name="agents[0][user_id]" value="" />
-					</span>
-					<p class="description"><?php _e( 'Enter the name of the affiliate or enter a partial name or email to perform a search.', 'affiliate-wp' ); ?></p>
-				</td>
+                <td>
+                    <span class="affwp-ajax-search-wrap">
+                        <input class="agent-name affwp-agent-search" type="text" name="agents[0][user_name]" data-affwp-status="active" autocomplete="off" />
+                        <input class="agent-id" type="hidden" name="agents[0][user_id]" value="" />
+                    </span>
+                    <p class="description"><?php _e( 'Enter the name of the affiliate or enter a partial name or email to perform a search.', 'affiliate-wp' ); ?></p>
+                </td>
 
-			</tr>
-                        
-                        <tr class="form-row form-required">
+            </tr>
+            
+            <tr class="form-row form-required">
 
-				<th scope="row">
-					<label for="cb_split_commission"><?php _e( 'Split Commission?', 'affiliate-ltp' ); ?></label>
-				</th>
+                <th scope="row">
+                    <label for="cb_split_commission"><?php _e( 'Split Commission?', 'affiliate-ltp' ); ?></label>
+                </th>
 
-				<td>
+                <td>
                                     <input type="checkbox" name="cb_split_commission" id="cb_split_commission" />
                                     <p class="description"><?php _e( 'If the commission is split up between two or more agents.', 'affiliate-ltp' ); ?></p>
+                </td>
+            </tr>
+
+            <tr class="form-row form-required commission_row_multiple hidden">
+
+                <th scope="row">
+                    <label><?php _e( 'Splits', 'affiliate-ltp' ); ?></label>
+                </th>
+
+                <td>
+                    <input type="button" class="split-add" value="Add Split" />
+                    <table class="split-list">
+                        <thead>
+                            <th><?php _e( 'Agent', 'affiliate-ltp') ; ?></th>
+                            <th><?php _e( 'Split %', 'affiliate-ltp') ; ?></th>
+                            <th></th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <?php _e('Writing Agent', 'affiliate-ltp') ; ?>
+                                </td>
+                                <td>
+                                    <input class="agent-split" type="text" name="agents[0][agent_split]" value="100" />
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th><?php _e( 'Total Split %:', 'affiliate-ltp') ;?></th>
+                                <th><span class="split-total">100</span></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
 				</td>
 			</tr>
 
-                        <tr class="form-row form-required commission_row_multiple hidden">
+            <tr class="form-row form-required">
 
 				<th scope="row">
-					<label><?php _e( 'Splits', 'affiliate-ltp' ); ?></label>
+					<label for="cb_is_life_commission"><?php _e( 'Life Insurance?', 'affiliate-ltp' ); ?></label>
 				</th>
 
 				<td>
-                                    <input type="button" class="split-add" value="Add Split" />
-                                    <table class="split-list">
-                                        <thead>
-                                            <th><?php _e( 'Agent', 'affiliate-ltp') ; ?></th>
-                                            <th><?php _e( 'Split %', 'affiliate-ltp') ; ?></th>
-                                            <th></th>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>
-                                                    <?php _e('Writing Agent', 'affiliate-ltp') ; ?>
-                                                </td>
-                                                <td>
-                                                    <input class="agent-split" type="text" name="agents[0][agent_split]" value="100" />
-                                                </td>
-                                                <td>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th><?php _e( 'Total Split %:', 'affiliate-ltp') ;?></th>
-                                                <th><span class="split-total">100</span></th>
-                                                <th></th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+					<input type="checkbox" name="cb_is_life_commission" id="cb_is_life_commission" />
+					<p class="description"><?php _e( 'If the commission is for a life insurance policy.', 'affiliate-ltp' ); ?></p>
 				</td>
+
 			</tr>
-                        
+
+            <tr class="form-row form-required life-commission-row hidden">
+
+				<th scope="row">
+					<label for="points"><?php _e( 'Points', 'affiliate-ltp' ); ?></label>
+				</th>
+
+				<td>
+					<input type="text" name="points" id="points" />
+					<p class="description"><?php _e( 'The points earned for this commission.', 'affiliate-ltp' ); ?></p>
+				</td>
+
+			</tr>            
 
 			<tr class="form-row form-required">
 
@@ -102,101 +127,101 @@
 			</tr>
 		</table>
                 
-                <h3>Client Information</h3>
-                <table class="form-table">
+        <h3>Client Information</h3>
+        <table class="form-table">
 
 
-                    <tr class="form-row form-required">
+            <tr class="form-row form-required">
 
-                        <th scope="row">
-                            <label for="client_name"><?php _e('Contract Number', 'affiliate-ltp'); ?></label>
-                        </th>
+                <th scope="row">
+                    <label for="client_name"><?php _e('Contract Number', 'affiliate-ltp'); ?></label>
+                </th>
 
-                        <td>
-                            <span class="affwp-ajax-search-wrap">
-                                    <input type="text" name="client_contract_number" id="client_contract_number" class="affwp-client-search" autocomplete="off" />
-                                    <input type="hidden" name="client_id" id="client_id" value="" />
-                                    <input type="button" class="affwp-client-search-reset" value="Clear" />
-                            </span>
-                            <p class="description"><?php _e('The unique contract number of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
-                            <p class="readonly-description hidden">
-                                <?php printf(__('This client information can only be changed in the <a href="%s">Agent CMS</a>', 
-                                        'affiliate-ltp'), "https://cms.mycommonsensefinancial.com/"); ?>
-                            </p>
-                        </td>
+                <td>
+                    <span class="affwp-ajax-search-wrap">
+                            <input type="text" name="client_contract_number" id="client_contract_number" class="affwp-client-search" autocomplete="off" />
+                            <input type="hidden" name="client_id" id="client_id" value="" />
+                            <input type="button" class="affwp-client-search-reset" value="Clear" />
+                    </span>
+                    <p class="description"><?php _e('The unique contract number of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                    <p class="readonly-description hidden">
+                        <?php printf(__('This client information can only be changed in the <a href="%s">Agent CMS</a>', 
+                                'affiliate-ltp'), "https://cms.mycommonsensefinancial.com/"); ?>
+                    </p>
+                </td>
 
-                    </tr>
+            </tr>
 
-                    <tr class="form-row form-required">
+            <tr class="form-row form-required">
 
-                        <th scope="row">
-                            <label for="client_name"><?php _e('Name', 'affiliate-ltp'); ?></label>
-                        </th>
+                <th scope="row">
+                    <label for="client_name"><?php _e('Name', 'affiliate-ltp'); ?></label>
+                </th>
 
-                        <td>
-                            <input class="medium-text" type="text" name="client_name" id="client_name" value="" />
-                            <p class="description"><?php _e('The name of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
-                        </td>
+                <td>
+                    <input class="medium-text" type="text" name="client_name" id="client_name" value="" />
+                    <p class="description"><?php _e('The name of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                </td>
 
-                    </tr>
+            </tr>
 
-                    <tr class="form-row form-required">
+            <tr class="form-row form-required">
 
-                        <th scope="row">
-                            <label for="client_street_address"><?php _e('Street Address', 'affiliate-ltp'); ?></label>
-                        </th>
+                <th scope="row">
+                    <label for="client_street_address"><?php _e('Street Address', 'affiliate-ltp'); ?></label>
+                </th>
 
-                        <td>
-                            <textarea class="medium-text" name="client_street_address" id="client_street_address"></textarea>
-                            <p class="description"><?php _e('The street address of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
-                        </td>
+                <td>
+                    <textarea class="medium-text" name="client_street_address" id="client_street_address"></textarea>
+                    <p class="description"><?php _e('The street address of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                </td>
 
-                    </tr>
+            </tr>
 
-                    <tr class="form-row form-required">
+            <tr class="form-row form-required">
 
-                        <th scope="row">
-                            <label for="client_city_address"><?php _e('City', 'affiliate-ltp'); ?></label>
-                        </th>
+                <th scope="row">
+                    <label for="client_city_address"><?php _e('City', 'affiliate-ltp'); ?></label>
+                </th>
 
-                        <td>
-                            <input class="medium-text" type="text" name="client_city_address" id="client_city_address" value="" />
-                            <p class="description"><?php _e('The city of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
-                        </td>
+                <td>
+                    <input class="medium-text" type="text" name="client_city_address" id="client_city_address" value="" />
+                    <p class="description"><?php _e('The city of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                </td>
 
-                    </tr>
+            </tr>
 
-                    <tr class="form-row form-required">
+            <tr class="form-row form-required">
 
-                        <th scope="row">
-                            <label for="client_zip_address"><?php _e('Zipcode', 'affiliate-ltp'); ?></label>
-                        </th>
+                <th scope="row">
+                    <label for="client_zip_address"><?php _e('Zipcode', 'affiliate-ltp'); ?></label>
+                </th>
 
-                        <td>
-                            <input class="medium-text" type="text" name="client_zip_address" id="client_zip_address" value=""/>
-                            <p class="description"><?php _e('The zipcode of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
-                        </td>
-                    </tr>
+                <td>
+                    <input class="medium-text" type="text" name="client_zip_address" id="client_zip_address" value=""/>
+                    <p class="description"><?php _e('The zipcode of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                </td>
+            </tr>
 
-                    <tr class="form-row form-required">
-                        <th scope="row">
-                            <label for="client_phone"><?php _e('Phone', 'affiliate-ltp'); ?></label>
-                        </th>
-                        <td>
-                            <input class="medium-text" type="text" name="client_phone" id="client_phone" />
-                            <p class="description"><?php _e('The phone number of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
-                        </td>
-                    </tr>
-                    <tr class="form-row form-required">
-                        <th scope="row">
-                            <label for="client_email"><?php _e('Email', 'affiliate-ltp'); ?></label>
-                        </th>
-                        <td>
-                            <input class="medium-text" type="text" name="client_email" id="client_email"/>
-                            <p class="description"><?php _e('The email of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
-                        </td>
-                    </tr>
-                </table>
+            <tr class="form-row form-required">
+                <th scope="row">
+                    <label for="client_phone"><?php _e('Phone', 'affiliate-ltp'); ?></label>
+                </th>
+                <td>
+                    <input class="medium-text" type="text" name="client_phone" id="client_phone" />
+                    <p class="description"><?php _e('The phone number of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                </td>
+            </tr>
+            <tr class="form-row form-required">
+                <th scope="row">
+                    <label for="client_email"><?php _e('Email', 'affiliate-ltp'); ?></label>
+                </th>
+                <td>
+                    <input class="medium-text" type="text" name="client_email" id="client_email"/>
+                    <p class="description"><?php _e('The email of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                </td>
+            </tr>
+        </table>
                 
 		<?php do_action( 'affwp_new_referral_bottom' ); ?>
 

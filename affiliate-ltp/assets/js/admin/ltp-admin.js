@@ -145,6 +145,9 @@
         
         setupAgentSearch("#affwp_add_referral .commission_row_single .affwp-agent-search");
         
+        $("#affwp_add_referral #cb_is_life_commission").click(function() {
+            $("#affwp_add_referral .life-commission-row").toggleClass("hidden");
+        })
     }
     $(document).ready(function() {
         setupAddReferralScreen();

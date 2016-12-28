@@ -88,6 +88,13 @@ class AffiliateLTPReferralsNewRequestBuilder {
         foreach ( $requestData['agents'] as $rowNumber => $agent) {
             $request->agents[] = self::parseAgent($rowNumber, $agent);
         }
+
+        if (isset($requestData['cb_is_life_commission'])) {
+            $request->type = AffiliateLTPReferralsNewRequest::TYPE_LIFE;
+        }
+        else {
+            $request->type = AffiliateLTPReferralsNewRequest::TYPE_NON_LIFE;
+        }
         
         $request->client = self::parseClientArgs($requestData);
         $request->amount = ! empty( $requestData['amount'] ) ? sanitize_text_field( $requestData['amount'] )      : '';
