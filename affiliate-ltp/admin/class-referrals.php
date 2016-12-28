@@ -1,6 +1,7 @@
 <?php
 
 require_once 'class-referrals-new-request-builder.php';
+require_once 'class-commissions-table.php';
 
 /**
  * Description of class-referrals
@@ -14,6 +15,8 @@ class AffiliateLTPReferrals {
      * @var Affiliate_WP_Referral_Meta_DB
      */
     private $referralMetaDb;
+
+    private $referralsTable;
 
     const STATUS_DEFAULT = 'paid';
 
@@ -29,6 +32,7 @@ class AffiliateLTPReferrals {
         //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
 
         $this->referralMetaDb = $referralMetaDb;
+        $this->referralsTable = new AffiliateLTPCommissionsTable($this->referralMetaDb);
     }
 
     public function disableEditsForOverrideCommissions($actions, $referral) {
