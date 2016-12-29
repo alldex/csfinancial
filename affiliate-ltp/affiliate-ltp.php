@@ -14,7 +14,7 @@ class AffiliateLTP {
     
     const AFFILIATEWP_LTP_VERSION = "0.1.0";
     
-    const LOCALHOST_RESTRICTED = true;
+    const LOCALHOST_RESTRICTED = false;
     
     private $settings;
     
@@ -32,6 +32,8 @@ class AffiliateLTP {
     
     public function __construct() {
         
+        $includePath = plugin_dir_path( __FILE__ );
+        
         require_once "class-sugarcrm-dal.php";
         
         if (self::LOCALHOST_RESTRICTED) {
@@ -39,7 +41,7 @@ class AffiliateLTP {
         }
         
         if( is_admin() ) {
-            $includePath = plugin_dir_path( __FILE__ );
+            
             require_once $includePath . '/admin/class-referrals.php';
             require_once $includePath . '/admin/class-menu.php';
             require_once $includePath . "/admin/class-settings.php";
@@ -51,6 +53,9 @@ class AffiliateLTP {
             // setup our admin scripts.
             add_action( 'admin_enqueue_scripts', array($this, 'admin_scripts' ) );
         }
+        
+        require_once $includePath . "/class-shortcodes.php";
+        
         
         // come in last here.
         add_filter( 'load_textdomain_mofile', array($this, 'load_ltp_en_mofile'), 50, 2 );
@@ -84,7 +89,7 @@ class AffiliateLTP {
      * @return SugarCRMDAL
      */
     public function getSugarCRM() {
-        if (LOCALHOST_RESTRICTED) {
+        if (self::LOCALHOST_RESTRICTED) {
             return SugarCRMDALLocalhost::instance();
         }
         else {
