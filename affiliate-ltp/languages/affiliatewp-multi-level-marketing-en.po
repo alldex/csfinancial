@@ -2,14 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AffiliateWP - Multi-level Marketing\n"
 "POT-Creation-Date: 2016-12-01 13:26-0700\n"
-"PO-Revision-Date: 2016-12-01 13:32-0700\n"
+"PO-Revision-Date: 2016-12-17 22:41-0700\n"
 "Last-Translator: Stephen Nielson <stephen@nielson.org>\n"
 "Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.8.11\n"
 "X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-Basepath: .\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -34,7 +34,7 @@ msgstr ""
 #: ../includes/admin/class-settings.php:583
 #: ../includes/admin/class-settings.php:589
 msgid "Sub Affiliates"
-msgstr "Sub Agents"
+msgstr "Teammates"
 
 #: ../integrations/class-woocommerce.php:142 ../integrations/class-edd.php:126
 #, php-format
@@ -54,7 +54,7 @@ msgstr "Commission #%d for %s for %s rejected"
 #: ../templates/dashboard-tab-sub-affiliates.php:16
 #, php-format
 msgid "Sub Affiliates %s"
-msgstr "Sub Agents %s"
+msgstr "Teammates %s"
 
 #: ../templates/dashboard-tab-sub-affiliates.php:21
 #: ../includes/admin/class-settings.php:587
@@ -73,7 +73,7 @@ msgstr ""
 
 #: ../templates/dashboard-tab-sub-affiliates.php:55
 msgid "No Sub Affiliates yet."
-msgstr "No Sub Agents yet."
+msgstr "No Teammates yet."
 
 #: ../templates/dashboard-tab-sub-affiliates.php:58
 msgid ""
@@ -92,7 +92,7 @@ msgid ""
 "These referrals were awarded to you due to the efforts of your Sub "
 "Affiliates. These are also shown on the referrals tab."
 msgstr ""
-"These commissions were awarded to you due to the efforts of your Sub Agents. "
+"These commissions were awarded to you due to the efforts of your Teammates. "
 "These are also shown on the commissions tab."
 
 #: ../templates/dashboard-tab-sub-affiliates.php:86
@@ -109,7 +109,7 @@ msgstr ""
 
 #: ../templates/dashboard-tab-sub-affiliates.php:108
 msgid "You have not made any referrals from sub affiliates yet."
-msgstr "You have not made any commissions from sub agents yet."
+msgstr "You have not made any commissions from Teammates yet."
 
 #: ../includes/actions.php:20
 msgid "You do not have permission to manage affiliates"
@@ -117,7 +117,7 @@ msgstr "You do not have permission to manage agents"
 
 #: ../includes/compatibility.php:52
 msgid "Sub Affiliate"
-msgstr "Sub Agent"
+msgstr "Teammate"
 
 #: ../includes/class-activation.php:45
 msgid "This plugin"
@@ -176,7 +176,7 @@ msgid ""
 "Should referrals made by Sub Affiliates be based on a percentage or flat "
 "rate amounts?"
 msgstr ""
-"Should commissions made by Sub Agents be based on a percentage or flat rate "
+"Should commissions made by Teammates be based on a percentage or flat rate "
 "amounts?"
 
 #: ../includes/admin/class-settings.php:54
@@ -260,7 +260,7 @@ msgid ""
 "Enter the number of Sub Affiliates to allow before \"spilling over\" to the "
 "next level."
 msgstr ""
-"Enter the number of Sub Agents to allow before \"spilling over\" to the next "
+"Enter the number of Teammates to allow before \"spilling over\" to the next "
 "level."
 
 #: ../includes/admin/class-settings.php:139
