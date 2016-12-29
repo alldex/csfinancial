@@ -7,6 +7,7 @@
  */
 
 require_once "class-referrals-new-request.php";
+require_once "class-commission-type.php";
 
 /**
  * Description of class-referrals-new-request-builder
@@ -90,10 +91,10 @@ class AffiliateLTPReferralsNewRequestBuilder {
         }
 
         if (isset($requestData['cb_is_life_commission'])) {
-            $request->type = AffiliateLTPReferralsNewRequest::TYPE_LIFE;
+            $request->type = AffiliateLTPCommissionType::TYPE_LIFE;
         }
         else {
-            $request->type = AffiliateLTPReferralsNewRequest::TYPE_NON_LIFE;
+            $request->type = AffiliateLTPCommissionType::TYPE_NON_LIFE;
         }
         
         $request->client = self::parseClientArgs($requestData);

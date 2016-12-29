@@ -1,6 +1,7 @@
 <?php
 
 require_once 'class-referrals-agent-request.php';
+require_once 'class-commission-type.php';
 
 /**
  * Description of class-referrals-new-request
@@ -16,13 +17,10 @@ class AffiliateLTPReferralsNewRequest {
     public $company_referral_id;
     public $type;
 
-    const TYPE_LIFE = 0;
-    const TYPE_NON_LIFE = 1;
-    
     public function __construct() {
         $this->agents = array();
         $this->client = null;
         $this->amount = 0;
-        $this->type = self::TYPE_NON_LIFE;
+        $this->type = AffiliateLTPCommissionType::TYPE_NON_LIFE;
     }
 }

@@ -34,7 +34,7 @@ class AffiliateLTPCommissionsTable {
 
 	public function columnType($value, $referral) {
 		$value = $referral->context;
-		if ($value == AffiliateLTPReferralsNewRequest::TYPE_LIFE) {
+		if ($value == AffiliateLTPCommissionType::TYPE_LIFE) {
 			return __('Life Insurance', 'affiliate-ltp');
 		}
 		else {

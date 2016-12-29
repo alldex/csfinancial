@@ -28,11 +28,32 @@ class AffiliateLTPReferrals {
 
         add_action('affwp_delete_referral', array($this, 'cleanupReferralMetadata'), 10, 1);
 
+        add_action('affwp_generate_commission_payout', array($this, 'generateCommissionPayoutFile') );
+
         // TODO: stephen when dealing with rejecting / overridding commissions uncomment this piece.
         //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
 
         $this->referralMetaDb = $referralMetaDb;
         $this->referralsTable = new AffiliateLTPCommissionsTable($this->referralMetaDb);
+    }
+
+    public function generateCommissionPayoutFile( $data ) {
+        require_once 'class-commission-payout-export.php';
+
+        
+        $export = new AffiliateLTPCommissionPayoutExport($this->referralMetaDb);
+        if (isset($data['is_life_commission'])) {
+            $export->commissionType = AffiliateLTPCommissionType::TYPE_LIFE;
+        }
+        else {
+            $export->commissionType = AffiliateLTPCommissionType::TYPE_NON_LIFE;
+        }
+        
+        $export->date = array(
+            'start' => $data['from'],
+            'end'   => $data['to'] . ' 23:59:59'
+        );
+        $export->export();
     }
 
     public function disableEditsForOverrideCommissions($actions, $referral) {
