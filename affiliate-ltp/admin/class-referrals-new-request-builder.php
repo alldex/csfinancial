@@ -90,16 +90,20 @@ class AffiliateLTPReferralsNewRequestBuilder {
             $request->agents[] = self::parseAgent($rowNumber, $agent);
         }
 
+        $request->client = self::parseClientArgs($requestData);
+        $request->amount = ! empty( $requestData['amount'] ) ? sanitize_text_field( $requestData['amount'] )      : '';
+        $request->date = self::parseDate($requestData);
+        $request->points = $request->amount;
+        
         if (isset($requestData['cb_is_life_commission'])) {
             $request->type = AffiliateLTPCommissionType::TYPE_LIFE;
+            // set the points to be whatever was entered for a life commission
+            $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : $request->amount;
         }
         else {
             $request->type = AffiliateLTPCommissionType::TYPE_NON_LIFE;
         }
         
-        $request->client = self::parseClientArgs($requestData);
-        $request->amount = ! empty( $requestData['amount'] ) ? sanitize_text_field( $requestData['amount'] )      : '';
-        $request->date = self::parseDate($requestData);
         return $request;
     }
 }

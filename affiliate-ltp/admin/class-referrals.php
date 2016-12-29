@@ -250,7 +250,12 @@ class AffiliateLTPReferrals {
         // create the records for the company commission
 
         $request->amount = $amountRemaining;
-        $request->points = $amount;
+        
+        // if we are not a life we will use the points after the company
+        // 'haircut' or percentage they took out.
+        if ($request->type != AffiliateLTPCommissionType::TYPE_LIFE) {
+            $request->points = $amountRemaining;
+        }
 
         // Process cart and get amount
         $companyReferral = array(
