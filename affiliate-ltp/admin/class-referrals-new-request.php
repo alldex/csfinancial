@@ -4,8 +4,8 @@ require_once 'class-referrals-agent-request.php';
 require_once 'class-commission-type.php';
 
 /**
- * Description of class-referrals-new-request
- *
+ * Holds all of the settings for a new referral.
+ * TODO: stephen rename this class to keep with the commissions nomenclature.
  * @author snielson
  */
 class AffiliateLTPReferralsNewRequest {
@@ -16,11 +16,18 @@ class AffiliateLTPReferralsNewRequest {
     public $points;
     public $company_referral_id;
     public $type;
+    
+    /**
+     * Whether the company haircut should be taken off or not.
+     * @var boolean
+     */
+    public $skipCompanyHaircut;
 
     public function __construct() {
         $this->agents = array();
         $this->client = null;
         $this->amount = 0;
         $this->type = AffiliateLTPCommissionType::TYPE_NON_LIFE;
+        $this->skipCompanyHaircut = false;
     }
 }

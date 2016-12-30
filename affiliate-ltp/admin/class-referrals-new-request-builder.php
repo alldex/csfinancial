@@ -1,11 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 require_once "class-referrals-new-request.php";
 require_once "class-commission-type.php";
 
@@ -70,7 +64,7 @@ class AffiliateLTPReferralsNewRequestBuilder {
      * @return \AffiliateLTPReferralsNewRequest
      * @throws Exception
      */
-    public static function build($requestData) {
+    public static function build( $requestData ) {
         $request = new AffiliateLTPReferralsNewRequest();
         if ( empty( $requestData['agents'] )) {
             throw new Exception("No agent information was submitted");
@@ -84,6 +78,10 @@ class AffiliateLTPReferralsNewRequestBuilder {
             );
             // make sure that the split is always 100%
             $requestData['agents'][self::SINGLE_AGENT_ROW_NUMBER]['agent_split'] = 100; 
+        }
+        
+        if (isset($requestData['cb_skip_company_haircut'])) {
+            $request->skipCompanyHaircut = true;
         }
         
         foreach ( $requestData['agents'] as $rowNumber => $agent) {

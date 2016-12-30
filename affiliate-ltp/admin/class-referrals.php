@@ -225,6 +225,12 @@ class AffiliateLTPReferrals {
     }
 
     private function processCompanyCommission(AffiliateLTPReferralsNewRequest $request) {
+        
+        // do nothing here if we are to skip the company commissions.
+        if ($request->skipCompanyHaircut) {
+            return;
+        }
+        
         $companyCommission = affiliate_wp()->settings->get("affwp_ltp_company_rate");
         $companyAgentId = affiliate_wp()->settings->get("affwp_ltp_company_agent_id");
 

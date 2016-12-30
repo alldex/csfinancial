@@ -99,8 +99,8 @@
 					<p class="description"><?php _e( 'The points earned for this commission.', 'affiliate-ltp' ); ?></p>
 				</td>
 
-			</tr>            
-
+			</tr>      
+                        
 			<tr class="form-row form-required">
 
 				<th scope="row">
@@ -122,6 +122,19 @@
 
 				<td>
 					<input type="text" name="date" id="date" class="affwp-datepicker" autocomplete="off" placeholder="<?php echo esc_attr( date_i18n( 'm/d/y', strtotime( 'today' ) ) ); ?>"/>
+				</td>
+
+			</tr>
+                        
+                        <tr class="form-row form-required">
+
+				<th scope="row">
+					<label for="cb_skip_company_haircut"><?php _e( 'Skip Company Haircut?', 'affiliate-ltp' ); ?></label>
+				</th>
+
+				<td>
+					<input type="checkbox" name="cb_skip_company_haircut" id="cb_skip_company_haircut" />
+					<p class="description"><?php _e( 'If the company haircut should be skipped.', 'affiliate-ltp' ); ?></p>
 				</td>
 
 			</tr>
