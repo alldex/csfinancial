@@ -43,6 +43,7 @@ class AffiliateLTP {
         if( is_admin() ) {
             
             require_once $includePath . '/admin/class-referrals.php';
+            require_once $includePath . '/admin/class-affiliates.php';
             require_once $includePath . '/admin/class-menu.php';
             require_once $includePath . "/admin/class-settings.php";
             require_once $includePath . "/admin/class-upgrades.php";
