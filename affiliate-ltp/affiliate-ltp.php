@@ -1,9 +1,9 @@
 <?php
 
 /*
-        Plugin Name: Life Test Prep Affiliate-WP and Hookpress extensions
+        Plugin Name: Life Test Prep Affiliate-WP
         Plugin URI: https://www.lifetestprep.com/
-        Version: 0.0.1
+        Version: 0.1.0
         Description: Shortcodes, customization, classes, and assessment functionality.
         Author: stephen@nielson.org
         Author URI: http://stephen.nielson.org
@@ -62,15 +62,10 @@ class AffiliateLTP {
         add_filter( 'load_textdomain_mofile', array($this, 'load_ltp_en_mofile'), 50, 2 );
         
         // do some cleanup on the plugins
-	add_action ('plugins_loaded', array($this, 'fix_dependent_plugin_init_order'));
         add_action ('plugins_loaded', array($this, 'remove_affiliate_wp_mlm_tab_hooks'));
         add_action ('plugins_loaded', array($this, 'setup_dependent_objects') );
         
         add_action( 'init', array($this, 'load_ltp_affiliate_ranks_translation' ) );
-
-        // TODO: stephen fix hookpress as we are no longer using it, it seems.
-	add_filter( 'hookpress_actions', array($this, 'add_hookpress_actions'), 10, 1);
-	add_action( 'hookpress_hook_fired', array($this, 'log_hookpress_fired'), 10, 1);
         
         add_filter( 'affwp_affiliate_area_show_tab', array($this, 'remove_unused_tabs'), 10, 2 );
         
@@ -110,19 +105,6 @@ class AffiliateLTP {
         }
     }
 
-    public function fix_dependent_plugin_init_order() {
-	if (!(function_exists('affwp_do_actions') || function_exists('hookpress_init'))) {
-		error_log("Cannot reorder init sequence. affiliates-wp plugin or hookpress plugin has changed init logic.");
-		return;
-	}
-	remove_action( 'init', 'affwp_do_actions' );
-	remove_action( 'init', 'hookpress_init' );
-
-	// add these in the order that they need to execute
-	add_action( 'init', 'hookpress_init', 10);
-	add_action( 'init', 'affwp_do_actions', 20);
-    }
-    
     /**
      * Since the AffiliateWP_Multi_Level_Marketing class does not use the affiliatewp
      * affwp_affiliate_area_show_tab() function we have to just remove the hook
@@ -151,15 +133,6 @@ class AffiliateLTP {
         
     }
 
-    public function log_hookpress_fired( $desc ) { 
-	error_log(var_export($desc, true));
-    }
-
-    public function add_hookpress_actions( $hookpress_actions ) {
-	$hookpress_actions['affwp_ltp_referral_created'] = array('referral_id', 'description', 'amount', 'reference', 'custom', 'context', 'status');
-	return $hookpress_actions;
-    }
-    
     public function load_ltp_en_mofile( $mofile, $domain )
     {
         if ( 'affiliate-wp' == $domain )
