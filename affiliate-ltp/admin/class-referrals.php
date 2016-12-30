@@ -184,11 +184,9 @@ class AffiliateLTPReferrals {
 
             wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added'));
         } catch (\Exception $ex) {
-            var_dump($ex->getMessage());
-            var_dump($ex->getTraceAsString());
-            exit;
-            // TODO: stephen need to log the exception.
-            wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_add_failed'));
+            error_log($ex->getMessage() . "\nTrace: " . $ex->getTraceAsString());
+            $message = urlencode("A server error occurred and we could not process the request.  Check the server logs for more details");
+            wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_add_failed&affwp_message=' . $message));
         }
         exit;
     }
@@ -335,7 +333,7 @@ class AffiliateLTPReferrals {
         }
     }
 
-    function createReferralHeirarchy($agentId, $amount, $referralData) {
+    private function createReferralHeirarchy($agentId, $amount, $referralData) {
         $reference = $referralData->client['contract_number'];
         $points = $referralData->points;
 
@@ -345,6 +343,16 @@ class AffiliateLTPReferrals {
         }
 
         $affiliates = array_merge(array($agentId), $upline);
+        
+        if ($referralData->type == AffiliateLTPCommissionType::TYPE_LIFE) {
+            $affiliates = $this->filterByLicensedLifeAgents($affiliates);
+        }
+        // if there are no licensed agents
+        // TODO: stephen if there are no licensed agents for this commission how do we handle that?
+        if (empty($affiliates)) {
+            return;
+        }
+        
         $levelCount = 0;
         $priorAffiliateRate = 0;
 
@@ -363,11 +371,27 @@ class AffiliateLTPReferrals {
             $this->connectReferralToClient($referralId, $referralData->client);
         } while (!empty($affiliates));
     }
+    
+    /**
+     * Goes through all of the passed in agent ids and returns only those who
+     * have a current license to sell life insurance.
+     * @param array $agentIds Array of agent ids.
+     * @return array 
+     */
+    private function filterByLicensedLifeAgents( $agentIds ) {
+        $licensedAgents = array();
+        
+        foreach ( $agentIds as $agentId ) {
+            if (AffiliateLTPAffiliates::isAffiliateCurrentlyLifeLicensed($agentId)) {
+                $licensedAgents[] = $agentId;
+            }
+        }
+        return $licensedAgents;
+    }
 
     private function connectReferralToClient($referralId, $clientData) {
         // add the connection for the client.
         $this->referralMetaDb->add_meta($referralId, 'client_id', $clientData['id']);
         $this->referralMetaDb->add_meta($referralId, 'client_contract_number', $clientData['contract_number']);
     }
-
 }

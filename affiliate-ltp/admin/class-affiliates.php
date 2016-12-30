@@ -66,5 +66,19 @@ class AffiliateLTPAffiliates {
             affwp_add_affiliate_meta($affiliate->affiliate_id, 'life_expiration_date', $expirationDate, true);
         }
     }
+    
+    public static function isAffiliateCurrentlyLifeLicensed( $affiliateId ) {
+        $expirationDate = affwp_get_affiliate_meta( $affiliateId, 'life_expiration_date', true);
+        if (!empty($expirationDate)) {
+            
+            $time = strtotime($expirationDate);
+            // if they are still farther out than today's date then we are good.
+            if ($time >= time()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }
 new AffiliateLTPAffiliates();

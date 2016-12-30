@@ -16,7 +16,7 @@
         </th>
         <td>
                 <label for="life_expiration_date">
-                    <input type="text" name="life_expiration_date" id="life_expiration_date" class="affwp-datepicker" autocomplete="off" placeholder="<?php echo $expirationDate; ?>"/>
+                    <input type="text" name="life_expiration_date" id="life_expiration_date" class="affwp-datepicker" autocomplete="off" value="<?php echo $expirationDate; ?>"/>
                     <?php _e( 'The expiration date of the licensing.' ); ?>
                 </label>
 
