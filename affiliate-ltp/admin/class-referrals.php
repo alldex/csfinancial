@@ -233,6 +233,11 @@ class AffiliateLTPReferrals {
         
         $companyCommission = affiliate_wp()->settings->get("affwp_ltp_company_rate");
         $companyAgentId = affiliate_wp()->settings->get("affwp_ltp_company_agent_id");
+        
+        // if the company is taking everything we set the commission to be 100%
+        if ($request->companyHaircutAll) {
+            $companyCommission = 100;
+        }
 
         // if we have no company agent
         if (empty($companyAgentId)) {
@@ -329,6 +334,12 @@ class AffiliateLTPReferrals {
     }
 
     private function processAgentSplits(AffiliateLTPReferralsNewRequest $request) {
+        // if the company is taking everything we don't process anything for other
+        // agents
+        if ($request->companyHaircutAll) {
+            return;
+        }
+        
         foreach ($request->agents as $agent) {
             $currentAmount = $request->amount;
             $splitPercent = $agent->split / 100;

@@ -84,6 +84,10 @@ class AffiliateLTPReferralsNewRequestBuilder {
             $request->skipCompanyHaircut = true;
         }
         
+        if (isset($requestData['cb_company_haircut_all'])) {
+            $request->companyHaircutAll = true;
+        }
+        
         foreach ( $requestData['agents'] as $rowNumber => $agent) {
             $request->agents[] = self::parseAgent($rowNumber, $agent);
         }

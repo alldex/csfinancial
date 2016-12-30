@@ -22,6 +22,12 @@ class AffiliateLTPReferralsNewRequest {
      * @var boolean
      */
     public $skipCompanyHaircut;
+    
+    /**
+     * Whether all of the commission should go to the company haircut.
+     * @var boolean
+     */
+    public $companyHaircutAll;
 
     public function __construct() {
         $this->agents = array();
@@ -29,5 +35,6 @@ class AffiliateLTPReferralsNewRequest {
         $this->amount = 0;
         $this->type = AffiliateLTPCommissionType::TYPE_NON_LIFE;
         $this->skipCompanyHaircut = false;
+        $this->companyHaircutAll = false;
     }
 }

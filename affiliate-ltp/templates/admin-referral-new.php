@@ -138,6 +138,18 @@
 				</td>
 
 			</tr>
+                        <tr class="form-row form-required">
+
+				<th scope="row">
+					<label for="cb_company_haircut_all"><?php _e( 'Give 100% Company Haircut?', 'affiliate-ltp' ); ?></label>
+				</th>
+
+				<td>
+					<input type="checkbox" name="cb_company_haircut_all" id="cb_company_haircut_all" />
+					<p class="description"><?php _e( 'If the company haircut should be 100% of the commission.', 'affiliate-ltp' ); ?></p>
+				</td>
+
+			</tr>
 		</table>
                 
         <h3>Client Information</h3>
