@@ -78,6 +78,9 @@ class AffiliateLTP {
         add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
                 return array_merge( $tabs, array( 'organization' ) );
         } );
+        
+        // we need to clear the tracking cookie when an affiliate registers
+        add_action( 'affwp_register_user', array( $this, 'clearTrackingCookie' ), 10, 3 );
     }
     
     /**
@@ -226,6 +229,25 @@ class AffiliateLTP {
            self::$instance = new AffiliateLTP();
        }
        return self::$instance;
+   }
+   
+   public function clearTrackingCookie( $affiliateId, $status, $userData ) {
+       $trackingAffiliateId = affiliate_wp()->tracking->get_affiliate_id();
+       if (!empty($trackingAffiliateId)) {
+
+        // TODO: stephen currently there's no way to clear a cookie or set the cookie to expire anything shorter than 1 day
+        // this has to be kept in sync with the plugin code unfortunately so if they change the name or anything else... we have to deal with it.
+        // setting the time to 0 leaves the cookie in the session
+        // setting it to expire before the current time will clear the cookie on the next
+        // page refresh
+        $expirationTime = time() - 3600;
+        setcookie( 'affwp_ref', null, $expirationTime, 
+                COOKIEPATH, COOKIE_DOMAIN );
+        
+        // unfortunately scripts may still use the $_COOKIE array when they shouldn't
+        // be touching it directly so we manually clear it
+        unset($_COOKIE['affwp_ref']);
+       }
    }
 }
 
