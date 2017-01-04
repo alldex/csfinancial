@@ -310,7 +310,6 @@ class AffiliateWP_Custom_Affiliate_Slugs_Admin {
 		$affiliate_id = isset( $_GET['affiliate_id'] ) && $_GET['affiliate_id'] ? $_GET['affiliate_id'] : '';
 
 		if (
-			$screen->id === 'affiliates_page_affiliate-wp-affiliates' &&
 			isset( $_GET['action'] ) &&
 			( $_GET['action'] === 'edit_affiliate' || $_GET['action'] === 'add_affiliate' )
 		) :
