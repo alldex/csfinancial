@@ -17,6 +17,11 @@ class AffiliateLTPShortcodes {
                 return;
         }
         $direct_affiliate_id = affiliate_wp()->tracking->get_affiliate_id();
+        if (empty($direct_affiliate_id)) {
+            // try the fallback as the first time visit hasn't had the javascript
+            // run to track the cookie
+            $direct_affiliate_id = affiliate_wp()->tracking->get_fallback_affiliate_id();
+        }
         
         if (!is_user_logged_in() && empty($direct_affiliate_id)) {
             ob_start();
