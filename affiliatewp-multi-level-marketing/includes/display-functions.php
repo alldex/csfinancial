@@ -251,7 +251,7 @@ function show_sub_affiliates_tree( $affiliate_id = 0 ) {
 	?>
     
 	<div id="affwp-mlm-sub-affiliates-tree">
-	<?php if ( affwp_mlm_is_parent_affiliate() ) : ?>
+	<?php if ( affwp_mlm_is_parent_affiliate( $affiliate_id  ) ) : ?>
     	<h4><?php echo __( 'Sub Affiliates', 'affiliatewp-multi-level-marketing' ); ?></h4>
         	<?php
 				if ( $sub_affiliates ) { ?>
