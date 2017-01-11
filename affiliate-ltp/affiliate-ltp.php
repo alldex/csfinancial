@@ -35,6 +35,7 @@ class AffiliateLTP {
         $includePath = plugin_dir_path( __FILE__ );
         
         require_once "class-sugarcrm-dal.php";
+        require_once "class-commission-type.php";
         
         if (self::LOCALHOST_RESTRICTED) {
             require_once "class-sugarcrm-dal-localhost.php";
@@ -81,6 +82,40 @@ class AffiliateLTP {
         
         // we need to clear the tracking cookie when an affiliate registers
         add_action( 'affwp_register_user', array( $this, 'clearTrackingCookie' ), 10, 3 );
+        
+        add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsGraph' ), 10, 1);
+    }
+    
+    public function addPointsGraph( $affiliate_id ) {
+        
+        // TODO: stephen see if there's a way to get around this global function
+        $points_retriever = new \AffiliateLTP\Points_Retriever( $this->referralMeta );
+        
+        $date_range = affwp_get_report_dates();
+        $start = $date_range['year'] . '-' . $date_range['m_start'] . '-' . $date_range['day'] . ' 00:00:00';
+        $end   = $date_range['year_end'] . '-' . $date_range['m_end'] . '-' . $date_range['day_end'] . ' 23:59:59';
+        
+        $points_date_range = array(
+            "start_date" => $start
+            ,"end_date" => $end
+            ,"range" => $date_range['range']
+        );
+        
+        $points_data = $points_retriever->get_points( $affiliate_id, $points_date_range );
+        
+        $graph = new \AffiliateLTP\Points_Graph($points_data, $this->referralMeta, $points_date_range);
+//        $graph = new \AffiliateLTP\Points_Graph;
+	$graph->set( 'x_mode', 'time' );
+	$graph->set( 'affiliate_id', $affiliate_id );
+        
+//        $data = $graph->get_data();
+//                        echo "<pre>";
+//                var_dump($data);
+//                echo "</pre>";
+        
+        $template_path = affiliate_wp()->templates->get_template_part('dashboard-tab', 'graphs-point', false);
+        
+        include_once $template_path;
     }
     
     /**
@@ -96,6 +131,10 @@ class AffiliateLTP {
         }
     }
     
+    public function getReferralMetaDb() {
+        return $this->referralMeta;
+    }
+    
     public function setup_dependent_objects() {
         require_once "class-referral-meta-db.php";
         
@@ -106,6 +145,11 @@ class AffiliateLTP {
             // TODO: stephen look at renaming the AdminMenu to keep with our naming convention
             $adminMenu = new AffiliateLTP_WP_Admin_Menu($this->adminReferrals);
         }
+        
+        // require the points graph since it's dependent on other plugins.
+        require_once "class-points-record.php";
+        require_once "class-points-retriever.php";
+        require_once "class-points-graph.php";
     }
 
     /**

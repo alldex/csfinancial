@@ -1,7 +1,6 @@
 <?php
 //require_once '../affiliate-wp/includes/admin/tools/export/class-export-referrals-payout.php';
 require_once AFFILIATEWP_PLUGIN_DIR . '/includes/admin/add-ons.php';
-require_once "class-commission-type.php";
 
 class AffiliateLTPCommissionPayoutExport extends Affiliate_WP_Referral_Payout_Export {
 

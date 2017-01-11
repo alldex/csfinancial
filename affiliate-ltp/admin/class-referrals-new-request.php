@@ -1,7 +1,6 @@
 <?php
 
 require_once 'class-referrals-agent-request.php';
-require_once 'class-commission-type.php';
 
 /**
  * Holds all of the settings for a new referral.

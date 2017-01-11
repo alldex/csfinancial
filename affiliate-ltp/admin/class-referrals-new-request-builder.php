@@ -1,7 +1,6 @@
 <?php
 
 require_once "class-referrals-new-request.php";
-require_once "class-commission-type.php";
 
 /**
  * Description of class-referrals-new-request-builder
