@@ -83,10 +83,10 @@ class AffiliateLTP {
         // we need to clear the tracking cookie when an affiliate registers
         add_action( 'affwp_register_user', array( $this, 'clearTrackingCookie' ), 10, 3 );
         
-        add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsGraph' ), 10, 1);
+        add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsToGraphTab' ), 10, 1);
     }
     
-    public function addPointsGraph( $affiliate_id ) {
+    public function addPointsToGraphTab( $affiliate_id ) {
         
         // TODO: stephen see if there's a way to get around this global function
         $points_retriever = new \AffiliateLTP\Points_Retriever( $this->referralMeta );

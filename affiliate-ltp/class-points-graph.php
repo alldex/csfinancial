@@ -7,7 +7,7 @@ use \Affiliate_WP_Referral_Meta_DB;
 
 
 /**
- * Description of Points_Graph
+ * Displays all of the points for a given range as a graph.
  *
  * @author snielson
  */
@@ -98,6 +98,11 @@ class Points_Graph extends Affiliate_WP_Graph {
 		);
 
 	}
+        
+        public function graph_controls() {
+            // ignore the parent as we don't want any controls display.
+            // let the parent graph control the timeframe for now.
+        }
         
         public function get_data() {
             $points_data = $this->points_data;
