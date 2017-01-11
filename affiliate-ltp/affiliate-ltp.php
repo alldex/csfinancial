@@ -14,7 +14,7 @@ class AffiliateLTP {
     
     const AFFILIATEWP_LTP_VERSION = "0.1.0";
     
-    const LOCALHOST_RESTRICTED = false;
+    const LOCALHOST_RESTRICTED = true;
     
     private $settings;
     

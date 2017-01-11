@@ -9,6 +9,7 @@
 
 /**
  * Description of class-affiliates
+ * TODO: stephen merge this class into the Agent_DAL class at some point.
  *
  * @author snielson
  */

@@ -2,6 +2,10 @@
 
 require_once 'class-referrals-new-request-builder.php';
 require_once 'class-commissions-table.php';
+require_once 'class-commission-dal.php';
+require_once 'class-commission-dal-affiliate-wp-adapter.php';
+require_once 'class-agent-dal.php';
+require_once 'class-agent-dal-affiliate-wp-adapter.php';
 
 /**
  * Description of class-referrals
@@ -10,6 +14,17 @@ require_once 'class-commissions-table.php';
  */
 class AffiliateLTPReferrals {
 
+    /**
+     *
+     * @var Commission_DAL
+     */
+    private $commission_dal;
+    
+    /**
+     *
+     * @var Agent_DAL
+     */
+    private $agent_dal;
     /**
      *
      * @var Affiliate_WP_Referral_Meta_DB
@@ -35,6 +50,8 @@ class AffiliateLTPReferrals {
 
         $this->referralMetaDb = $referralMetaDb;
         $this->referralsTable = new AffiliateLTPCommissionsTable($this->referralMetaDb);
+        $this->commission_dal = new AffiliateLTP\admin\Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
+        $this->agent_dal = new AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter();
     }
 
     public function generateCommissionPayoutFile( $data ) {
@@ -118,9 +135,9 @@ class AffiliateLTPReferrals {
         // if no one else has overridden it.
 
         $referral_id = filter_input(INPUT_GET, 'referral_id');
-        $referral = affwp_get_referral(absint($referral_id));
+        $referral = $this->commission_dal->get_commission( absint( $referral_id ) );
 
-        $payout = affwp_get_payout($referral->payout_id);
+        $payout = $this->commission_dal->get_commission_payout( $referral->payout_id );
 
         $disabled = disabled((bool) $payout, true, false);
         $payout_link = add_query_arg(array(
@@ -130,10 +147,10 @@ class AffiliateLTPReferrals {
                 ), admin_url('admin.php'));
 
         $referralId = $referral->referral_id;
-        $agentRate = $this->referralMetaDb->get_meta($referralId, 'agent_rate', true);
-        $points = $this->referralMetaDb->get_meta($referralId, 'points', true);
-        $clientId = $this->referralMetaDb->get_meta($referralId, 'client_id', true);
-
+        $agentRate = $this->commission_dal->get_commission_agent_rate($referralId);
+        $points = $this->commission_dal->get_commission_agent_points($referralId);
+        $clientId = $this->commission_dal->get_commission_client_id($referralId);
+        
         if (!empty($clientId)) {
             $instance = AffiliateLTP::instance()->getSugarCRM();
             $client = $instance->getAccountById($clientId);
@@ -191,12 +208,9 @@ class AffiliateLTPReferrals {
         exit;
     }
 
-    public function cleanupReferralMetadata($referralId) {
+    public function cleanupReferralMetadata( $referralId ) {
         // delete all the meta information.
-        $this->referralMetaDb->delete_meta($referralId, 'client_id');
-        $this->referralMetaDb->delete_meta($referralId, 'client_contract_number');
-        $this->referralMetaDb->delete_meta($referralId, 'points');
-        $this->referralMetaDb->delete_meta($referralId, 'agent_rate');
+        $this->commission_dal->delete_commission_meta_all( $referralId );
     }
 
     /**
@@ -205,7 +219,7 @@ class AffiliateLTPReferrals {
      * @param array $clientData
      */
     private function connectCompanyToClient($companyData, $clientData) {
-        $this->connectReferralToClient($companyData->company_referral_id, $clientData);
+        $this->commission_dal->connect_commission_to_client( $companyData->company_referral_id, $clientData );
     }
 
     /**
@@ -280,7 +294,7 @@ class AffiliateLTPReferrals {
 
 
         // create referral
-        $referral_id = affiliate_wp()->referrals->add($companyReferral);
+        $referral_id = $this->commission_dal->add_commission( $companyReferral );
         if (empty($referral_id)) {
             error_log("Failed to calculate company commission.  Data array: "
                     . var_export($companyReferral, true));
@@ -329,8 +343,8 @@ class AffiliateLTPReferrals {
 
     private function addReferralMeta($referralId, $paymentRate, $points) {
         // TODO: stephen should we refactor so we add in the client info here?
-        $this->referralMetaDb->add_meta($referralId, 'agent_rate', $paymentRate);
-        $this->referralMetaDb->add_meta($referralId, 'points', $points);
+        $this->commission_dal->add_commission_meta($referralId, 'agent_rate', $paymentRate);
+        $this->commission_dal->add_commission_meta($referralId, 'points', $points);
     }
 
     private function processAgentSplits(AffiliateLTPReferralsNewRequest $request) {
@@ -354,15 +368,15 @@ class AffiliateLTPReferrals {
         $reference = $referralData->client['contract_number'];
         $points = $referralData->points;
 
-        $upline = affwp_mlm_get_upline($agentId);
+        $upline = $this->agent_dal->get_agent_upline( $agentId );
         if ($upline) {
-            $upline = affwp_mlm_filter_by_status($upline);
+            $upline = $this->agent_dal->filter_agents_by_status($upline, 'active');
         }
 
         $affiliates = array_merge(array($agentId), $upline);
         
         if ($referralData->type == AffiliateLTPCommissionType::TYPE_LIFE) {
-            $affiliates = $this->filterByLicensedLifeAgents($affiliates);
+            $affiliates = $this->agent_dal->filter_agents_by_licensed_life_agents( $affiliates );
         }
         // if there are no licensed agents
         // TODO: stephen if there are no licensed agents for this commission how do we handle that?
@@ -377,7 +391,7 @@ class AffiliateLTPReferrals {
         do {
             $affiliateId = array_shift($affiliates);
             $levelCount++;
-            $affiliateRate = affwp_get_affiliate_rate($affiliateId);
+            $affiliateRate = $this->agent_dal->get_agent_commission_rate( $affiliateId );
 
             $adjustedRate = ($affiliateRate > $priorAffiliateRate) ? $affiliateRate - $priorAffiliateRate : 0;
             $adjustedAmount = $amount * $adjustedRate;
@@ -389,26 +403,7 @@ class AffiliateLTPReferrals {
         } while (!empty($affiliates));
     }
     
-    /**
-     * Goes through all of the passed in agent ids and returns only those who
-     * have a current license to sell life insurance.
-     * @param array $agentIds Array of agent ids.
-     * @return array 
-     */
-    private function filterByLicensedLifeAgents( $agentIds ) {
-        $licensedAgents = array();
-        
-        foreach ( $agentIds as $agentId ) {
-            if (AffiliateLTPAffiliates::isAffiliateCurrentlyLifeLicensed($agentId)) {
-                $licensedAgents[] = $agentId;
-            }
-        }
-        return $licensedAgents;
-    }
-
-    private function connectReferralToClient($referralId, $clientData) {
-        // add the connection for the client.
-        $this->referralMetaDb->add_meta($referralId, 'client_id', $clientData['id']);
-        $this->referralMetaDb->add_meta($referralId, 'client_contract_number', $clientData['contract_number']);
+    private function connectReferralToClient($referral_id, $client_data) {
+        $this->commission_dal->connect_commission_to_client( $referral_id, $client_data );
     }
 }
