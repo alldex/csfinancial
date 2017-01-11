@@ -50,7 +50,7 @@ class Points_Graph extends Affiliate_WP_Graph {
                 
                 reset($points_data);
                 
-                if (isset($graph_options['start_date'])) {
+                if ( isset( $graph_options['start_date'] ) ) {
                     $this->start_date = $graph_options['start_date'];
                 }
                 else {
@@ -61,7 +61,8 @@ class Points_Graph extends Affiliate_WP_Graph {
                 }
                 
                 
-                if (isset($graph_options['start_date'])) {
+                
+                if ( isset( $graph_options['start_date'] ) ) {
                     $this->end_date = $graph_options['end_date'];
                 }
                 else {
@@ -98,11 +99,6 @@ class Points_Graph extends Affiliate_WP_Graph {
 		);
 
 	}
-        
-        public function graph_controls() {
-            // ignore the parent as we don't want any controls display.
-            // let the parent graph control the timeframe for now.
-        }
         
         public function get_data() {
             $points_data = $this->points_data;

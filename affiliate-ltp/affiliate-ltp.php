@@ -107,6 +107,9 @@ class AffiliateLTP {
 //        $graph = new \AffiliateLTP\Points_Graph;
 	$graph->set( 'x_mode', 'time' );
 	$graph->set( 'affiliate_id', $affiliate_id );
+        // hide the date filter since the graph above this one controls all the
+        // date filters.
+        $graph->set( 'show_controls', false );
         
 //        $data = $graph->get_data();
 //                        echo "<pre>";
