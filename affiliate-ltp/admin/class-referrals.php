@@ -7,6 +7,8 @@ require_once 'class-commission-dal-affiliate-wp-adapter.php';
 require_once 'class-agent-dal.php';
 require_once 'class-agent-dal-affiliate-wp-adapter.php';
 require_once 'class-commission-processor.php';
+require_once 'class-settings-dal.php';
+require_once 'class-settings-dal-affiliate-wp-adapter.php';
 
 /**
  * Description of class-referrals
@@ -26,6 +28,12 @@ class AffiliateLTPReferrals {
      * @var Agent_DAL
      */
     private $agent_dal;
+    
+    /**
+     *
+     * @var Settings_DAL 
+     */
+    private $settings_dal;
     /**
      *
      * @var Affiliate_WP_Referral_Meta_DB
@@ -51,6 +59,7 @@ class AffiliateLTPReferrals {
         $this->referralsTable = new AffiliateLTPCommissionsTable($this->referralMetaDb);
         $this->commission_dal = new AffiliateLTP\admin\Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
         $this->agent_dal = new AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter();
+        $this->settings_dal = new AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter();
     }
 
     public function generateCommissionPayoutFile( $data ) {
@@ -193,7 +202,8 @@ class AffiliateLTPReferrals {
 
         try {
             $request = AffiliateLTPReferralsNewRequestBuilder::build($requestData);
-            $commissionProcessor = new AffiliateLTP\admin\Commission_Processor($this->commission_dal, $this->agent_dal);
+            $commissionProcessor = new AffiliateLTP\admin\Commission_Processor($this->commission_dal, 
+                    $this->agent_dal, $this->settings_dal);
             $commissionProcessor->processCommissionRequest($request);
             wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added'));
         } catch (\Exception $ex) {

@@ -21,6 +21,35 @@ interface Agent_DAL {
     function get_agent_upline( $agent_id );
     
     /**
+     * Return the status of the agent.
+     * @param int $agent_id
+     * @return string|false Agent status, false otherwise.
+     */
+    function get_agent_status( $agent_id );
+    
+    /**
+     * Retrieve the parent agent id of this agent if there is one
+     * @param int $agent_id The id of the agent.
+     * @return int|null The id of the parent agent if there is one, false otherwise.
+     */
+    function get_parent_agent_id( $agent_id );
+    
+    /**
+     * Checks if the passed in agent has a status of active.
+     * @param int $agent_id
+     * @return boolean true if the agent is active, false otherwise
+     */
+    function is_active( $agent_id );
+    
+    /**
+     * Checks if the passed in agent has an active license to sell life insurance
+     * or not.
+     * @param int $agent_id
+     * @return boolean true if the agent is life licensed, false otherwise.
+     */
+    function is_life_licensed( $agent_id );
+    
+    /**
      * Filters the agents list to only include agents whose status is the passed
      * in status.
      * @param array $agents
