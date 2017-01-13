@@ -28,6 +28,13 @@ interface Agent_DAL {
     function get_agent_status( $agent_id );
     
     /**
+     * Return the rank id of the agent. Null if the agent has no rank.
+     * @param int $agent_id
+     * @return int|null The rank id of the agent
+     */
+    function get_agent_rank( $agent_id );
+    
+    /**
      * Retrieve the parent agent id of this agent if there is one
      * @param int $agent_id The id of the agent.
      * @return int|null The id of the parent agent if there is one, false otherwise.

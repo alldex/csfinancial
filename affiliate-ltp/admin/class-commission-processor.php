@@ -17,6 +17,7 @@ class Commission_Processor_Item {
     public $date;
     public $generational_count = 0;
     public $previous_rate = 0;
+    public $rate = 0;
     public $contract_number;
     public $client_id;
     
@@ -79,19 +80,17 @@ class Commission_Processor {
         
         if ($this->should_process_item($item)) {
 
-            $rate = $this->agent_dal->get_agent_commission_rate($item->agent_id);
-
-            $adjusted_rate = ($rate > $item->previous_rate) ? $rate - $item->previous_rate : 0;
-            $adjusted_amount = $item->amount * $adjusted_rate;
             
-            $commission_id = $this->create_commission_for_item($item, $adjusted_rate, $adjusted_amount);
+            $adjusted_amount = $item->amount * $item->rate;
+            
+            $commission_id = $this->create_commission_for_item($item, $adjusted_amount);
         }
         // TODO: stephen add logging to state that the commission was added.
         
-        $this->process_parent_item($item, $rate, $processingStack);
+        $this->process_parent_item($item, $processingStack);
     }
     
-    private function create_commission_for_item(Commission_Processor_Item $item, $adjusted_rate, $adjusted_amount) {
+    private function create_commission_for_item(Commission_Processor_Item $item, $adjusted_amount) {
         $custom = 'direct';
         $description = __("Personal sale", "affiliate-ltp");
         if (!$item->is_direct_sale) {
@@ -108,7 +107,7 @@ class Commission_Processor {
             , "context" => $item->type
             , "status" => self::STATUS_DEFAULT
             , "date" => $item->date
-            , "agent_rate" => $adjusted_rate
+            , "agent_rate" => $item->rate
             , "client" => array("id" => $item->client_id, 
                 "contract_number" => $item->contract_number)
             , "points" => $item->points
@@ -131,21 +130,19 @@ class Commission_Processor {
         if (!$this->agent_dal->is_active( $item->agent_id )) {
             return false;
         }
-        if (!$this->agent_dal->is_life_licensed( $item->agent_id )) {
+        if ($item->type === AffiliateLTPCommissionType::TYPE_LIFE
+                && !$this->agent_dal->is_life_licensed( $item->agent_id )) {
             return false;
         }
         
         return true;
     }
     
-    private function process_parent_item(Commission_Processor_Item $item, $rate, \SPLStack $processingStack) {
+    private function process_parent_item(Commission_Processor_Item $item, \SPLStack $processingStack) {
          // grab your rank.
         // TODO: stephen when co-leadership is implemented
         // put the check here.
         $is_coleadership = false;
-        // TODO: stephen when intergenerational overrides are implemented
-        // put the check here.
-        $is_partner = false;
         
         // if coleadership
         // addColeadershipAgentsToStack($stack)
@@ -154,34 +151,82 @@ class Commission_Processor {
         // else
         // addParentAgent($item, $stack)
         if ($is_coleadership) {
-            $this->add_coleadership_agents($item, $rate, $processingStack);
+            $this->add_coleadership_agents($item, $processingStack);
         }
-        else if ($is_partner) {
-            $this->add_generational_override_agent($item, $rate, $processingStack);
+        else if ($this->is_partner($item->agent_id)) {
+            $this->add_generational_override_agent($item, $processingStack);
         }
         else {
-            $this->add_parent_agent($item, $rate, $processingStack);
+            $this->add_parent_agent($item, $processingStack);
         }
     }
     
-    private function add_parent_agent(Commission_Processor_Item $child_item, $child_rate, 
+    private function add_parent_agent(Commission_Processor_Item $child_item,
             \SplStack $processingStack) {
         
         $parent_agent_id = $this->agent_dal->get_parent_agent_id( $child_item->agent_id );
         if ($parent_agent_id != null) {
+            $rate = $this->agent_dal->get_agent_commission_rate($parent_agent_id);
+            $child_rate = $this->agent_dal->get_agent_commission_rate($child_item->agent_id);
+            $adjusted_rate = ($rate > $child_rate) ? $rate - $child_rate : 0;
+            
             $item = clone $child_item;
             $item->agent_id = $parent_agent_id;
             $item->is_direct_sale = false;
-            $item->previous_rate = $child_rate;
+            $item->previous_rate = $item->rate;
+            $item->rate = $adjusted_rate;
+            
+            
             $processingStack->push($item);
         }
     }
     
-    private function add_generational_override_agent($child_agent_id, $child_rate, 
-            \SplStack $processingStack) {
+    private function is_partner( $agent_id ) {
+        
+        $rank = $this->agent_dal->get_agent_rank($agent_id);
+        $partner_rank_id = $this->settings_dal->get_partner_rank_id();
+        if (!empty($partner_rank_id) && $rank === $partner_rank_id) {
+            return true;
+        }
+        return false;
     }
     
-    private function add_coleadership_agents($child_agent_id, $child_rate, 
+    private function add_generational_override_agent(Commission_Processor_Item $child_item, 
+            \SplStack $processingStack) {
+        // if partner create a new item and increment the generational override
+        
+        $parent_agent_id = $this->agent_dal->get_parent_agent_id( $child_item->agent_id );
+        if (empty($parent_agent_id)) {
+            return;
+        }
+        
+        if (!$this->is_partner($parent_agent_id)) {
+            $this->add_parent_agent($child_item, $processingStack);
+            return;
+        }
+        // calculate the percent
+        $item = clone $child_item;
+        $item->agent_id = $parent_agent_id;
+        $item->is_direct_sale = false;
+        $item->previous_rate = $item->rate;
+        $item->rate = $this->get_generational_rate($item);
+        $item->generational_count += 1;
+        $processingStack->push($item);
+        
+        
+    }
+    
+    private function get_generational_rate(Commission_Processor_Item $item) {
+        // TODO: stephen... how do we handle the situation where we have a generational override
+        // that is at 17%, but the person above them is not a partner....
+        // how do we handle the calculations for this? Or if two levels up the person is not a partner...
+        // If their commission is 50% - 17% we'll have > 100% for our commission calculations....
+
+        // we currently only handle three generational overrides.
+        return $this->settings_dal->get_generational_override_rate($item->generational_count + 1);
+    }
+    
+    private function add_coleadership_agents($child_agent_id, 
             \SplStack $processingStack) {
         
     }
@@ -198,6 +243,8 @@ class Commission_Processor {
         foreach ($request->agents as $agent) {
             $splitPercent = $agent->split / 100;
             
+            $rate = $this->agent_dal->get_agent_commission_rate($agent->id);
+            
             $item = new Commission_Processor_Item();
             $item->amount = $request->amount * $splitPercent;;
             $item->agent_id = $agent->id;
@@ -207,6 +254,7 @@ class Commission_Processor {
             $item->type = $request->type;
             $item->contract_number = $request->client['contract_number'];
             $item->client_id = $request->client['id'];
+            $item->rate = $rate;
             $stack->push($item);
         }
         

@@ -22,11 +22,15 @@ class Test_Commission_Processor extends \WP_UnitTestCase{
                          ,'doSomething'
                          ,'is_life_licensed'
                          ,'get_parent_agent_id'
+                         ,'get_agent_rank'
                          ,'get_agent_commission_rate'
                         ])
                      ->getMock();
             $agent_dal_stub->method('is_active')
                     ->will($this->returnValue(true));
+            
+            $agent_dal_stub->method('get_agent_rank')
+                    ->will($this->returnValue(1));
             
             $agent_dal_stub->method('is_life_licensed')
                     ->willReturn(true);
@@ -40,8 +44,11 @@ class Test_Commission_Processor extends \WP_UnitTestCase{
                          'get_setting'
                          ,'get_company_rate'
                          ,'get_company_agent_id'
+                         ,'get_partner_rank_id'
                         ])
                      ->getMock();
+             $settings_stub->method('get_partner_rank_id')
+                     ->willReturn(3);
              return $settings_stub;
         }
         

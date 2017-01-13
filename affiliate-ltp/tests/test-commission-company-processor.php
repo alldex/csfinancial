@@ -141,11 +141,11 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
         $request->skipCompanyHaircut = false;
         $request->points = 5000;
         $request->type = \AffiliateLTPCommissionType::TYPE_LIFE;
-        $expected_amount = (1 - (self::COMPANY_RATE / 100)) * $request->amount;
+        $remaining_amount = (1 - (self::COMPANY_RATE / 100)) * $request->amount;
         
         $expected_commission = $this->get_sample_commission_save( self::COMPANY_RATE/100, 
-                $request->amount - $expected_amount);
-        $expected_commission['points'] = $request->points;
+                $request->amount - $remaining_amount);
+        $expected_commission['points'] = $request->amount - $remaining_amount;
         $expected_commission['context'] = $request->type;
         
         $commission_dal->expects($this->once())
@@ -159,7 +159,7 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
         $this->assertNotSame($newRequest, $request);
         
         // amount set to 0, points are the same as the amount
-        $this->assertEquals($expected_amount,$newRequest->amount, "Amount should have been adjusted");
+        $this->assertEquals($remaining_amount,$newRequest->amount, "Amount should have been adjusted");
         $this->assertEquals($request->points, $newRequest->points, "points should not be modified for life insurance");
     }
     
@@ -172,11 +172,11 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
         $request->skipCompanyHaircut = false;
         $request->points = 5000;
         $request->type = \AffiliateLTPCommissionType::TYPE_NON_LIFE;
-        $expected_amount = (1 - (self::COMPANY_RATE / 100)) * $request->amount;
+        $remaining_amount = (1 - (self::COMPANY_RATE / 100)) * $request->amount;
         
         $expected_commission = $this->get_sample_commission_save( self::COMPANY_RATE/100, 
-                $request->amount - $expected_amount);
-        $expected_commission['points'] = $expected_amount;
+                $request->amount - $remaining_amount);
+        $expected_commission['points'] = $request->amount - $remaining_amount;
         $expected_commission['context'] = $request->type;
         
         $commission_dal->expects($this->once())
@@ -190,7 +190,7 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
         $this->assertNotSame($newRequest, $request);
         
         // amount set to 0, points are the same as the amount
-        $this->assertEquals($expected_amount,$newRequest->amount, "Amount should have been adjusted");
-        $this->assertEquals($expected_amount, $newRequest->points, "points should be the same as the amount for non-life insurance");
+        $this->assertEquals($remaining_amount,$newRequest->amount, "Amount should have been adjusted");
+        $this->assertEquals($remaining_amount, $newRequest->points, "points should be the same as the amount for non-life insurance");
     }
 }

@@ -26,7 +26,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         }
         return $licensedAgents;
     }
-    
+        
     public function filter_agents_by_status( $upline, $status = 'active' ) {
         return affwp_mlm_filter_by_status( $upline, $status );
     }
@@ -60,4 +60,13 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         
         return $parent_agent_id;
     }
+
+    public function get_agent_rank($agent_id) {
+        $rank_id = affwp_ranks_get_affiliate_rank( $agent_id );
+        if (empty($rank_id)) {
+            return null;
+        }
+        return $rank_id;
+    }
+
 }

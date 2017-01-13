@@ -204,10 +204,13 @@ class AffiliateLTPReferrals {
             $request = AffiliateLTPReferralsNewRequestBuilder::build($requestData);
             $commissionProcessor = new AffiliateLTP\admin\Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
-            $commissionProcessor->processCommissionRequest($request);
+            $commissionProcessor->process_commission_request($request);
             wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added'));
         } catch (\Exception $ex) {
-            error_log($ex->getMessage() . "\nTrace: " . $ex->getTraceAsString());
+            $message = $ex->getMessage() . "\nTrace: " . $ex->getTraceAsString(); 
+            error_log($message);
+            var_dump($message);
+            exit;
             $message = urlencode("A server error occurred and we could not process the request.  Check the server logs for more details");
             wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_add_failed&affwp_message=' . $message));
         }

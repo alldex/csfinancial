@@ -13,4 +13,16 @@ interface Settings_DAL {
     function get_company_rate();
     
     function get_company_agent_id();
+    
+    /**
+     * Returns the rank id of the partner rank that triggers generational 
+     * overrides
+     */
+    function get_partner_rank_id();
+    
+    /**
+     * Returns the calculation for the generational override
+     * @param int $override_level The current level to retrieve the rank for.
+     */
+    function get_generational_override_rate( $override_level );
 }
