@@ -209,8 +209,6 @@ class AffiliateLTPReferrals {
         } catch (\Exception $ex) {
             $message = $ex->getMessage() . "\nTrace: " . $ex->getTraceAsString(); 
             error_log($message);
-            var_dump($message);
-            exit;
             $message = urlencode("A server error occurred and we could not process the request.  Check the server logs for more details");
             wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_add_failed&affwp_message=' . $message));
         }

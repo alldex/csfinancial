@@ -41,24 +41,17 @@ class Settings_DAL_Affiliate_WP_Adapter implements Settings_DAL {
     }
 
     public function get_generational_override_rate($override_level) {
-        switch ($override_level) {
-            case 1: {
-                $rate = 0.17;
-            }
-            break;
-            case 2: {
-                $rate = 0.09;
-            }
-            break;
-            case 3: {
-                $rate = 0.04;
-            }
-            break;
-            default: {
-                $rate = 0;
-            }
-            break;
+        // absint will set everything to 0 if it can't parse the value
+        
+        $level = absint($override_level);
+        $key = 'affwp_ltp_generational_override_' . $level . '_rate';
+        $rate = absint($this->get_setting($key));
+        
+        // convert the rate to percentage value.
+        if ($rate > 0) {
+            $rate /= 100;
         }
+        
         return $rate;
     }
 

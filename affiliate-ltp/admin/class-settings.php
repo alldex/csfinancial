@@ -65,6 +65,27 @@ public function __construct() {
 						'size' => 'small',
 						'std' => ''
 					),
+                                    'affwp_ltp_generational_override_1_rate' => array(
+						'name' => '<strong>' . __( '1st Generation Override Rate', 'affiliate-ltp' ) . '</strong>',
+						'desc' => '<p class="description">' . __( 'Enter the 1st Generation Override Percentage Rate ie 4, 9, 17.' ) . '</p>',
+                                                'type' => 'number',
+						'size' => 'small',
+						'std' => ''
+					),
+                                    'affwp_ltp_generational_override_2_rate' => array(
+						'name' => '<strong>' . __( '2nd Generation Override Rate', 'affiliate-ltp' ) . '</strong>',
+						'desc' => '<p class="description">' . __( 'Enter the 2nd Generation Override Percentage Rate ie 4, 9, 17.' ) . '</p>',
+                                                'type' => 'number',
+						'size' => 'small',
+						'std' => ''
+					),
+                                    'affwp_ltp_generational_override_3_rate' => array(
+						'name' => '<strong>' . __( '3rd Generation Override Rate', 'affiliate-ltp' ) . '</strong>',
+						'desc' => '<p class="description">' . __( 'Enter the 3rd Generation Override Percentage Rate ie 4, 9, 17.' ) . '</p>',
+                                                'type' => 'number',
+						'size' => 'small',
+						'std' => ''
+					),
 				)
 			)
 		);
