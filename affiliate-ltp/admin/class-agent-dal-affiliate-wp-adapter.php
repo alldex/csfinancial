@@ -16,6 +16,9 @@ use \AffiliateLTPAffiliates;
  */
 class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     
+    const AFFILIATE_META_KEY_COLEADERSHIP_AGENT_ID = 'coleadership_agent_id';
+    const AFFILIATE_META_KEY_COLEADERSHIP_AGENT_RATE = 'coleadership_agent_rate';
+    
     public function filter_agents_by_licensed_life_agents( $upline ) {
         $licensedAgents = array();
         
@@ -69,4 +72,24 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         return $rank_id;
     }
 
+    public function get_agent_coleadership_agent_id( $agent_id ) {
+        $single = true;
+        $id = affiliate_wp()->affiliate_meta->get_meta($agent_id, 
+                self::AFFILIATE_META_KEY_COLEADERSHIP_AGENT_ID, $single);
+        if (empty($id)) {
+            return null;
+        }
+        return absint($id);
+    }
+
+    public function get_agent_coleadership_agent_rate($agent_id) {
+        $single = true;
+        $rate = absint(affiliate_wp()->affiliate_meta->get_meta($agent_id, 
+                self::AFFILIATE_META_KEY_COLEADERSHIP_AGENT_RATE, $single));
+        // rates are in whole numbers
+        if ($rate > 0) {
+            $rate /= 100;
+        }
+        return $rate;
+    }
 }

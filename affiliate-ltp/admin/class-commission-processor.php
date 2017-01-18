@@ -97,6 +97,8 @@ class Commission_Processor {
             $custom = 'indirect';
             $description = __("Override", "affiliate-ltp");
         }
+        
+        
 
         $commission = array(
             "affiliate_id" => $item->agent_id
@@ -108,10 +110,20 @@ class Commission_Processor {
             , "status" => self::STATUS_DEFAULT
             , "date" => $item->date
             , "agent_rate" => $item->rate
-            , "client" => array("id" => $item->client_id, 
-                "contract_number" => $item->contract_number)
+            , "client" => array("id" => $item->client_id
+            , "contract_number" => $item->contract_number)
             , "points" => $item->points
         );
+        
+        
+        // TODO: stephen is this the best place for this?? Do we really want it
+        // on the commission?
+        $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($item->agent_id);
+        if ($coleadership_id) {
+            $coleadership_rate = $this->agent_dal->get_agent_coleadership_agent_rate($item->agent_id);
+            $commission['coleadership_id'] = $coleadership_id;
+            $commission['coleadership_rate'] = $coleadership_rate;
+        }
 
         // create referral
         $commission_id = $this->commission_dal->add_commission($commission);
@@ -142,7 +154,6 @@ class Commission_Processor {
          // grab your rank.
         // TODO: stephen when co-leadership is implemented
         // put the check here.
-        $is_coleadership = false;
         
         // if coleadership
         // addColeadershipAgentsToStack($stack)
@@ -150,7 +161,7 @@ class Commission_Processor {
         // addGenerationalOverride($item, $stack)
         // else
         // addParentAgent($item, $stack)
-        if ($is_coleadership) {
+        if ($this->agent_has_coleadership($item)) {
             $this->add_coleadership_agents($item, $processingStack);
         }
         else if ($this->is_partner($item->agent_id)) {
@@ -161,6 +172,14 @@ class Commission_Processor {
         }
     }
     
+    private function agent_has_coleadership(Commission_Processor_Item $item) {
+        $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($item->agent_id);
+        if (!empty($coleadership_id)) {
+            return true;
+        }
+        return false;
+    }
+    
     private function add_parent_agent(Commission_Processor_Item $child_item,
             \SplStack $processingStack) {
         
@@ -168,7 +187,7 @@ class Commission_Processor {
         if ($parent_agent_id != null) {
             $rate = $this->agent_dal->get_agent_commission_rate($parent_agent_id);
             $child_rate = $this->agent_dal->get_agent_commission_rate($child_item->agent_id);
-            $adjusted_rate = ($rate > $child_rate) ? $rate - $child_rate : 0;
+            $adjusted_rate = $this->get_adjusted_rate($rate, $child_rate);
             
             $item = clone $child_item;
             $item->agent_id = $parent_agent_id;
@@ -179,6 +198,13 @@ class Commission_Processor {
             
             $processingStack->push($item);
         }
+    }
+    
+    private function get_adjusted_rate($nominal_rate, $previous_rate) {
+        if ($nominal_rate > $previous_rate) {
+            return $nominal_rate - $previous_rate;
+        }
+        return 0;
     }
     
     private function is_partner( $agent_id ) {
@@ -226,9 +252,37 @@ class Commission_Processor {
         return $this->settings_dal->get_generational_override_rate($item->generational_count + 1);
     }
     
-    private function add_coleadership_agents($child_agent_id, 
+    /**
+     * Adds the active leader (who is not a direct parent) and the passive leader
+     * who is the parent of the current agent.  The points and amounts are adjusted
+     * 
+     * @param \AffiliateLTP\admin\Commission_Processor_Item $item
+     * @param \SplStack $processingStack
+     */
+    private function add_coleadership_agents(Commission_Processor_Item $item, 
             \SplStack $processingStack) {
         
+        // time to add the two individuals to the stack, first the parent (smaller leadership)
+        $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($item->agent_id);
+        $coleadership_rate = $this->agent_dal->get_agent_coleadership_agent_rate($item->agent_id);
+        
+        $active_leader_rate = $this->agent_dal->get_agent_commission_rate($coleadership_id);
+        
+        $active_leader_item = clone $item;
+        $active_leader_item->agent_id = $coleadership_id;
+        $active_leader_item->amount = round($item->amount * $coleadership_rate, 2);
+        $active_leader_item->points = round($item->points * $coleadership_rate, 2);
+        $active_leader_item->is_direct_sale = false;
+        $active_leader_item->previous_rate = $item->rate;
+        $active_leader_item->rate = $this->get_adjusted_rate($active_leader_rate, $item->rate);
+        $processingStack->push($active_leader_item);
+        
+        // since we already have an add parent let's just call that to make sure
+        // it pushes at the top of the stack.
+        $passive_adjusted_child_item = clone $item;
+        $passive_adjusted_child_item->amount = $item->amount - $active_leader_item->amount;
+        $passive_adjusted_child_item->points = $item->points - $active_leader_item->points;
+        $this->add_parent_agent($passive_adjusted_child_item, $processingStack);
     }
     
     private function get_initial_commissions_to_process_from_request(AffiliateLTPReferralsNewRequest $request){

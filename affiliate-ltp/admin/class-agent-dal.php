@@ -74,4 +74,19 @@ interface Agent_DAL {
      * retrieves the agent commission rate for the passed in agent id
      */
     function get_agent_commission_rate( $agent_id );
+    
+    /**
+     * Retrieves the id of the agent that is a co-leader of the passed in agent.
+     * @param int $agent_id The unique id of the agent.
+     * @return int|null the id of the co-leader agent or null if there is none
+     */
+    function get_agent_coleadership_agent_id( $agent_id );
+    
+    /**
+     * Retrieves the co-leadership commission percentage that the co-leader agent
+     * will receive for this particular agent.
+     * @param int $agent_id The unique id of the agent.
+     * @return float|null The percentage rate (0.00-1.00) of the commission the co-leader receives.
+     */
+    function get_agent_coleadership_agent_rate( $agent_id );
 }
