@@ -57,10 +57,8 @@ class AffiliateLTPAffiliates {
         $expirationDate = filter_input(INPUT_POST, 'life_expiration_date');
         $coleadership_user_id = filter_input(INPUT_POST, 'coleadership_user_id');
         $coleadership_agent_rate = absint(filter_input(INPUT_POST, 'coleadership_agent_rate'));
+        $coleadership_agent_id = empty($coleadership_user_id) ? null : affwp_get_affiliate_id($coleadership_user_id);
         
-        
-                
-        // TODO: stephen the complexity of this all sucks... fix this.
         if (empty($licenseNumber)) {
             affwp_delete_affiliate_meta($affiliateId, 'life_license_number');
             affwp_delete_affiliate_meta($affiliateId, 'life_expiration_date');
@@ -74,25 +72,13 @@ class AffiliateLTPAffiliates {
             affwp_update_affiliate_meta($affiliateId, 'life_expiration_date', $expirationDate);
         }
         
-        $prev_coleadership_agent_id = affwp_get_affiliate_meta( $affiliateId, 'coleadership_agent_id', true);
-        
-        if (empty($coleadership_user_id) || empty($coleadership_agent_rate)) {
+        if (empty($coleadership_agent_id) || $coleadership_agent_rate <= 0) {
             affwp_delete_affiliate_meta($affiliateId, 'coleadership_agent_id');
             affwp_delete_affiliate_meta($affiliateId, 'coleadership_agent_rate');
         }
-        else if (empty($prev_coleadership_agent_id)) {
-            $agent_id = affwp_get_affiliate_id($coleadership_user_id);
-            if (!empty($agent_id) && $coleadership_agent_rate > 0) {
-                affwp_add_affiliate_meta($affiliateId, 'coleadership_agent_id', $licenseNumber, true);
-                affwp_add_affiliate_meta($affiliateId, 'coleadership_agent_rate', $coleadership_agent_rate, true);
-            }
-        }
         else {
-            $agent_id = affwp_get_affiliate_id($coleadership_user_id);
-            if (!empty($agent_id) && $coleadership_agent_rate > 0) {
-                affwp_update_affiliate_meta($affiliateId, 'coleadership_agent_id', $agent_id);
-                affwp_update_affiliate_meta($affiliateId, 'coleadership_agent_rate', $coleadership_agent_rate);
-            }
+            affwp_update_affiliate_meta($affiliateId, 'coleadership_agent_id', $coleadership_agent_id);
+            affwp_update_affiliate_meta($affiliateId, 'coleadership_agent_rate', $coleadership_agent_rate);
         }
     }
     
