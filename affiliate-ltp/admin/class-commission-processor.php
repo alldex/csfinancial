@@ -16,6 +16,7 @@ class Commission_Processor_Item {
     public $is_direct_sale;
     public $date;
     public $generational_count = 0;
+    // TODO: stephen would be it better to rename this to be highest_previous_rate?
     public $previous_rate = 0;
     public $rate = 0;
     public $contract_number;
@@ -47,6 +48,12 @@ class Commission_Processor {
      */
     private $settings_dal;
     
+    /**
+     * Holds the commission arrays that were created during processing.
+     * @var array
+     */
+    private $processed_items;
+    
     const STATUS_DEFAULT = 'unpaid';
     
     public function __construct(Commission_DAL $commission_dal, Agent_DAL $agent_dal, Settings_DAL $settings_dal) {
@@ -56,6 +63,9 @@ class Commission_Processor {
     }
     
     public function process_commission_request(AffiliateLTPReferralsNewRequest $request) {
+        
+        // reset this so we can stay clean.
+        $this->processedItems = [];
         
         // create the client if necessary
         $request->client['id'] = $this->createClient($request->client);
@@ -69,7 +79,9 @@ class Commission_Processor {
             $item = $processingStack->pop();
             $this->process_item($item, $processingStack);
         }
-        
+        $items = $this->processed_items;
+        $this->processed_items = [];
+        return $items;
     }
     
     private function process_item(Commission_Processor_Item $item, \SplStack $processingStack) {
@@ -77,7 +89,7 @@ class Commission_Processor {
 
             
             $adjusted_amount = $item->amount * $item->rate;
-            
+//            var_dump("Agent '{$item->agent_id}' {$item->amount} * {$item->rate} = $adjusted_amount");
             $commission_id = $this->create_commission_for_item($item, $adjusted_amount);
         }
         // TODO: stephen add logging to state that the commission was added.
@@ -92,8 +104,6 @@ class Commission_Processor {
             $custom = 'indirect';
             $description = __("Override", "affiliate-ltp");
         }
-        
-        
 
         $commission = array(
             "affiliate_id" => $item->agent_id
@@ -125,6 +135,7 @@ class Commission_Processor {
         //$commission_id = affiliate_wp()->referrals->add($commission);
 
         if ($commission_id) {
+            $this->processed_items[] = $commission;
             do_action('affwp_ltp_commission_created', $commission);
             return $commission_id;
         } else {
@@ -146,21 +157,11 @@ class Commission_Processor {
     }
     
     private function process_parent_item(Commission_Processor_Item $item, \SPLStack $processingStack) {
-         // grab your rank.
-        // TODO: stephen when co-leadership is implemented
-        // put the check here.
-        
-        // if coleadership
-        // addColeadershipAgentsToStack($stack)
-        // else if partner
-        // addGenerationalOverride($item, $stack)
-        // else
-        // addParentAgent($item, $stack)
-        if ($this->agent_has_coleadership($item)) {
-            $this->add_coleadership_agents($item, $processingStack);
-        }
-        else if ($this->is_partner($item->agent_id)) {
+        if ($this->is_partner($item->agent_id)) {
             $this->add_generational_override_agent($item, $processingStack);
+        }
+        else if ($this->agent_has_coleadership($item)) {
+            $this->add_coleadership_agents($item, $processingStack);
         }
         else {
             $this->add_parent_agent($item, $processingStack);
@@ -180,21 +181,30 @@ class Commission_Processor {
         
         $parent_agent_id = $this->agent_dal->get_parent_agent_id( $child_item->agent_id );
         if ($parent_agent_id != null) {
-            $rate = $this->agent_dal->get_agent_commission_rate($parent_agent_id);
-            $child_rate = $this->agent_dal->get_agent_commission_rate($child_item->agent_id);
-            $adjusted_rate = $this->get_adjusted_rate($rate, $child_rate);
-            
-            $item = clone $child_item;
-            $item->agent_id = $parent_agent_id;
-            $item->is_direct_sale = false;
-            $item->previous_rate = $item->rate;
-            $item->rate = $adjusted_rate;
-            
-            
-            $processingStack->push($item);
+            $parent_item = $this->create_parent_processor_item($child_item, $parent_agent_id);
+            $processingStack->push($parent_item);
         }
     }
     
+    private function create_parent_processor_item(Commission_Processor_Item $child_item, $parent_agent_id) {
+        
+        // we have to use the highest rate for our calculations.
+        $previous_rate = max($child_item->rate, $child_item->previous_rate);
+        $parent_rate = $this->agent_dal->get_agent_commission_rate($parent_agent_id);
+        
+        //$child_rate = $this->agent_dal->get_agent_commission_rate($child_item->agent_id);
+        $adjusted_rate = $this->get_adjusted_rate($parent_rate, $previous_rate);
+//        var_dump("previous rate is {$previous_rate} and parent rate is $parent_rate, adjusted rate is $adjusted_rate");
+        
+        $item = clone $child_item;
+        $item->agent_id = $parent_agent_id;
+        $item->is_direct_sale = false;
+        $item->previous_rate = max($previous_rate, $parent_rate);
+//        var_dump("setting previous rate to be $previous_rate");
+        $item->rate = $adjusted_rate;
+        return $item;
+    }
+        
     private function get_adjusted_rate($nominal_rate, $previous_rate) {
         if ($nominal_rate > $previous_rate) {
             return $nominal_rate - $previous_rate;
@@ -212,29 +222,69 @@ class Commission_Processor {
         return false;
     }
     
+    /**
+     * Assumes the parent agent is a partner
+     * @param \AffiliateLTP\admin\Commission_Processor_Item $child_item
+     * @param \SplStack $processingStack
+     */
     private function add_generational_override_agent(Commission_Processor_Item $child_item, 
             \SplStack $processingStack) {
         // if partner create a new item and increment the generational override
         
+        $coleadership_agent_id = $this->agent_dal->get_agent_coleadership_agent_id($child_item->agent_id);
         $parent_agent_id = $this->agent_dal->get_parent_agent_id( $child_item->agent_id );
-        if (empty($parent_agent_id)) {
+        if (empty($parent_agent_id) && empty($coleadership_agent_id)) {
             return;
         }
-        
-        if (!$this->is_partner($parent_agent_id)) {
+
+        if (!empty($coleadership_agent_id)) {
+            $this->add_parent_partner_coleadership_items($child_item, 
+                    $coleadership_agent_id, $parent_agent_id, $processingStack);
+        }
+        else if ($this->is_partner ($parent_agent_id)) {
+            $processingStack->push($this->get_generational_item($child_item, $parent_agent_id));
+        }
+        else {
             $this->add_parent_agent($child_item, $processingStack);
-            return;
         }
-        // calculate the percent
+    }
+    
+    private function add_parent_partner_coleadership_items(Commission_Processor_Item $child_item, 
+            $coleadership_agent_id, $parent_agent_id, \SplStack $processingStack) {
+        $coleadership_is_partner = !empty($coleadership_agent_id) && $this->is_partner($coleadership_agent_id);
+        $rate = $this->agent_dal->get_agent_coleadership_agent_rate($child_item->agent_id);
+        $active_item = clone $child_item;
+        $active_item->points = round($child_item->points * $rate, 2);
+        $active_item->amount = round($child_item->amount * $rate, 2);
+
+        $passive_item = clone $child_item;
+        $passive_item->points = $child_item->points - $active_item->points;
+        $passive_item->amount = $child_item->amount - $active_item->amount;
+
+        if ($coleadership_is_partner) {
+            $gen_item = $this->get_generational_item($active_item, 
+                            $coleadership_agent_id);
+            $processingStack->push($gen_item);
+        }
+        else {
+            $parent_item = $this->create_parent_processor_item($active_item, 
+                            $coleadership_agent_id);
+            $processingStack->push($parent_item);
+        }
+
+        $passive_gen_item = $this->get_generational_item($passive_item, 
+                        $parent_agent_id);
+        $processingStack->push($passive_gen_item);
+    }
+    
+    private function get_generational_item($child_item, $parent_agent_id) {
         $item = clone $child_item;
         $item->agent_id = $parent_agent_id;
         $item->is_direct_sale = false;
         $item->previous_rate = $item->rate;
         $item->rate = $this->get_generational_rate($item);
         $item->generational_count += 1;
-        $processingStack->push($item);
-        
-        
+        return $item;
     }
     
     private function get_generational_rate(Commission_Processor_Item $item) {
@@ -257,20 +307,14 @@ class Commission_Processor {
     private function add_coleadership_agents(Commission_Processor_Item $item, 
             \SplStack $processingStack) {
         
-        // time to add the two individuals to the stack, first the parent (smaller leadership)
         $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($item->agent_id);
         $coleadership_rate = $this->agent_dal->get_agent_coleadership_agent_rate($item->agent_id);
         
-        $active_leader_rate = $this->agent_dal->get_agent_commission_rate($coleadership_id);
-        
         $active_leader_item = clone $item;
-        $active_leader_item->agent_id = $coleadership_id;
         $active_leader_item->amount = round($item->amount * $coleadership_rate, 2);
         $active_leader_item->points = round($item->points * $coleadership_rate, 2);
-        $active_leader_item->is_direct_sale = false;
-        $active_leader_item->previous_rate = $item->rate;
-        $active_leader_item->rate = $this->get_adjusted_rate($active_leader_rate, $item->rate);
-        $processingStack->push($active_leader_item);
+        
+        $processingStack->push($this->create_parent_processor_item($active_leader_item, $coleadership_id));
         
         // since we already have an add parent let's just call that to make sure
         // it pushes at the top of the stack.
