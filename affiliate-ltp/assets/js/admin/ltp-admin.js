@@ -149,8 +149,14 @@
             $("#affwp_add_referral .life-commission-row").toggleClass("hidden");
         })
     }
+    
+    function setupAgentScreen() {
+        setupAgentSearch("#affwp_add_affiliate .affwp-agent-search");
+        setupAgentSearch("#affwp_edit_affiliate .affwp-agent-search");
+    }
     $(document).ready(function() {
         setupAddReferralScreen();
+        setupAgentScreen();
         
        $( '.affwp-client-search-reset').click(resetClientSearch);
        

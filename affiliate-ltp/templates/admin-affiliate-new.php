@@ -22,4 +22,29 @@
 
         </td>
 </tr>
+<tr class="form-row">
+        <th scope="row">
+                <?php _e( 'Co-Leadership Agent', 'affiliate-ltp' ); ?>
+        </th>
+        <td>
+                <span class="affwp-ajax-search-wrap">
+                        <input class="agent-name affwp-agent-search" type="text" name="coleadership_agent_username" data-affwp-status="active" autocomplete="off" />
+                        <input class="agent-id" type="hidden" name="coleadership_user_id" value="" />
+                    </span>
+                    <p class="description"><?php _e( 'Enter the name of the affiliate or enter a partial name or email to perform a search.', 'affiliate-wp' ); ?></p>
+        </td>
+</tr>
+<tr class="form-row">
+        <th scope="row">
+                <?php _e( 'Co-Leadership Ratio', 'affiliate-ltp' ); ?>
+        </th>
+        <td>
+            <select name="coleadership_agent_rate">
+                <option value="0"></option>
+                <?php foreach ($coleadership_agent_rates as $rate => $name) : ?>
+                <option value="<?= $rate ?>"><?= $name; ?></option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+</tr>
 <?php
