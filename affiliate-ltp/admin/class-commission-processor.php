@@ -6,6 +6,8 @@ use \AffiliateLTPReferralsNewRequest;
 use \AffiliateLTPCommissionType;
 use \AffiliateLTP;
 
+// TODO: stephen need to save the agent_parent_id piece... 
+// how to do this I'm not sure.
 require_once 'class-commission-company-processor.php';
 
 class Commission_Processor_Item {
