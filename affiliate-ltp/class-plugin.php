@@ -273,7 +273,11 @@ class Plugin {
 
            return $file_paths;
    }
-   
+
+   /**
+    * 
+    * @return Plugin
+    */
    public static function instance() {
        if (self::$instance == null) {
            self::$instance = new Plugin();

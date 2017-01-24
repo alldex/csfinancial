@@ -84,4 +84,13 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         }
         return $rate;
     }
+    
+    public function get_agent_id_by_email( $agent_email ) {
+            $user = get_user_by('email', $agent_email );
+            if (!empty($user)) {
+                return absint($user->ID);
+            }
+            
+            return null;
+    }
 }
