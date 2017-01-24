@@ -3,6 +3,9 @@ namespace AffiliateLTP;
 
 use \AffiliateWP_Multi_Level_Marketing;
 use \Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\admin\Menu;
+use AffiliateLTP\admin\Referrals;
+use AffiliateLTP\admin\Settings;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -49,7 +52,7 @@ class Plugin {
             require_once $includePath . "/admin/class-upgrades.php";
             
             // setup the settings.
-            $this->settings = new AffiliateLTPSettings();
+            $this->settings = new Settings();
             
             // setup our admin scripts.
             add_action( 'admin_enqueue_scripts', array($this, 'admin_scripts' ) );
@@ -144,9 +147,9 @@ class Plugin {
         $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
         
         if (is_admin()) {
-            $this->adminReferrals = new AffiliateLTPReferrals($this->referralMeta);
+            $this->adminReferrals = new Referrals($this->referralMeta);
             // TODO: stephen look at renaming the AdminMenu to keep with our naming convention
-            $adminMenu = new AffiliateLTP_WP_Admin_Menu($this->adminReferrals);
+            $adminMenu = new Menu($this->adminReferrals);
         }
         
         // require the points graph since it's dependent on other plugins.

@@ -9,6 +9,7 @@
 namespace AffiliateLTP\admin;
 
 use AffiliateLTP\CommissionType;
+use AffiliateLTP\admin\Referrals_New_Request;
 
 require_once 'class-commission-status.php';
 
@@ -37,7 +38,7 @@ class Commission_Company_Processor {
         $this->settings_dal = $settings_dal;
     }
     
-    public function create_company_commission(\AffiliateLTPReferralsNewRequest $orig_request) {
+    public function create_company_commission(Referrals_New_Request $orig_request) {
         
         $new_request = clone $orig_request;
         // do nothing here if we are to skip the company commissions.

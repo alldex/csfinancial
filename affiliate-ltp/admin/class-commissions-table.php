@@ -1,7 +1,10 @@
 <?php 
-use AffiliateLTP\CommissionType;
+namespace AffiliateLTP\admin;
 
-class AffiliateLTPCommissionsTable {
+use AffiliateLTP\CommissionType;
+use \Affiliate_WP_Referral_Meta_DB;
+
+class Commissions_Table {
 
     /**
      * @var Affiliate_WP_Referral_Meta_DB

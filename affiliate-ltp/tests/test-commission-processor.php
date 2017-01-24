@@ -88,7 +88,7 @@ class Test_Commission_Processor extends \WP_UnitTestCase{
         }
         
         private function get_agent_request_obj($split, $id) {
-            $agent = new \AffiliateLTPReferralsAgentRequest();
+            $agent = new Referrals_Agent_Request();
             $agent->split = $split;
             $agent->id = $id;
             return $agent;
@@ -123,7 +123,7 @@ class Test_Commission_Processor extends \WP_UnitTestCase{
         
         function get_default_new_request() {
             $agent_percentage_rate = 100;
-            $request = new \AffiliateLTPReferralsNewRequest();
+            $request = new Referrals_New_Request();
             $request->amount = self::DEFAULT_AMOUNT;
             $request->agents[] = $this->get_agent_request_obj($agent_percentage_rate,
                     self::DEFAULT_CHILD_AGENT_ID);

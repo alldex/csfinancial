@@ -1,4 +1,5 @@
 <?php
+namespace AffiliateLTP;
 
 /**
  * Handles all interactions with the Sugar CRM

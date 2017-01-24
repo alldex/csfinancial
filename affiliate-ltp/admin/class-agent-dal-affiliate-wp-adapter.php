@@ -1,14 +1,6 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace AffiliateLTP\admin;
 
-use \AffiliateLTPAffiliates;
 /**
  * Description of class-agent-dal-affiliate-wp-adapter
  *
@@ -47,7 +39,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     }
     
     public function is_life_licensed($agent_id) {
-        return AffiliateLTPAffiliates::isAffiliateCurrentlyLifeLicensed($agent_id);
+        return Affiliates::isAffiliateCurrentlyLifeLicensed($agent_id);
     }
     
     public function is_active($agent_id) {

@@ -1,18 +1,13 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
+namespace AffiliateLTP\admin;
 
 /**
  * Description of class-settings
  *
  * @author snielson
  */
-class AffiliateLTPSettings {
+class Settings {
+    
 public function __construct() {
 
 		add_filter( 'affwp_settings_tabs', array( $this, 'settings_tab' ) );

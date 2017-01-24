@@ -1,11 +1,6 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
+namespace AffiliateLTP\admin;
 
 /**
  * Description of class-affiliates
@@ -13,7 +8,7 @@
  *
  * @author snielson
  */
-class AffiliateLTPAffiliates {
+class Affiliates {
     public function __construct() {
         // add options to the edit affiliate screen
         add_action( 'affwp_edit_affiliate_end', array( $this, 'addLifeInsuranceFieldsToEditScreen' ) );
@@ -130,4 +125,4 @@ class AffiliateLTPAffiliates {
         ];
     }
 }
-new AffiliateLTPAffiliates();
+new Affiliates();

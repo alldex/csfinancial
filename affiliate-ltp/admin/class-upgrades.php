@@ -1,13 +1,14 @@
 <?php
+namespace AffiliateLTP\admin;
 
 use AffiliateLTP\Plugin;
 
 /**
- * Description of class-upgrades
+ * Handles database upgrades of the plugin.
  *
  * @author snielson
  */
-class AffiliateLTPUpgrades {
+class Upgrades {
     /*
      * Whether an upgrade occurred or not.
      */
@@ -22,14 +23,14 @@ class AffiliateLTPUpgrades {
                 $version = '0.0.1'; // last version that didn't have the version option set
         }
         
-        if ( version_compare( $version, AffiliateLTP::AFFILIATEWP_LTP_VERSION, '<' ) ) {
+        if ( version_compare( $version, Plugin::AFFILIATEWP_LTP_VERSION, '<' ) ) {
                 $this->v1_upgrades();
         }
         
         // If upgrades have occurred
         if ( $this->upgraded ) {
                 update_option( 'affwp_ltp_version_upgraded_from', $version );
-                update_option( 'affwp_ltp_version', AffiliateLTP::AFFILIATEWP_LTP_VERSION );
+                update_option( 'affwp_ltp_version', Plugin::AFFILIATEWP_LTP_VERSION );
         }
     }
     
@@ -41,4 +42,4 @@ class AffiliateLTPUpgrades {
     }
     
 }
-new AffiliateLTPUpgrades();
+new Upgrades();

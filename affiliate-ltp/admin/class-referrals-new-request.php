@@ -1,4 +1,5 @@
 <?php
+namespace AffiliateLTP\admin;
 
 require_once 'class-referrals-agent-request.php';
 
@@ -9,7 +10,7 @@ use AffiliateLTP\CommissionType;
  * TODO: stephen rename this class to keep with the commissions nomenclature.
  * @author snielson
  */
-class AffiliateLTPReferralsNewRequest {
+class Referrals_New_Request {
     public $client;
     public $agents;
     public $amount;

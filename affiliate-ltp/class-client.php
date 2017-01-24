@@ -1,11 +1,12 @@
 <?php
+namespace AffiliateLTP;
 
 /**
  * Object representing a client in the system.
  *
  * @author snielson
  */
-class AffiliateLTPClient {
+class Client {
     private $contract_number;
     private $name;
     private $street_address;

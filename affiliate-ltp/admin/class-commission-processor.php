@@ -3,7 +3,7 @@
 namespace AffiliateLTP\admin;
 
 use AffiliateLTP\Plugin;
-use \AffiliateLTPReferralsNewRequest;
+use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\CommissionType;
 
 // TODO: stephen need to save the agent_parent_id piece... 
@@ -66,7 +66,7 @@ class Commission_Processor {
         $this->settings_dal = $settings_dal;
     }
 
-    public function process_commission_request(AffiliateLTPReferralsNewRequest $request) {
+    public function process_commission_request(Referrals_New_Request $request) {
 
         // reset this so we can stay clean.
         $this->processedItems = [];
@@ -324,7 +324,7 @@ class Commission_Processor {
         $this->add_parent_agent($passive_adjusted_child_item, $processingStack);
     }
 
-    private function get_initial_commissions_to_process_from_request(AffiliateLTPReferralsNewRequest $request) {
+    private function get_initial_commissions_to_process_from_request(Referrals_New_Request $request) {
         $stack = new \SplStack();
 
         // if the company is taking everything we don't process anything for other
@@ -371,7 +371,7 @@ class Commission_Processor {
         return $instance->createAccount($clientData);
     }
 
-    private function process_company_commission(AffiliateLTPReferralsNewRequest $request) {
+    private function process_company_commission(Referrals_New_Request $request) {
 
         $company_processor = new Commission_Company_Processor($this->commission_dal, $this->settings_dal);
 

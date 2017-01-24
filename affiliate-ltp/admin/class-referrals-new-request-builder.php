@@ -1,15 +1,18 @@
 <?php
 
+namespace AffiliateLTP\admin;
+
 require_once "class-referrals-new-request.php";
 
 use AffiliateLTP\CommissionType;
+use \Exception;
 
 /**
  * Description of class-referrals-new-request-builder
  *
  * @author snielson
  */
-class AffiliateLTPReferralsNewRequestBuilder {
+class Referrals_New_Request_Builder {
     
     
     const SINGLE_AGENT_ROW_NUMBER = 0;
@@ -39,7 +42,7 @@ class AffiliateLTPReferralsNewRequestBuilder {
         $split = abs($agentData['agent_split']);
 
         if ( ! empty( $agentId ) ) {
-            $agent = new AffiliateLTPReferralsAgentRequest();
+            $agent = new Referrals_Agent_Request();
             $agent->split = $split;
             $agent->id = $agentId;
             return $agent;
@@ -62,11 +65,11 @@ class AffiliateLTPReferralsNewRequestBuilder {
      * Validates and converts the request data into the right format to be used
      * for creating a new referral.
      * @param array $requestData
-     * @return \AffiliateLTPReferralsNewRequest
+     * @return Referrals_New_Request
      * @throws Exception
      */
     public static function build( $requestData ) {
-        $request = new AffiliateLTPReferralsNewRequest();
+        $request = new Referrals_New_Request();
         if ( empty( $requestData['agents'] )) {
             throw new Exception("No agent information was submitted");
         }

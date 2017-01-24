@@ -1,15 +1,18 @@
 <?php
+namespace AffiliateLTP\admin;
 
-class AffiliateLTP_WP_Admin_Menu {
+use AffiliateLTP\admin\Referrals;
+
+class Menu {
 
     // TODO: stephen we should probably setup some kind of registry here
     /**
      * 
-     * @var AffiliateLTPReferrals
+     * @var Referrals
      */
     private $referrals;
 
-	public function __construct(AffiliateLTPReferrals $referrals) {
+	public function __construct(Referrals $referrals) {
 		add_action( 'admin_menu', array( $this, 'register_menus' ), 100 );
                 $this->referrals = $referrals;
 	}

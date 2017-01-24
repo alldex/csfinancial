@@ -1,8 +1,14 @@
 <?php
+namespace AffiliateLTP\admin;
+
+use \Affiliate_WP_Referral_Payout_Export;
+use \Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\CommissionType;
+
 //require_once '../affiliate-wp/includes/admin/tools/export/class-export-referrals-payout.php';
 require_once AFFILIATEWP_PLUGIN_DIR . '/includes/admin/add-ons.php';
 
-class AffiliateLTPCommissionPayoutExport extends Affiliate_WP_Referral_Payout_Export {
+class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
 
     /**
      * Let people set what commission type they want to filter on.

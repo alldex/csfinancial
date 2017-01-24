@@ -1,11 +1,12 @@
 <?php
+namespace AffiliateLTP\admin;
 
 /**
  * Description of class-referrals-agent-request
  *
  * @author snielson
  */
-class AffiliateLTPReferralsAgentRequest {
+class Referrals_Agent_Request {
     
     /**
      * the affiliate_id of this agent.

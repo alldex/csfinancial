@@ -50,7 +50,7 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
         }
         
     function get_sample_request() {
-        $request = new \AffiliateLTPReferralsNewRequest();
+        $request = new Referrals_New_Request();
         $amount = 1000;
         $contract_number = "#555";
         $points = 1000;

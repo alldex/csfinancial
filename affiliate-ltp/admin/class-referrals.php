@@ -1,5 +1,7 @@
 <?php
 
+namespace AffiliateLTP\admin;
+
 require_once 'class-referrals-new-request-builder.php';
 require_once 'class-commissions-table.php';
 require_once 'class-commission-dal.php';
@@ -12,13 +14,17 @@ require_once 'class-settings-dal-affiliate-wp-adapter.php';
 
 use AffiliateLTP\Plugin;
 use AffiliateLTP\CommissionType;
+use AffiliateLTP\admin\Commission_Payout_Export;
+use \Affiliate_WP_Referral_Meta_DB;
+use \AffWP_Referrals_Table;
+use AffiliateLTP\admin\Referrals_New_Request_Builder;
 
 /**
  * Description of class-referrals
  *
  * @author snielson
  */
-class AffiliateLTPReferrals {
+class Referrals {
 
     /**
      *
@@ -59,17 +65,17 @@ class AffiliateLTPReferrals {
         //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
 
         $this->referralMetaDb = $referralMetaDb;
-        $this->referralsTable = new AffiliateLTPCommissionsTable($this->referralMetaDb);
-        $this->commission_dal = new AffiliateLTP\admin\Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
-        $this->agent_dal = new AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter();
-        $this->settings_dal = new AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter();
+        $this->referralsTable = new Commissions_Table($this->referralMetaDb);
+        $this->commission_dal = new Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
+        $this->agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
+        $this->settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
     }
 
     public function generateCommissionPayoutFile( $data ) {
         require_once 'class-commission-payout-export.php';
 
         
-        $export = new AffiliateLTPCommissionPayoutExport($this->referralMetaDb);
+        $export = new Commission_Payout_Export($this->referralMetaDb);
         if (isset($data['is_life_commission'])) {
             $export->commissionType = CommissionType::TYPE_LIFE;
         }
@@ -204,8 +210,8 @@ class AffiliateLTPReferrals {
         }
 
         try {
-            $request = AffiliateLTPReferralsNewRequestBuilder::build($requestData);
-            $commissionProcessor = new AffiliateLTP\admin\Commission_Processor($this->commission_dal, 
+            $request = Referrals_New_Request_Builder::build($requestData);
+            $commissionProcessor = new Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
             $commissionProcessor->process_commission_request($request);
             wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added'));
