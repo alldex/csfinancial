@@ -1,2 +1,4 @@
-Copyright MyCommonSenseFinancial @2017
-All rights reserved.
+/**
+ * Copyright MyCommonSenseFinancial @2017
+ * All rights reserved.
+ */
