@@ -17,7 +17,7 @@ class AffiliateLTPCommissionPayoutExport extends Affiliate_WP_Referral_Payout_Ex
     private $referralsByAffiliateId;
     
     public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
-       $this->commissionType = AffiliateLTPCommissionType::TYPE_LIFE;
+       $this->commissionType = CommissionType::TYPE_LIFE;
        $this->referralMetaDb = $referralMetaDb;
        
         parent::__construct();

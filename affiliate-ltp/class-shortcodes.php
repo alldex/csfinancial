@@ -1,11 +1,12 @@
 <?php
+namespace AffiliateLTP;
 
 /**
  * Description of class-shortcodes
  *
  * @author snielson
  */
-class AffiliateLTPShortcodes {
+class Shortcodes {
     public function __construct() {
         add_shortcode( 'ltp_affiliate_area', array( $this, 'ltpAffiliateArea' ) );
     }
@@ -33,4 +34,3 @@ class AffiliateLTPShortcodes {
         }
     }
 }
-new AffiliateLTPShortcodes();

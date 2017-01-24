@@ -8,6 +8,8 @@ require_once dirname( dirname( __FILE__ ) ) . '/admin/class-referrals-new-reques
 //require_once '../admin/class-commission-process.php
 //
 
+use AffiliateLTP\CommissionType;
+
 /**
  * Runs the test scenariors for calculating commissions for the commission 
  * processor.
@@ -20,7 +22,7 @@ class Test_Commission_Processor extends \WP_UnitTestCase{
     const DEFAULT_AGENT_RATE = .20;
     const DEFAULT_COMMISSION_ID = 2;
     const DEFAULT_CHILD_AGENT_ID = 1;
-    const DEFAULT_COMMISSION_TYPE = \AffiliateLTPCommissionType::TYPE_NON_LIFE;
+    const DEFAULT_COMMISSION_TYPE = CommissionType::TYPE_NON_LIFE;
     const DEFAULT_CONTRACT_NUMBER = "#555-555-5555";
     const DEFAULT_COMMISSION_DATE = "01/17/2017";
     const DEFAULT_PARENT_AGENT_ID = 2;
@@ -109,7 +111,7 @@ class Test_Commission_Processor extends \WP_UnitTestCase{
                 , "amount" => $amount * $agent_rate
                 , "reference" => self::DEFAULT_CONTRACT_NUMBER
                 , "custom" => 'direct'
-                , "context" => \AffiliateLTPCommissionType::TYPE_NON_LIFE
+                , "context" => CommissionType::TYPE_NON_LIFE
                 , "status" => Commission_Processor::STATUS_DEFAULT
                 , "date" => self::DEFAULT_COMMISSION_DATE
                 , "points" => $amount

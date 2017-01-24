@@ -35,6 +35,12 @@ public function __construct() {
 	 * @since 1.0
 	 */
 	public function settings( $settings = array() ) {
+            
+            $ranks = get_ranks();
+            $rank_options = array();
+            foreach ($ranks as $rank) {
+                $rank_options[$rank['id']] = $rank['name'];
+            }
 
 		$ltp_settings = array(
 			// MLM Settings			
@@ -86,6 +92,15 @@ public function __construct() {
 						'size' => 'small',
 						'std' => ''
 					),
+                                    'affwp_ltp_partner_rank_id' => array(
+						'name' => '<strong>' . __( 'Partner Rank', 'affiliate-ltp' ) . '</strong>',
+						'desc' => '<p class="description">' . __( 'Select the rank for a partner' ) . '</p>',
+                                                'type' => 'select',
+                                                'options' => $rank_options,
+						'size' => 'small',
+						'std' => ''
+					),
+                                    
 				)
 			)
 		);

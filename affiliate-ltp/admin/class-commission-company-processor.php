@@ -8,6 +8,8 @@
 
 namespace AffiliateLTP\admin;
 
+use AffiliateLTP\CommissionType;
+
 require_once 'class-commission-status.php';
 
 /**
@@ -75,7 +77,7 @@ class Commission_Company_Processor {
         
         // if we are not a life we will use the points after the company
         // 'haircut' or percentage they took out.
-        if ($new_request->type != \AffiliateLTPCommissionType::TYPE_LIFE) {
+        if ($new_request->type != CommissionType::TYPE_LIFE) {
             $new_request->points = $amount_remaining;
         }
 

@@ -29,15 +29,13 @@ class Settings_DAL_Affiliate_WP_Adapter implements Settings_DAL {
     public function get_partner_rank_id() {
         // for now since we have no company setting we will grab the highest rank
         // based on order.
-        $ranks = get_level_ranks();
-        usort($ranks, function ($item1, $item2) {
-            if ($item1['order'] == $item2['order']) return 0;
-            return $item1['order'] < $item2['order'] ? -1 : 1;
-        });
-        reset($ranks);
-        $last_rank = end($ranks);
         
-        return absint($last_rank['id']);
+        $rank_id = absint($this->get_setting('affwp_ltp_partner_rank_id'));
+        if (empty($rank_id)) {
+            return 0;
+        }
+        
+        return $rank_id;
     }
 
     public function get_generational_override_rate($override_level) {

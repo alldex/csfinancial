@@ -2,6 +2,8 @@
 
 require_once "class-referrals-new-request.php";
 
+use AffiliateLTP\CommissionType;
+
 /**
  * Description of class-referrals-new-request-builder
  *
@@ -97,12 +99,12 @@ class AffiliateLTPReferralsNewRequestBuilder {
         $request->points = $request->amount;
         
         if (isset($requestData['cb_is_life_commission'])) {
-            $request->type = AffiliateLTPCommissionType::TYPE_LIFE;
+            $request->type = CommissionType::TYPE_LIFE;
             // set the points to be whatever was entered for a life commission
             $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : $request->amount;
         }
         else {
-            $request->type = AffiliateLTPCommissionType::TYPE_NON_LIFE;
+            $request->type = CommissionType::TYPE_NON_LIFE;
         }
         
         return $request;

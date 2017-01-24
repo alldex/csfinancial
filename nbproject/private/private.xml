@@ -3,13 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliatewp-multi-level-marketing/includes/admin/class-settings.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliatewp-multi-level-marketing/affiliatewp-multi-level-marketing.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-settings.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/class-referrals-ltp.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-commission-processor.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/tests/test-commission-processor.php</file>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-referrals.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/templates/dashboard-tab-organization.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/affiliate-ltp.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-agent-dal-affiliate-wp-adapter.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-settings-dal.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-settings-dal-affiliate-wp-adapter.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-settings.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliatewp-ranks/includes/admin/class-settings.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-wp/includes/admin/settings/class-settings.php</file>
         </group>
     </open-files>
 </project-private>

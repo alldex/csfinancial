@@ -10,6 +10,9 @@ require_once 'class-commission-processor.php';
 require_once 'class-settings-dal.php';
 require_once 'class-settings-dal-affiliate-wp-adapter.php';
 
+use AffiliateLTP\Plugin;
+use AffiliateLTP\CommissionType;
+
 /**
  * Description of class-referrals
  *
@@ -68,10 +71,10 @@ class AffiliateLTPReferrals {
         
         $export = new AffiliateLTPCommissionPayoutExport($this->referralMetaDb);
         if (isset($data['is_life_commission'])) {
-            $export->commissionType = AffiliateLTPCommissionType::TYPE_LIFE;
+            $export->commissionType = CommissionType::TYPE_LIFE;
         }
         else {
-            $export->commissionType = AffiliateLTPCommissionType::TYPE_NON_LIFE;
+            $export->commissionType = CommissionType::TYPE_NON_LIFE;
         }
         
         $export->date = array(
@@ -119,7 +122,7 @@ class AffiliateLTPReferrals {
     public function ajaxSearchClients() {
         // TODO: stephen would it be better to just make searchAccounts conform
         // to what we return to the client instead of what it's returning now?
-        $instance = AffiliateLTP::instance()->getSugarCRM();
+        $instance = Plugin::instance()->getSugarCRM();
 
         // TODO: stephen have this use the filter_input functions.
         $searchQuery = htmlentities2(trim($_REQUEST['term']));
@@ -160,7 +163,7 @@ class AffiliateLTPReferrals {
         $clientId = $this->commission_dal->get_commission_client_id($referralId);
         
         if (!empty($clientId)) {
-            $instance = AffiliateLTP::instance()->getSugarCRM();
+            $instance = Plugin::instance()->getSugarCRM();
             $client = $instance->getAccountById($clientId);
         } else {
             $client = array(

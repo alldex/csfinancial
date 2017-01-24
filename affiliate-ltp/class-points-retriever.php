@@ -3,7 +3,7 @@ namespace AffiliateLTP;
 
 use \Affiliate_WP_Referral_Meta_DB;
 use AffiliateLTP\Points_Record;
-use \AffiliateLTPCommissionType;
+use AffiliateLTP\CommissionType;
 
 /**
  * Retrieves all of the points data for a specific date range.
@@ -60,11 +60,11 @@ class Points_Retriever {
                 $pointsData[$date] = array();
             }
 
-            if ( AffiliateLTPCommissionType::TYPE_LIFE === $context ) {
+            if ( CommissionType::TYPE_LIFE === $context ) {
                 $lifePointsSum += $points;
                 $pointsData[$date][] = new Points_Record($date, $points, 0);
             }
-            else if (AffiliateLTPCommissionType::TYPE_NON_LIFE === $context ) {
+            else if (CommissionType::TYPE_NON_LIFE === $context ) {
                 $nonLifePointsSum += $points;
                 $pointsData[$date][] = new Points_Record($date, 0, $points);
             }

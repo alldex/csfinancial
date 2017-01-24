@@ -2,6 +2,8 @@
 
 require_once 'class-referrals-agent-request.php';
 
+use AffiliateLTP\CommissionType;
+
 /**
  * Holds all of the settings for a new referral.
  * TODO: stephen rename this class to keep with the commissions nomenclature.
@@ -32,7 +34,7 @@ class AffiliateLTPReferralsNewRequest {
         $this->agents = array();
         $this->client = null;
         $this->amount = 0;
-        $this->type = AffiliateLTPCommissionType::TYPE_NON_LIFE;
+        $this->type = CommissionType::TYPE_NON_LIFE;
         $this->skipCompanyHaircut = false;
         $this->companyHaircutAll = false;
     }

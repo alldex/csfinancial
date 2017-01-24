@@ -1,4 +1,6 @@
 <?php 
+use AffiliateLTP\CommissionType;
+
 class AffiliateLTPCommissionsTable {
 
     /**
@@ -34,7 +36,7 @@ class AffiliateLTPCommissionsTable {
 
 	public function columnType($value, $referral) {
 		$value = $referral->context;
-		if ($value == AffiliateLTPCommissionType::TYPE_LIFE) {
+		if ($value == CommissionType::TYPE_LIFE) {
 			return __('Life Insurance', 'affiliate-ltp');
 		}
 		else {

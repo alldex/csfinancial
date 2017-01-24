@@ -5,6 +5,8 @@ require_once dirname( dirname( __FILE__ ) ) . '/admin/class-commission-company-p
 require_once dirname( dirname( __FILE__ ) ) . '/admin/class-referrals-agent-request.php';
 require_once dirname( dirname( __FILE__ ) ) . '/admin/class-referrals-new-request.php';
 
+use AffiliateLTP\CommissionType;
+
 /**
  * Verifies that the commission company calculations are all handled properly
  * for the various insurance rule situations.
@@ -52,7 +54,7 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
         $amount = 1000;
         $contract_number = "#555";
         $points = 1000;
-        $type = \AffiliateLTPCommissionType::TYPE_NON_LIFE;
+        $type = CommissionType::TYPE_NON_LIFE;
         $date = "01/01/2017";
         
         $request->amount = $amount;
@@ -75,7 +77,7 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
     
     function get_sample_commission_save($company_commission_rate, $company_amount) {
         $points = 1000;
-        $type = \AffiliateLTPCommissionType::TYPE_NON_LIFE;
+        $type = CommissionType::TYPE_NON_LIFE;
         $date = "01/01/2017";
         $client = $this->get_sample_client();
         $company_commission = array(
@@ -140,7 +142,7 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
         $request->companyHaircutAll = false;
         $request->skipCompanyHaircut = false;
         $request->points = 5000;
-        $request->type = \AffiliateLTPCommissionType::TYPE_LIFE;
+        $request->type = CommissionType::TYPE_LIFE;
         $remaining_amount = (1 - (self::COMPANY_RATE / 100)) * $request->amount;
         
         $expected_commission = $this->get_sample_commission_save( self::COMPANY_RATE/100, 
@@ -171,7 +173,7 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
         $request->companyHaircutAll = false;
         $request->skipCompanyHaircut = false;
         $request->points = 5000;
-        $request->type = \AffiliateLTPCommissionType::TYPE_NON_LIFE;
+        $request->type = CommissionType::TYPE_NON_LIFE;
         $remaining_amount = (1 - (self::COMPANY_RATE / 100)) * $request->amount;
         
         $expected_commission = $this->get_sample_commission_save( self::COMPANY_RATE/100, 

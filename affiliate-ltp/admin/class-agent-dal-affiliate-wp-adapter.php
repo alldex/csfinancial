@@ -51,7 +51,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     }
     
     public function is_active($agent_id) {
-        return $this->get_agent_status($item->agent_id) === 'active';
+        return $this->get_agent_status($agent_id) === 'active';
     }
     
     public function get_parent_agent_id($agent_id) {

@@ -1,11 +1,6 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
+use AffiliateLTP\Plugin;
 
 /**
  * Description of class-upgrades
@@ -41,7 +36,7 @@ class AffiliateLTPUpgrades {
     public function v1_upgrades() {
         // TODO: stephen I don't like this being public... is there a better
         // way to do this?
-        AffiliateLTP::instance()->referralMeta->create_table();
+        Plugin::instance()->referralMeta->create_table();
         $this->upgraded = true;
     }
     
