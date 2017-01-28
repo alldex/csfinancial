@@ -82,4 +82,23 @@ interface Agent_DAL {
      * @return float|null The percentage rate (0.00-1.00) of the commission the co-leader receives.
      */
     function get_agent_coleadership_agent_rate( $agent_id );
+    
+    /**
+     * Tries to find the agent using the passed in agent email
+     * @param string $agent_email
+     */
+    function get_agent_id_by_email( $agent_email );
+    
+    /**
+     * Retrieves the ids of all of the agents that the current agent has a coleadership
+     * agreement over.
+     * @param int $coleadership_agent_id
+     */
+    function get_coleadership_sponsored_agent_ids( $coleadership_agent_id );
+    
+    /**
+     * Retrieves the downline in a one 
+     * @param type $agent_id
+     */
+    function get_agent_downline_with_coleaderships( $agent_id );
 }
