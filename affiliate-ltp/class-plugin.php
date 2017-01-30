@@ -102,14 +102,18 @@ class Plugin {
         $settings_dal = new admin\Settings_DAL_Affiliate_WP_Adapter();
         $filterer = null;
         $show_controls = false;
+        $exclude_partner = true;
         
         // if the user is a partner.
         $partner_rank_id = $settings_dal->get_partner_rank_id();
         if ($partner_rank_id === $agent_dal->get_agent_rank($agent_id)) {
             $show_controls = true;
-            if (absint(filter_input(INPUT_POST, 'affiliate_ltp_show_partners')) !== 1) {
-                $filterer = new Agent_Tree_Partner_Filterer($agent_dal, $settings_dal);
+            if (absint(filter_input(INPUT_POST, 'affiliate_ltp_show_partners')) === 1) {
+                $exclude_partner = false;
             }
+        }
+        if ($exclude_partner) {
+            $filterer = new Agent_Tree_Partner_Filterer($agent_dal, $settings_dal);
         }
         
         $agents_tree_display = new Agents_Tree_Display($agent_dal, $filterer);
