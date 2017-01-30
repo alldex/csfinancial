@@ -219,26 +219,22 @@ class Plugin {
         
     }
 
+    /**
+     * Our plugin can override other plugin language files.
+     * @param string $mofile
+     * @param string $domain
+     * @return string
+     */
     public function load_ltp_en_mofile( $mofile, $domain )
     {
-        if ( 'affiliate-wp' == $domain )
-        {
-            $includePath = plugin_dir_path( __FILE__ );
-            return $includePath . "/languages/affiliate-wp-en.mo";
-        }
-        else if ( 'affiliatewp-multi-level-marketing' == $domain )
-        {
-            $includePath = plugin_dir_path( __FILE__ );
-            return $includePath . "/languages/affiliatewp-multi-level-marketing-en.mo";
-        }
-        else if ( 'affiliatewp-ranks' == $domain )
-        {
-            $includePath = plugin_dir_path( __FILE__ );
-            return $includePath . "/languages/affiliatewp-ranks-en.mo";
-        }
-        else if ( 'affiliate-ltp' == $domain ) {
-            $includePath = plugin_dir_path( __FILE__ );
-            return $includePath . "/languages/affiliate-ltp-en.mo";
+        // remove any slashes from the filename so we can't try to include
+        // directories.
+        $safe_domain = str_replace('/', '_', $domain);
+        
+        $include_path = plugin_dir_path( __FILE__ );
+        $include_file = $include_path . "/languages/" . $safe_domain . "-en.mo";
+        if (file_exists($include_file)) {
+            return $include_file;
         }
         return $mofile;
     }
