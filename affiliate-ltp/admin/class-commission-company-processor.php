@@ -91,7 +91,7 @@ class Commission_Company_Processor {
             , "amount" => $company_amount
             , "custom" => "indirect"
             , "context" => $new_request->type
-            , "status" => CommissionStatus::UNPAID
+            , "status" => CommissionStatus::PAID
             , "date" => $new_request->date
             , "points" => $company_amount
             , "agent_rate" => $company_commission_rate

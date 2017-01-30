@@ -75,7 +75,7 @@ class Referrals {
         require_once 'class-commission-payout-export.php';
 
         
-        $export = new Commission_Payout_Export($this->referralMetaDb);
+        $export = new Commission_Payout_Export($this->referralMetaDb, $this->settings_dal);
         if (isset($data['is_life_commission'])) {
             $export->commissionType = CommissionType::TYPE_LIFE;
         }
