@@ -68,14 +68,18 @@ class Commission_Processor {
 
     public function process_commission_request(Referrals_New_Request $request) {
 
+        $company_processor = new Commission_Company_Processor($this->commission_dal, $this->settings_dal);
+        
         // reset this so we can stay clean.
         $this->processedItems = [];
 
         // create the client if necessary
         $request->client['id'] = $this->createClient($request->client);
 
-        // process the company
-        $updatedRequest = $this->process_company_commission($request);
+        // prepare the initial company cut and update the request that
+        // other subsequent commissions are based off of.
+        $updatedRequest = $company_processor->prepare_company_commission($request);
+        //$updatedRequest = $this->process_company_commission($request);
 
         $processingStack = $this->get_initial_commissions_to_process_from_request($updatedRequest);
         $stackBreakCount = 0;
@@ -83,6 +87,10 @@ class Commission_Processor {
             $item = $processingStack->pop();
             $this->process_item($item, $processingStack);
         }
+        // adds to the company cut any remaining funds that were not used
+        // in the commissions to the other agents.
+        $company_processor->create_company_commission($this->processed_items, $request);
+        
         $items = $this->processed_items;
         $this->processed_items = [];
         return $items;

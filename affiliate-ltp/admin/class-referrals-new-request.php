@@ -16,6 +16,7 @@ class Referrals_New_Request {
     public $amount;
     public $date;
     public $points;
+    // TODO: stephen look at removing company_referral_id;
     public $company_referral_id;
     public $type;
     
