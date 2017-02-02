@@ -278,7 +278,7 @@ class AffiliateWP_Custom_Affiliates_Slugs_Base {
 			<p><?php printf( __( 'Your custom slug is: <strong>%s</strong>', 'affiliatewp-custom-affiliate-slugs' ), $custom_slug ); ?></p>
 		<?php elseif ( $custom_slug && $display_slug ) : // fallback to username ?>
 			<p><?php printf( __( 'Your custom slug is: <strong>%s</strong>', 'affiliatewp-custom-affiliate-slugs' ), $custom_slug ); ?></p>
-			<p><?php printf( __( 'Your referral URL using your custom slug is: <strong>%s</strong>', 'affiliate-wp' ), esc_url( urldecode( affwp_get_affiliate_referral_url( array( 'format' => 'slug' ) ) ) ) ); ?></p>
+			<p><?php printf( __( 'Your referral URL using your custom slug is: <strong>%s</strong>', 'affiliatewp-custom-affiliate-slugs' ), esc_url( urldecode( affwp_get_affiliate_referral_url( array( 'format' => 'slug' ) ) ) ) ); ?></p>
 		<?php endif;
 	}
 
