@@ -98,18 +98,18 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
             "affiliate_id" => absint(self::COMPANY_AGENT_ID)
             , "description" => __("Override", "affiliate-ltp")
             , "reference" => $client['contract_number']
-            , "amount" => $company_amount
+            , "amount" => (float)$company_amount
             , "custom" => "indirect"
             , "context" => $type
             , "status" => CommissionStatus::PAID
             , "date" => $date
-            , "points" => $points
+            , "points" => (float)$points
             , "agent_rate" => $company_commission_rate
             , "client" => $client
         );
         return $company_commission;
     }
-    function test_process_commission_request_haircut_skip() {
+    function test_prepare_company_commission_haircut_skip() {
         $settings_dal = $this->get_settings_dal_mock();
         $commission_dal = $this->get_commission_dal_mock();
 
@@ -117,14 +117,39 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
 
         $processor = new Commission_Company_Processor($commission_dal, $settings_dal);
         $newRequest = $processor->prepare_company_commission($request);
-        $processor->create_company_commission($this->get_sample_agent_commissions());
 
         $amount = $request->amount;
         $points = $request->points;
+
         // make sure nothing changed in skipping the haircut.
         $this->assertNotSame($newRequest, $request);
         $this->assertEquals($newRequest->amount, $amount);
         $this->assertEquals($newRequest->points, $points);
+    }
+    
+    /**
+     * Verify that skipping the haircut still will give the company commission
+     * 
+     */
+    function test_create_company_commission_haircut_skip_calculates_remainder() {
+        $settings_dal = $this->get_settings_dal_mock();
+        $commission_dal = $this->get_commission_dal_mock();
+
+        $request = $this->get_sample_request();
+        // make sure this is skipped.
+        $request->skipCompanyHaircut = true;
+        
+        $sample_save = $this->get_sample_commission_save(1.0, (float)$request->amount);
+        $commission_dal->expects($this->once())
+                    ->method('add_commission')
+                    ->with($sample_save);
+
+        $processor = new Commission_Company_Processor($commission_dal, $settings_dal);
+        $processor->prepare_company_commission($request);
+        // no agent commissions taken out so the company should get everything
+        // even if the haircut is skipped.
+        $agent_commissions = []; 
+        $processor->create_company_commission($agent_commissions); 
     }
     
     function test_process_commission_request_all_haircut() {

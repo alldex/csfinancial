@@ -64,6 +64,7 @@ class Commission_Processor {
         $this->commission_dal = $commission_dal;
         $this->agent_dal = $agent_dal;
         $this->settings_dal = $settings_dal;
+        $this->processed_items = [];
     }
 
     public function process_commission_request(Referrals_New_Request $request) {

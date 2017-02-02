@@ -125,10 +125,6 @@ class Commission_Company_Processor {
         $this->orig_request = $orig_request;
         
         $new_request = clone $orig_request;
-        // do nothing here if we are to skip the company commissions.
-        if ($new_request->skipCompanyHaircut) {
-            return $new_request;
-        }
         
         // TODO: stephen need to move these to our own class so we can abstract it.
         $company_commission_rate = $this->settings_dal->get_company_rate();
@@ -143,10 +139,14 @@ class Commission_Company_Processor {
         if (empty($company_agent_id)) {
             return $new_request;
         }
-
+        
         // make the commission 0 if we don't have anything here so that we get
         // a line item here.
-        if (empty($company_commission_rate)) {
+        // Or make it 0 if the company haircut is set to nothing so we can
+        // prepare all the data for a company commission if there is any money
+        // left over to be paid to the company if the agents don't finish
+        // paying out.
+        if (empty($company_commission_rate) || $new_request->skipCompanyHaircut) {
             $company_commission_rate = 0;
         } else {
             $company_commission_rate = round(absint($company_commission_rate) / 100, 2);
