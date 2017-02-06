@@ -20,9 +20,9 @@ class Test_Commission_Parser extends \WP_UnitTestCase {
     
     private function get_agent_dal_mock() {
         $agent_stub = $this->getMockBuilder('\AffiliateLTP\admin\Agent_DAL')
-                     ->setMethods([
-                         'get_agent_id_by_email'
-                        ])
+//                     ->setMethods([
+//                         'get_agent_id_by_email'
+//                        ])
                      ->getMock();
         return $agent_stub;
     }

@@ -38,6 +38,10 @@ class Plugin {
         
         require_once "class-sugarcrm-dal.php";
         require_once "class-commission-type.php";
+        require_once $includePath . '/admin/class-agent-dal.php';
+        require_once $includePath . '/admin/class-agent-dal-affiliate-wp-adapter.php';
+        require_once $includePath . '/admin/class-settings-dal.php';
+        require_once $includePath . '/admin/class-settings-dal-affiliate-wp-adapter.php';
         
         if (self::LOCALHOST_RESTRICTED) {
             require_once "class-sugarcrm-dal-localhost.php";
@@ -59,6 +63,7 @@ class Plugin {
         }
         
         require_once $includePath . "/class-shortcodes.php";
+        require_once $includePath . "/class-agent-tree-partner-filterer.php";
         new Shortcodes(); //setup the shortcodes.
         
         
@@ -74,6 +79,8 @@ class Plugin {
         add_filter( 'affwp_affiliate_area_show_tab', array($this, 'remove_unused_tabs'), 10, 2 );
         
         add_action( 'affwp_affiliate_dashboard_tabs', array( $this, 'add_organization_tab' ), 10, 2 );
+        
+        add_action('affwp_affiliate_dashboard_organization_show', array( $this, 'render_organization_tree' ), 10, 1);
 			
         // Add template folder to hold the sub affiliates tab content
         add_filter( 'affwp_template_paths', array( $this, 'get_theme_template_paths' ) );
@@ -87,6 +94,30 @@ class Plugin {
         add_action( 'affwp_register_user', array( $this, 'clearTrackingCookie' ), 10, 3 );
         
         add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsToGraphTab' ), 10, 1);
+    }
+    
+    // TODO: stephen is there a better place for this than the core plugin??
+    public function render_organization_tree($agent_id) {
+        $agent_dal = new admin\Agent_DAL_Affiliate_WP_Adapter();
+        $settings_dal = new admin\Settings_DAL_Affiliate_WP_Adapter();
+        $filterer = null;
+        $show_controls = false;
+        $exclude_partner = true;
+        
+        // if the user is a partner.
+        $partner_rank_id = $settings_dal->get_partner_rank_id();
+        if ($partner_rank_id === $agent_dal->get_agent_rank($agent_id)) {
+            $show_controls = true;
+            if (absint(filter_input(INPUT_POST, 'affiliate_ltp_show_partners')) === 1) {
+                $exclude_partner = false;
+            }
+        }
+        if ($exclude_partner) {
+            $filterer = new Agent_Tree_Partner_Filterer($agent_dal, $settings_dal);
+        }
+        
+        $agents_tree_display = new Agents_Tree_Display($agent_dal, $filterer);
+        $agents_tree_display->show_tree($agent_id, $show_controls);
     }
     
     public function addPointsToGraphTab( $affiliate_id ) {
@@ -156,6 +187,8 @@ class Plugin {
         require_once "class-points-record.php";
         require_once "class-points-retriever.php";
         require_once "class-points-graph.php";
+        
+        require_once "class-agents-tree-display.php";
     }
 
     /**
@@ -186,26 +219,22 @@ class Plugin {
         
     }
 
+    /**
+     * Our plugin can override other plugin language files.
+     * @param string $mofile
+     * @param string $domain
+     * @return string
+     */
     public function load_ltp_en_mofile( $mofile, $domain )
     {
-        if ( 'affiliate-wp' == $domain )
-        {
-            $includePath = plugin_dir_path( __FILE__ );
-            return $includePath . "/languages/affiliate-wp-en.mo";
-        }
-        else if ( 'affiliatewp-multi-level-marketing' == $domain )
-        {
-            $includePath = plugin_dir_path( __FILE__ );
-            return $includePath . "/languages/affiliatewp-multi-level-marketing-en.mo";
-        }
-        else if ( 'affiliatewp-ranks' == $domain )
-        {
-            $includePath = plugin_dir_path( __FILE__ );
-            return $includePath . "/languages/affiliatewp-ranks-en.mo";
-        }
-        else if ( 'affiliate-ltp' == $domain ) {
-            $includePath = plugin_dir_path( __FILE__ );
-            return $includePath . "/languages/affiliate-ltp-en.mo";
+        // remove any slashes from the filename so we can't try to include
+        // directories.
+        $safe_domain = str_replace('/', '_', $domain);
+        
+        $include_path = plugin_dir_path( __FILE__ );
+        $include_file = $include_path . "/languages/" . $safe_domain . "-en.mo";
+        if (file_exists($include_file)) {
+            return $include_file;
         }
         return $mofile;
     }

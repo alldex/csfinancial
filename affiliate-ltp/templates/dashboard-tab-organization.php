@@ -5,6 +5,10 @@
  ?>
 
 <div id="affwp-affiliate-dashboard-organization" class="affwp-tab-content">
-	<?php show_sub_affiliates( $affiliate_id, $show ); ?>
-
+        <?php 
+        /* We do this since we can't overwrite the dashboard panel too easily
+         * See Agents_Tree_Display
+         */
+        ?>
+        <?php do_action("affwp_affiliate_dashboard_organization_show", $affiliate_id, $show); ?>
 </div>	

@@ -22,15 +22,48 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
      */
     private $referralsByAffiliateId;
     
-    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
+    /**
+     *
+     * @var Settings_DAL
+     */
+    private $settings_dal;
+    
+    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb, Settings_DAL $settings_dal) {
        $this->commissionType = CommissionType::TYPE_LIFE;
        $this->referralMetaDb = $referralMetaDb;
-       
+       $this->settings_dal = $settings_dal;
         parent::__construct();
         
         add_filter( 'affwp_export_get_data_' . $this->export_type, array($this, 'addExtraData'), 10, 1);
+        add_filter( 'affwp_export_get_data_' . $this->export_type, array($this, 'remove_company_agent'), 20, 1);
     }
     
+    /**
+     * We make sure that no matter what we don't pay the company by removing it
+     * from the list.
+     * @param array $export_data
+     * @return array
+     */
+    public function remove_company_agent( $export_data ) {
+        $company_agent_id = absint($this->settings_dal->get_company_agent_id());
+        
+        if (empty($company_agent_id)) {
+            return;
+        }
+        
+        $new_data = [];
+        foreach ($export_data as $agent_id => $row) {
+//            var_dump("$company_agent_id === " . absint($agent_id));
+            if ($company_agent_id !== absint($agent_id)) {
+                $new_data[] = $row;
+            }
+        }
+//        exit;
+        
+        return $new_data;
+    }
+    
+    // TODO: rename this funtion to conform with naming standards
     public function addExtraData( $exportData ) {
         $newData = array();
         foreach ($exportData as $affiliateId => $row) {
