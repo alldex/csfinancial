@@ -27,7 +27,7 @@ class SugarCRMDALLocalhost extends SugarCRMDAL {
     }
     
     public function searchAccounts($searchValue = "", $limit = 5) {
-        return array(0 => $this->getAccountById(0)); // return a dummy account.
+        return array(0 => $this->getAccountById("#555-5555-5")); // return a dummy account.
     }
     
      public function getAccountById($accountId) {
