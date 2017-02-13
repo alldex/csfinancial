@@ -6,6 +6,7 @@ use \Affiliate_WP_Referral_Meta_DB;
 use AffiliateLTP\admin\Menu;
 use AffiliateLTP\admin\Referrals;
 use AffiliateLTP\admin\Settings;
+use AffiliateLTP\admin\Tools;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -54,6 +55,7 @@ class Plugin {
             require_once $includePath . '/admin/class-menu.php';
             require_once $includePath . "/admin/class-settings.php";
             require_once $includePath . "/admin/class-upgrades.php";
+            require_once $includePath . "/admin/class-tools.php";
             
             // setup the settings.
             $this->settings = new Settings();
@@ -94,6 +96,23 @@ class Plugin {
         add_action( 'affwp_register_user', array( $this, 'clearTrackingCookie' ), 10, 3 );
         
         add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsToGraphTab' ), 10, 1);
+    }
+    
+    /**
+     * 
+     * @return \AffiliateLTP\admin\Commission_DAL
+     */
+    public function get_commission_dal() {
+        // TODO: stephen I really don't like this
+        return new admin\Commission_Dal_Affiliate_WP_Adapter($this->referralMeta);
+    }
+    
+    /**
+     * 
+     * @return \AffiliateLTP\admin\Agent_DAL
+     */
+    public function get_agent_dal() {
+        return new admin\Agent_DAL_Affiliate_WP_Adapter();
     }
     
     // TODO: stephen is there a better place for this than the core plugin??
@@ -181,6 +200,11 @@ class Plugin {
             $this->adminReferrals = new Referrals($this->referralMeta);
             // TODO: stephen look at renaming the AdminMenu to keep with our naming convention
             $adminMenu = new Menu($this->adminReferrals);
+            
+            $settings_dal = new admin\Settings_DAL_Affiliate_WP_Adapter();
+            
+            $tools = new Tools($this->get_agent_dal(), $this->getSugarCRM(),
+                    $this->get_commission_dal(), $settings_dal);
         }
         
         // require the points graph since it's dependent on other plugins.

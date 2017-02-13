@@ -208,9 +208,13 @@ class Referrals {
         if (!wp_verify_nonce($requestData['affwp_add_referral_nonce'], 'affwp_add_referral_nonce')) {
             wp_die(__('Security check failed', 'affiliate-wp'), array('response' => 403));
         }
-
+        
         try {
             $request = Referrals_New_Request_Builder::build($requestData);
+            echo "<pre>";
+        var_dump($request);
+        echo "</pre>";
+        exit;
             $commissionProcessor = new Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
             $commissionProcessor->process_commission_request($request);

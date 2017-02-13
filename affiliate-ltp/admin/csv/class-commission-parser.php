@@ -6,10 +6,16 @@
  */
 
 namespace AffiliateLTP\admin\csv;
+require_once "class-commission-csv-request.php";
+
+use AffiliateLTP\admin\csv\Commission_CSV_Request;
 use League\Csv\Reader;
 use AffiliateLTP\admin\Referrals_Agent_Request;
 use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\SugarCRMDAL;
+use AffiliateLTP\CommissionType;
+
+
 
 /**
  * Description of class-file-parser
@@ -34,15 +40,19 @@ class Commission_Parser {
      */
     private $crm_dal;
     
-    // TODO: stephen need to have a situation of how to handle errors while we go through the import
+    /**
+     * Keeps track of the current line number
+     * @var number
+     */
+    private $line_number;
     
-    public function __construct(Reader $reader, Agent_DAL $agent_dal, SugarCRMDAL $crm_dal) {
-        $keys = ['writing_agent_email', 'split_commission'
+    private $csv_keys = ['writing_agent_email'
+            ,'is_life_insurance', 'points'
+            ,'date','amount'
+            ,'split_commission'
             ,'split_1_percent'
             ,'split_2_agent_email', 'split_2_percent'
             ,'split_3_agent_email', 'split_3_percent'
-            ,'is_life_insurance', 'points'
-            ,'date','amount'
             ,'skip_company_haircut'
             ,'give_all_company_haircut'
             ,'contract_number'
@@ -53,11 +63,17 @@ class Commission_Parser {
             ,'client_phone'
             ,'client_email'
         ];
+    
+    // TODO: stephen need to have a situation of how to handle errors while we go through the import
+    
+    public function __construct(Reader $reader, Agent_DAL $agent_dal, SugarCRMDAL $crm_dal) {
+        $keys = $this->csv_keys;
         
         $this->readerIterator = $reader->setOffset(1)->fetchAssoc($keys, array($this, 'format_rows'));
         $this->readerIterator->rewind(); // set it to the beginning.
         $this->agent_dal = $agent_dal;
         $this->crm_dal =$crm_dal;
+        $this->line_number = 1;
     }
     
     public function format_rows($row) {
@@ -90,17 +106,27 @@ class Commission_Parser {
         }
         
         $row['date'] = date_i18n( 'Y-m-d H:i:s', strtotime( $row['date'] ) );
+        
+        $row['line_number'] = $this->line_number++;
+//        echo "<pre>";
+//        var_dump($row);
+//        echo "</pre>";
         return $row;
     }
     
+
+    /**
+     * 
+     * @return Commission_CSV_Request
+     */
     public function next_commission_request() {
         if (!$this->readerIterator->valid()) {
             return null;
         }
-        
+                
         $row = $this->readerIterator->current();
         //$this->validate_row($row);
-        $request = new \AffiliateLTP\admin\Referrals_New_Request();
+        $request = new \AffiliateLTP\admin\csv\Commission_CSV_Request();
         
         $request->agents= $this->create_agents_for_row($row);
         $request->client = $this->get_client_for_row($row);
@@ -108,8 +134,14 @@ class Commission_Parser {
         $request->points = $row['points'];
         $request->companyHaircutAll = $row['give_all_company_haircut'];
         $request->skipCompanyHaircut = $row['skip_company_haircut'];
-        $request->type = $row['is_life_insurance'];
+        if ($row['is_life_insurance']) {
+            $request->type = CommissionType::TYPE_LIFE;
+        }
+        else {
+            $request->type = CommissionType::TYPE_NON_LIFE;
+        }
         $request->date = $row['date'];
+        $request->line_number = $row['line_number'];
         
         $this->readerIterator->next();
         
@@ -126,7 +158,7 @@ class Commission_Parser {
         }
         else {
             $client = array(
-                'id' => null
+            'id' => null
             ,'contract_number' => $row['contract_number']
             ,'name'    => $row['client_name']
             ,'street_address' => $row['client_street_address']
@@ -146,22 +178,25 @@ class Commission_Parser {
         if (!empty($row['writing_agent_email'])) {
             
             $agent1->id = $this->find_agent_id_by_email($row['writing_agent_email']);
+            $agent1->email = $row['writing_agent_email'];
             $agent1->split = 100;
         }
         if ($row['split_commission']) {
-            $agent1 = $row['split_1_percent'];
+            $agent1->split = $row['split_1_percent'];
             $agents[] = $agent1;
             
             if (isset($row['split_2_agent_email'])) {
                 $agent2 = new Referrals_Agent_Request();
                 $agent2->id = $this->find_agent_id_by_email($row['split_2_agent_email']);
+                $agent2->email = $row['split_2_agent_email'];
                 $agent2->split = $row['split_2_percent'];
                 $agents[] = $agent2;
             }
 
-            if (isset($row['split_3_agent_email'])) {
+            if (!empty($row['split_3_agent_email'])) {
                 $agent3 = new Referrals_Agent_Request();
                 $agent3->id = $this->find_agent_id_by_email($row['split_3_agent_email']);
+                $agent3->email = $row['split_3_agent_email'];
                 $agent3->split = $row['split_3_percent'];
                 $agents[] = $agent3;
             }
