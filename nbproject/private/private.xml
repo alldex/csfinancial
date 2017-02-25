@@ -4,15 +4,11 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/class-plugin.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-agent-dal-affiliate-wp-adapter.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-agent-dal.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-commission-payout-export.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-commission-company-processor.php</file>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-referrals.php</file>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-commission-processor.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-commission-company-processor.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/tests/test-commission-company-processor.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/languages/affiliatewp-custom-affiliate-slugs-en.po</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliatewp-custom-affiliate-slugs/includes/class-base.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/assets/js/admin/ltp-admin.js</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-gravity-forms.php</file>
         </group>
     </open-files>
 </project-private>
