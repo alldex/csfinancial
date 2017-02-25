@@ -19,4 +19,5 @@
             </p>
         </form>
     </div><!-- .inside -->
+    <p>An example CSV can be found <a href="/wp-content/plugins/affiliate-ltp/examples/commission-example.csv" download>here</a>.</p>
 </div><!-- .postbox -->
