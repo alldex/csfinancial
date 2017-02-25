@@ -54,19 +54,22 @@ class Plugin {
             require_once $includePath . '/admin/class-menu.php';
             require_once $includePath . "/admin/class-settings.php";
             require_once $includePath . "/admin/class-upgrades.php";
-            require_once $includePath . "/admin/class-gravity-forms.php";
             
             // setup the settings.
             $this->settings = new Settings();
             
             // setup our admin scripts.
             add_action( 'admin_enqueue_scripts', array($this, 'admin_scripts' ) );
-            new admin\Gravity_Forms();
         }
-        
+        require_once $includePath . "/admin/class-agent-custom-slug.php";
+        require_once $includePath . "/admin/gravityforms/class-gravity-forms-bootstrap.php";
         require_once $includePath . "/class-shortcodes.php";
         require_once $includePath . "/class-agent-tree-partner-filterer.php";
         new Shortcodes(); //setup the shortcodes.
+        // setup the gravity forms
+        // TODO: stephen we should probably take this out of admin since it
+        // also controls non-admin functionality.
+        new admin\GravityForms\Gravity_Forms_Bootstrap();
         
         
         // come in last here.
