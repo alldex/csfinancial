@@ -54,12 +54,14 @@ class Plugin {
             require_once $includePath . '/admin/class-menu.php';
             require_once $includePath . "/admin/class-settings.php";
             require_once $includePath . "/admin/class-upgrades.php";
+            require_once $includePath . "/admin/class-gravity-forms.php";
             
             // setup the settings.
             $this->settings = new Settings();
             
             // setup our admin scripts.
             add_action( 'admin_enqueue_scripts', array($this, 'admin_scripts' ) );
+            new admin\Gravity_Forms();
         }
         
         require_once $includePath . "/class-shortcodes.php";
