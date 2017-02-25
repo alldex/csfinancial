@@ -88,7 +88,7 @@ interface Agent_DAL {
      * @param string $agent_email
      */
     function get_agent_id_by_email( $agent_email );
-    
+
     /**
      * Retrieves the ids of all of the agents that the current agent has a coleadership
      * agreement over.

@@ -44,6 +44,13 @@ class Test_Commission_Processor extends \WP_UnitTestCase{
                          ,'get_agent_commission_rate'
                          ,'get_agent_coleadership_agent_id'
                          ,'get_agent_coleadership_agent_rate'
+                         ,'filter_agents_by_status'
+                         ,'get_agent_upline'
+                         ,'get_agent_status'
+                         ,'get_agent_id_by_email'
+                         ,'filter_agents_by_licensed_life_agents'
+                         ,'get_coleadership_sponsored_agent_ids'
+                         ,'get_agent_downline_with_coleaderships'
                         ])
                      ->getMock();
             $agent_dal_stub->method('is_active')

@@ -172,7 +172,7 @@
 			minLength: 2,
 			position: { offset: '0, -1' },
 			select: function( event, data ) {
-				$client_id.val( data.item.client_id );
+				$client_id.val( data.item.id );
                                 $('.readonly-description').removeClass('hidden');
                                 $('#client_name')
                                         .prop("readonly", true)

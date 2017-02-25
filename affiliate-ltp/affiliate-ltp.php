@@ -10,6 +10,9 @@
         License: All Rights Reserved
 */
 
+// include the autoloader
+require_once 'vendor/autoload.php';
+
 require_once 'class-plugin.php';
 
 AffiliateLTP\Plugin::instance();
