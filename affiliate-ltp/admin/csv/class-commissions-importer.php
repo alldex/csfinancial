@@ -53,9 +53,9 @@ class Commissions_Importer {
         
         $parser = new Commission_Parser($reader, $this->agent_dal, $this->sugar_crm_dal);
         
-        echo "<pre>";
+//        echo "<pre>";
         $requests_to_process = [];
-        $time1 = microtime(true);
+//        $time1 = microtime(true);
         while ($request = $parser->next_commission_request()) {
             $validate_errors = $this->validate_request($request);
             if (empty($validate_errors)) {
@@ -66,21 +66,21 @@ class Commissions_Importer {
                         . $request->line_number .  ". Errors: " . implode("\n", $validate_errors));
             }
         }
-        echo "Validation Time: " . (microtime(true) - $time1) . "\n";
+//        echo "Validation Time: " . (microtime(true) - $time1) . "\n";
         if (!empty($requests_to_process)) {
             
             foreach ($requests_to_process as $request_to_process) {
-                $time1 = microtime(true);
+//                $time1 = microtime(true);
                 $processor = new \AffiliateLTP\admin\Commission_Processor($this->commission_dal, 
                         $this->agent_dal, $this->settings_dal);
                 // go through and create the items;
                 $processor->process_commission_request($request_to_process);
-                echo "record import time: " . (microtime(true) - $time1) . "\n";
+//                echo "record import time: " . (microtime(true) - $time1) . "\n";
             }
             
         }
-        echo "</pre>";
-        exit;
+//        echo "</pre>";
+//        exit;
     }
     
     public function validate_request(Commission_CSV_Request $request) {
