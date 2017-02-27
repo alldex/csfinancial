@@ -54,7 +54,7 @@
 
                     var options = {
                         allowHtml: true,
-                        allowColapse: true,
+                        allowCollapse: true,
                         size: 'medium',
                         nodeClass: 'sub_affiliate_node',
                         selectedNodeClass: 'sub_affiliate_node_selected'
@@ -62,6 +62,13 @@
 
                     // Create the chart.
                     var chart = new google.visualization.OrgChart(document.getElementById('tree_wrap'));
+                    // example event handling.
+//                    google.visualization.events.addListener(chart, 'collapse', function() {
+//                        console.log(arguments);
+//                    });
+//                    google.visualization.events.addListener(chart, 'onmouseover', function() {
+//                        console.log(arguments);
+//                    });
                     // Draw the chart, setting the allowHtml option to true for the tooltips.
                     chart.draw(data, options);
                 }

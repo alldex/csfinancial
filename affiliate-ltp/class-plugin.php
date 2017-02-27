@@ -101,6 +101,13 @@ class Plugin {
         add_action( 'affwp_register_user', array( $this, 'clearTrackingCookie' ), 10, 3 );
         
         add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsToGraphTab' ), 10, 1);
+        
+        $this->add_plugin_scripts_and_styles();
+    }
+    
+    private function add_plugin_scripts_and_styles() {
+        $includePath = plugin_dir_url( __FILE__ );
+        wp_enqueue_style( 'affiliate-ltp', $includePath . 'assets/css/affiliate-ltp.css', array() );
     }
     
     /**
