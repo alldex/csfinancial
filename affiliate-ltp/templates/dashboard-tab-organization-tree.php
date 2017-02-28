@@ -35,17 +35,18 @@
                     data.addRows([
         <?php
         foreach ($nodes as $node) :
-            ob_start();
-            include 'dashboard-tab-organization-agent-display.php';
-            $sub_data = ob_get_clean();
-            
+//            ob_start();
+//            include 'dashboard-tab-organization-agent-display.php';
+//            $sub_data = ob_get_clean();
+            $count = 0;
             
             //$sub_data = show_affiliate_data($node['id']);
             $sub_avatar = addslashes(get_avatar($node['user_id']));
             $sub_node = '<div class="sub_node ' . $node['status'] . ' affwp-mlm-aff">';
             $sub_node .= '<div class="affwp-mlm-aff-avatar">' . $sub_avatar . '</div>';
             $sub_node .= '<span class="affwp-mlm-aff-name">' . $node['name'] . '</span>';
-            $sub_node .= preg_replace( "/\r|\n/", "", $sub_data );
+            $sub_node .= '<ul class="affwp-mlm-aff-data-wrap"><a class="agent-dialog" href="#agent-row-' . $count++ . '"><i class="fa fa-chevron-down"></i></a></ul>';
+            //$sub_node .= preg_replace( "/\r|\n/", "", $sub_data );
             $sub_node .= '</div>';
 
             $tooltip = 'Affiliate ID: ' . $sub_id;
@@ -76,10 +77,24 @@
                     // Draw the chart, setting the allowHtml option to true for the tooltips.
                     chart.draw(data, options);
                 }
+                
+                jQuery(document).ready(function() {
+                    jQuery("a.agent-dialog").fancybox();
+                });
             </script>
 
             <div id="tree_wrap"></div>
-
+            <!-- Lightbox outputs here -->
+            <?php foreach ($nodes as $node) { 
+                $count = 0;
+            ?>
+            
+            <div style="display:none">
+                <div class='agent-dialog' id="agent-row-<?= $count++ ?>">
+                    <?php include 'dashboard-tab-organization-agent-display.php'; ?>
+                </div>
+            </div>
+            <?php } ?>
     <?php } ?>
 
 

@@ -8,13 +8,13 @@
 */
 /** Reset the hover with more specificity so we can only enable it on click
 **/
-.sub_affiliate_node 
-    ul.affwp-mlm-aff-data-wrap:hover ul.affwp-mlm-aff-data {
-    display: none;
+.agent-dialog
+    ul.affwp-mlm-aff-data-wrap ul.affwp-mlm-aff-data {
+    display: block;
     text-align: center;
 }
 
-.sub_affiliate_node.sub_affiliate_node_selected 
+.agent-dialog
     ul.affwp-mlm-aff-data-wrap ul.affwp-mlm-aff-data {
     display: block; /* visibility: visible; */
     min-width: 16em;
