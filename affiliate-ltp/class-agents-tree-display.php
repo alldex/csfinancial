@@ -193,7 +193,6 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
 	$join_date = esc_attr( date_i18n( 'm-d-Y', strtotime( $affiliate->date_registered ) ) );
 	$status    = affwp_get_affiliate_status( $agent_id );
 	$user_id   = affwp_get_affiliate_user_id( $agent_id );
-	$aff_user  = get_userdata( $user_id );
 	$contact   = $agent_user->user_email;
 	
 	// Referral data
@@ -202,12 +201,12 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
 	$total_referrals  = $paid_referrals + $unpaid_referrals;
         
 	// Network data
-	$direct_id        = affwp_mlm_get_direct_affiliate( $affiliate_id );
-	$parent_id        = affwp_mlm_get_parent_affiliate( $affiliate_id );
+	$direct_id        = affwp_mlm_get_direct_affiliate( $agent_id );
+	$parent_id        = affwp_mlm_get_parent_affiliate( $agent_id );
 	$referrer         = affiliate_wp()->affiliates->get_affiliate_name( $direct_id );
 	$parent 		  = affiliate_wp()->affiliates->get_affiliate_name( $parent_id );
-	$sub_affiliates   = count( affwp_mlm_get_sub_affiliates( $affiliate_id ) );
-	$downline 		  = max(count( affwp_mlm_get_downline_array( $affiliate_id ) ) - 1, 0);
+	$sub_affiliates   = count( affwp_mlm_get_sub_affiliates( $agent_id ) );
+	$downline 		  = max(count( affwp_mlm_get_downline_array( $agent_id ) ) - 1, 0);
 	
 	$aff_data = apply_filters( 'affwp_mlm_aff_data', 
             array(

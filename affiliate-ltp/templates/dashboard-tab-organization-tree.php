@@ -34,11 +34,11 @@
                     // For each orgchart node, provide the name, parent, and tooltip to show.
                     data.addRows([
         <?php
+        $count = 0;
         foreach ($nodes as $node) :
 //            ob_start();
 //            include 'dashboard-tab-organization-agent-display.php';
 //            $sub_data = ob_get_clean();
-            $count = 0;
             
             //$sub_data = show_affiliate_data($node['id']);
             $sub_avatar = addslashes(get_avatar($node['user_id']));
@@ -78,15 +78,22 @@
                     chart.draw(data, options);
                 }
                 
+                // TODO: stephen all this javascript should be put somewhere else..
                 jQuery(document).ready(function() {
                     jQuery("a.agent-dialog").fancybox();
+                    
+                    // handle the expansion
+                    jQuery(".statistics-row-category .fa-chevron-down").click(function() {
+                        jQuery(this).siblings(".statistics-row-category-items").toggleClass("hidden");
+                    });
                 });
             </script>
 
             <div id="tree_wrap"></div>
             <!-- Lightbox outputs here -->
-            <?php foreach ($nodes as $node) { 
-                $count = 0;
+            <?php 
+            $count = 0;
+            foreach ($nodes as $node) {     
             ?>
             
             <div style="display:none">

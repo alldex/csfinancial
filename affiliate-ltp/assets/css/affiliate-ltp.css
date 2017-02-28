@@ -13,6 +13,20 @@
     display: block;
     text-align: center;
 }
+.agent-dialog li {
+    list-style: none;
+}
+.agent-dialog {
+    min-width: 15em;
+    text-align: left;
+}
+.agent-dialog .affwp-mlm-aff-avatar {
+    text-align: center;
+}
+.agent-dialog span.title, .agent-dialog i.fa {
+    font-size: 1.5em; font-weight: bold;
+    padding-right: 0.5em;
+}
 
 .agent-dialog
     ul.affwp-mlm-aff-data-wrap ul.affwp-mlm-aff-data {
