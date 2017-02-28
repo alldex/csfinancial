@@ -35,13 +35,17 @@
                     data.addRows([
         <?php
         foreach ($nodes as $node) :
-
-            $sub_data = show_affiliate_data($node['id']);
+            ob_start();
+            include 'dashboard-tab-organization-agent-display.php';
+            $sub_data = ob_get_clean();
+            
+            
+            //$sub_data = show_affiliate_data($node['id']);
             $sub_avatar = addslashes(get_avatar($node['user_id']));
             $sub_node = '<div class="sub_node ' . $node['status'] . ' affwp-mlm-aff">';
             $sub_node .= '<div class="affwp-mlm-aff-avatar">' . $sub_avatar . '</div>';
             $sub_node .= '<span class="affwp-mlm-aff-name">' . $node['name'] . '</span>';
-            $sub_node .= $sub_data;
+            $sub_node .= preg_replace( "/\r|\n/", "", $sub_data );
             $sub_node .= '</div>';
 
             $tooltip = 'Affiliate ID: ' . $sub_id;
@@ -63,12 +67,12 @@
                     // Create the chart.
                     var chart = new google.visualization.OrgChart(document.getElementById('tree_wrap'));
                     // example event handling.
-//                    google.visualization.events.addListener(chart, 'collapse', function() {
-//                        console.log(arguments);
-//                    });
-//                    google.visualization.events.addListener(chart, 'onmouseover', function() {
-//                        console.log(arguments);
-//                    });
+                    google.visualization.events.addListener(chart, 'collapse', function() {
+                        console.log("collapse",arguments);
+                    });
+                    google.visualization.events.addListener(chart, 'onmouseover', function() {
+                        console.log("onmouseover",arguments);
+                    });
                     // Draw the chart, setting the allowHtml option to true for the tooltips.
                     chart.draw(data, options);
                 }

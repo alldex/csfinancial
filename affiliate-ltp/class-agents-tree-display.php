@@ -149,8 +149,101 @@ class Agents_Tree_Display {
             ,'name' => $sub_name
             ,'parent_name' => $parent_name
             ,'status' => $affiliate_status
+            ,"checklist" => $this->get_agent_checklist( $sub_id )
+            ,"statistics" => $this->get_agent_statistics($sub_user, $sub_id)
         ];
         
         $this->visit_children($nodes, $node, $coleadership_name);
     }
+    
+    private function get_agent_checklist( $agent_id ) {
+        return array(
+            "checklist 1" => array(
+                "date_assigned" => date("Y-m-d")
+                ,"date_completed" => date("Y-m-d")
+            )
+            ,"checklist 2" => array(
+                "date_assigned" => date("Y-m-d")
+                ,"date_completed" => date("Y-m-d")
+            )
+            ,"checklist 3" => array(
+                "date_assigned" => date("Y-m-d")
+                ,"date_completed" => date("Y-m-d")
+            )
+            ,"checklist 4" => array(
+                "date_assigned" => date("Y-m-d")
+                ,"date_completed" => date("Y-m-d")
+            )
+            ,"checklist 5" => array(
+                "date_assigned" => date("Y-m-d")
+                ,"date_completed" => date("Y-m-d")
+            )
+        );
+    }
+    
+    /**
+ * Get an affiliate's data (Stats)
+ *
+ * @since  1.1
+ */
+private function get_agent_statistics( $agent_user, $agent_id ) {
+
+	// Affiliate info
+	$affiliate = affwp_get_affiliate( $agent_id );
+	$join_date = esc_attr( date_i18n( 'm-d-Y', strtotime( $affiliate->date_registered ) ) );
+	$status    = affwp_get_affiliate_status( $agent_id );
+	$user_id   = affwp_get_affiliate_user_id( $agent_id );
+	$aff_user  = get_userdata( $user_id );
+	$contact   = $agent_user->user_email;
+	
+	// Referral data
+	$paid_referrals   = affwp_get_affiliate_referral_count( $agent_id );
+	$unpaid_referrals = affwp_count_referrals( $affiliate, 'unpaid' );
+	$total_referrals  = $paid_referrals + $unpaid_referrals;
+        
+	// Network data
+	$direct_id        = affwp_mlm_get_direct_affiliate( $affiliate_id );
+	$parent_id        = affwp_mlm_get_parent_affiliate( $affiliate_id );
+	$referrer         = affiliate_wp()->affiliates->get_affiliate_name( $direct_id );
+	$parent 		  = affiliate_wp()->affiliates->get_affiliate_name( $parent_id );
+	$sub_affiliates   = count( affwp_mlm_get_sub_affiliates( $affiliate_id ) );
+	$downline 		  = max(count( affwp_mlm_get_downline_array( $affiliate_id ) ) - 1, 0);
+	
+	$aff_data = apply_filters( 'affwp_mlm_aff_data', 
+            array(
+                    'info' => array(
+                            'title'    => __( 'Info', 'affiliatewp-multi-level-marketing' ),
+                            'icon'     => 'fa-info',
+                            'content'  => array(						
+                                    'joined'  => $join_date,
+                                    'status'  => $status,
+                                    'contact' => $contact,
+                            )
+                    ),
+                    'referrals' => array(
+                            'title'    => __( 'Referrals', 'affiliatewp-multi-level-marketing' ),
+                            'icon'     => 'fa-link',
+                            'content'  => array(						
+                                    'paid'   => $paid_referrals,
+                                    'unpaid' => $unpaid_referrals,
+                                    'total'  => $total_referrals,
+                            )
+                    )
+                    ,'sub_affiliates' => array(
+                            'title'    => __( 'Network', 'affiliatewp-multi-level-marketing' ),
+                            'icon'     => 'fa-sitemap',
+                            'content'  => array(						
+                                    'referrer' => $referrer,
+                                    'parent'   => $parent,
+                                    'direct'   => $sub_affiliates,
+                                    'downline' => $downline,
+                            )
+                    )
+
+            )
+    );
+	
+	return $aff_data;
+
+}
 }
