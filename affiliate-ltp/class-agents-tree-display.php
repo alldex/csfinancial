@@ -157,6 +157,9 @@ class Agents_Tree_Display {
     }
     
     private function get_agent_checklist( $agent_id ) {
+        
+        //$this->agent_dal->get_agent_progress_items( $agent_id );
+        
         return array(
             "checklist 1" => array(
                 "date_assigned" => date("Y-m-d")
@@ -192,13 +195,12 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
 	$affiliate = affwp_get_affiliate( $agent_id );
 	$join_date = esc_attr( date_i18n( 'm-d-Y', strtotime( $affiliate->date_registered ) ) );
 	$status    = affwp_get_affiliate_status( $agent_id );
-	$user_id   = affwp_get_affiliate_user_id( $agent_id );
 	$contact   = $agent_user->user_email;
-	
-	// Referral data
-	$paid_referrals   = affwp_get_affiliate_referral_count( $agent_id );
-	$unpaid_referrals = affwp_count_referrals( $affiliate, 'unpaid' );
-	$total_referrals  = $paid_referrals + $unpaid_referrals;
+
+	$paid_earnings   = affwp_get_affiliate_earnings( $agent_id, true );
+	$unpaid_earnings = affwp_get_affiliate_unpaid_earnings( $agent_id, true );
+	$total_earnings  = affwp_get_affiliate_earnings( $agent_id ) + affwp_get_affiliate_unpaid_earnings( $agent_id );
+	$total_earnings_by_currency  = affwp_currency_filter( affwp_format_amount( $total_earnings ) );
         
 	// Network data
 	$direct_id        = affwp_mlm_get_direct_affiliate( $agent_id );
@@ -218,14 +220,14 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
                                     'status'  => $status,
                                     'contact' => $contact,
                             )
-                    ),
-                    'referrals' => array(
-                            'title'    => __( 'Referrals', 'affiliatewp-multi-level-marketing' ),
-                            'icon'     => 'fa-link',
+                    )
+                    ,'earnings' => array(
+                            'title'    => __( 'Earnings', 'affiliatewp-multi-level-marketing' ),
+                            'icon'     => 'fa-usd',
                             'content'  => array(						
-                                    'paid'   => $paid_referrals,
-                                    'unpaid' => $unpaid_referrals,
-                                    'total'  => $total_referrals,
+                                    'paid'   => $paid_earnings,
+                                    'unpaid' => $unpaid_earnings,
+                                    'total'  => $total_earnings_by_currency,
                             )
                     )
                     ,'sub_affiliates' => array(
