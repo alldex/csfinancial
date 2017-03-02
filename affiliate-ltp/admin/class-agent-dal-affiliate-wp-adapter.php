@@ -221,6 +221,22 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
 
 	return $tree;
     }
+    
+    public function get_agent_progress_items( $agent_id ) {
+        $progress_items = affiliate_wp()->settings->get( 'affwp_ltp_progress_items' );
+        
+        $checklist = array();
+        
+        foreach ($progress_items as $key => $item) {
+            $checklist[$item['name']] = ["date_completed" => null];
+        }
+        
+        // now we need to get affiliate meta data
+        //$agent_progress_items = affiliate_wp()->affiliate_meta->get_meta( $agent_id , 'progress_items' );
+        
+        return $checklist;
+    }
+    
     private function get_new_agent_tree_node($type, $id) {
         $obj = new \AffiliateLTP\Agent_Tree_Node();
         $obj->type = $type;

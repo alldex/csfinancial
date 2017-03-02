@@ -101,4 +101,11 @@ interface Agent_DAL {
      * @param type $agent_id
      */
     function get_agent_downline_with_coleaderships( $agent_id );
+    
+    /**
+     * Returns the list of progress items for the agent including their 
+     * date_completed.
+     * @param int $agent_id The id of the agent to get the progress data for.
+     */
+    function get_agent_progress_items( $agent_id );
 }

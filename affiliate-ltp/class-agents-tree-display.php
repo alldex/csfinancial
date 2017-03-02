@@ -158,30 +158,30 @@ class Agents_Tree_Display {
     
     private function get_agent_checklist( $agent_id ) {
         
-        //$this->agent_dal->get_agent_progress_items( $agent_id );
-        
-        return array(
-            "checklist 1" => array(
-                "date_assigned" => date("Y-m-d")
-                ,"date_completed" => date("Y-m-d")
-            )
-            ,"checklist 2" => array(
-                "date_assigned" => date("Y-m-d")
-                ,"date_completed" => date("Y-m-d")
-            )
-            ,"checklist 3" => array(
-                "date_assigned" => date("Y-m-d")
-                ,"date_completed" => date("Y-m-d")
-            )
-            ,"checklist 4" => array(
-                "date_assigned" => date("Y-m-d")
-                ,"date_completed" => date("Y-m-d")
-            )
-            ,"checklist 5" => array(
-                "date_assigned" => date("Y-m-d")
-                ,"date_completed" => date("Y-m-d")
-            )
-        );
+        return $this->agent_dal->get_agent_progress_items( $agent_id );
+//        
+//        return array(
+//            "checklist 1" => array(
+//                "date_assigned" => date("Y-m-d")
+//                ,"date_completed" => date("Y-m-d")
+//            )
+//            ,"checklist 2" => array(
+//                "date_assigned" => date("Y-m-d")
+//                ,"date_completed" => date("Y-m-d")
+//            )
+//            ,"checklist 3" => array(
+//                "date_assigned" => date("Y-m-d")
+//                ,"date_completed" => date("Y-m-d")
+//            )
+//            ,"checklist 4" => array(
+//                "date_assigned" => date("Y-m-d")
+//                ,"date_completed" => date("Y-m-d")
+//            )
+//            ,"checklist 5" => array(
+//                "date_assigned" => date("Y-m-d")
+//                ,"date_completed" => date("Y-m-d")
+//            )
+//        );
     }
     
     /**
