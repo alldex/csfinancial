@@ -121,12 +121,12 @@ class Agents_Tree_Display {
         $parent_user = get_user_by('id', $parent_user_id);
 
         // Both names must match
-        $parent_slug = admin\Agent_Custom_Slug::get_slug_for_agent_id($parent_user_id);
+        $parent_slug = admin\Agent_Custom_Slug::get_slug_for_agent_id($parent_agent_id);
         $sub_slug = admin\Agent_Custom_Slug::get_slug_for_agent_id($sub_id);
         
         $sub_name = $sub_user->display_name;
         if (!empty($sub_slug)) {
-            $sub_name .= "(" . $sub_slug . ")";
+            $sub_name .= " (" . $sub_slug . ")";
         }
         
         $parent_name = $parent_user->display_name;
