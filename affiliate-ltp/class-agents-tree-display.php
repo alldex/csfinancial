@@ -9,6 +9,7 @@ namespace AffiliateLTP;
 use AffiliateLTP\admin\Agent_DAL;
 
 
+
 /**
  * Displays a tree chart for a given agent.
  *
@@ -28,9 +29,18 @@ class Agents_Tree_Display {
      */
     private $filterer;
     
-    public function __construct(Agent_DAL $agent_dal, Agent_Tree_Node_Filterer $filterer = null) {
+    /**
+     * If set filters the checklist display portion of the tree with whatever
+     * matches the filterer.
+     * @var Agent_Tree_Node_Filterer
+     */
+    private $checklist_filterer;
+    
+    public function __construct(Agent_DAL $agent_dal, Agent_Tree_Node_Filterer $filterer = null
+            ,  Agent_Tree_Node_Filterer $checklist_filterer) {
         $this->agent_dal = $agent_dal;
         $this->filterer = $filterer;
+        $this->checklist_filterer = $checklist_filterer;
         
         add_filter('show_sub_affiliates_tree_filter_affiliates', array($this, 'add_coleadership_agents_to_tree'));
     }
@@ -154,15 +164,20 @@ class Agents_Tree_Display {
         
         $affiliate_status = affwp_get_affiliate_status($sub_id);
 
-        $nodes[] = [
+        $node_arr = [
             'id' => $sub_id
             ,'user_id' => $user_id
             ,'name' => $sub_name
             ,'parent_name' => $parent_name
             ,'status' => $affiliate_status
-            ,"checklist" => $this->get_agent_checklist( $sub_id )
             ,"statistics" => $this->get_agent_statistics($sub_user, $sub_id)
         ];
+        
+        if ($this->checklist_filterer->filter($node)) {
+            $node_arr["checklist"] = $this->get_agent_checklist( $sub_id );
+        }
+        
+        $nodes[] = $node_arr;
         
         $this->visit_children($nodes, $node, $coleadership_name);
     }
@@ -170,29 +185,6 @@ class Agents_Tree_Display {
     private function get_agent_checklist( $agent_id ) {
         
         return $this->agent_dal->get_agent_progress_items( $agent_id );
-//        
-//        return array(
-//            "checklist 1" => array(
-//                "date_assigned" => date("Y-m-d")
-//                ,"date_completed" => date("Y-m-d")
-//            )
-//            ,"checklist 2" => array(
-//                "date_assigned" => date("Y-m-d")
-//                ,"date_completed" => date("Y-m-d")
-//            )
-//            ,"checklist 3" => array(
-//                "date_assigned" => date("Y-m-d")
-//                ,"date_completed" => date("Y-m-d")
-//            )
-//            ,"checklist 4" => array(
-//                "date_assigned" => date("Y-m-d")
-//                ,"date_completed" => date("Y-m-d")
-//            )
-//            ,"checklist 5" => array(
-//                "date_assigned" => date("Y-m-d")
-//                ,"date_completed" => date("Y-m-d")
-//            )
-//        );
     }
     
     /**

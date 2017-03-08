@@ -67,6 +67,7 @@ class Plugin {
         require_once $includePath . "/admin/gravityforms/class-gravity-forms-bootstrap.php";
         require_once $includePath . "/class-shortcodes.php";
         require_once $includePath . "/class-agent-tree-partner-filterer.php";
+        require_once $includePath . "/class-agent-checklist-filterer.php";
         new Shortcodes(); //setup the shortcodes.
         // setup the gravity forms
         // TODO: stephen we should probably take this out of admin since it
@@ -136,6 +137,7 @@ class Plugin {
         $agent_dal = new admin\Agent_DAL_Affiliate_WP_Adapter();
         $settings_dal = new admin\Settings_DAL_Affiliate_WP_Adapter();
         $filterer = null;
+        $checklist_filterer = new Agent_Checklist_Filterer($agent_dal, $settings_dal);
         $show_controls = false;
         $exclude_partner = true;
         
@@ -151,7 +153,7 @@ class Plugin {
             $filterer = new Agent_Tree_Partner_Filterer($agent_dal, $settings_dal);
         }
         
-        $agents_tree_display = new Agents_Tree_Display($agent_dal, $filterer);
+        $agents_tree_display = new Agents_Tree_Display($agent_dal, $filterer, $checklist_filterer);
         $agents_tree_display->show_tree($agent_id, $show_controls);
     }
     

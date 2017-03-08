@@ -100,6 +100,14 @@ public function __construct() {
 						'size' => 'small',
 						'std' => ''
 					),
+                                    'affwp_ltp_trainer_rank_id' => array(
+						'name' => '<strong>' . __( 'Trainer Rank', 'affiliate-ltp' ) . '</strong>',
+						'desc' => '<p class="description">' . __( 'Select the rank for a trainer' ) . '</p>',
+                                                'type' => 'select',
+                                                'options' => $rank_options,
+						'size' => 'small',
+						'std' => ''
+					),
                                     
 				)
 			)

@@ -30,6 +30,22 @@ class Settings_DAL_Affiliate_WP_Adapter implements Settings_DAL {
         
         return $rank_id;
     }
+    
+     /**
+     * Returns the rank id of the trainer rank that has permission to update
+     * settings for agents underneath them.
+     */
+    public function get_trainer_rank_id() {
+        // for now since we have no company setting we will grab the highest rank
+        // based on order.
+        
+        $rank_id = absint($this->get_setting('affwp_ltp_trainer_rank_id'));
+        if (empty($rank_id)) {
+            return 0;
+        }
+        
+        return $rank_id;
+    }
 
     public function get_generational_override_rate($override_level) {
         // absint will set everything to 0 if it can't parse the value

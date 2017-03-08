@@ -108,4 +108,10 @@ interface Agent_DAL {
      * @param int $agent_id The id of the agent to get the progress data for.
      */
     function get_agent_progress_items( $agent_id );
+    
+    /**
+     * Retrieves the currently logged in user's agent id if there is one.
+     * @returns int
+     */
+    function get_current_user_agent_id();
 }

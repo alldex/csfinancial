@@ -237,6 +237,18 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         return $checklist;
     }
     
+    /**
+     * Returns the currently logged in user's agent id.
+     * @return int
+     */
+    public function get_current_user_agent_id() {
+        $val = absint(affwp_get_affiliate_id());
+        if ($val === 0) {
+            return null;
+        }
+        return $val;
+    }
+    
     private function get_new_agent_tree_node($type, $id) {
         $obj = new \AffiliateLTP\Agent_Tree_Node();
         $obj->type = $type;

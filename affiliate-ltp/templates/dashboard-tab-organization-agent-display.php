@@ -8,7 +8,9 @@
     }
     ?>
     <?php
-    $checklist = $node['checklist'];
-    include "dashboard-tab-organization-agent-display-checklist.php";
+    if (!empty($node['checklist'])) {
+        $checklist = $node['checklist'];
+        include "dashboard-tab-organization-agent-display-checklist.php";
+    }
     ?>
 </ul>
