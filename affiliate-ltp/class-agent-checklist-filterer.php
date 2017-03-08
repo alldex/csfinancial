@@ -15,13 +15,7 @@ use AffiliateLTP\admin\Settings_DAL;
  * @author snielson
  */
 class Agent_Checklist_Filterer implements Agent_Tree_Node_Filterer {
-    
-    /**
-     * The partner rank.
-     * @var int
-     */
-    private $partner_rank;
-    
+  
     /**
      *
      * @var Agent_DAL
