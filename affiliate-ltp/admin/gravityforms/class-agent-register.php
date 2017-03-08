@@ -110,8 +110,6 @@ class Agent_Register {
      */
     public function register_user($entry, $form) {
 
-        error_log("calling register_user");
-
         $email = isset($entry[$this->get_form_field_id($form, 'email')]) ? $entry[$this->get_form_field_id($form, 'email')] : '';
 
         // email is always required for logged out users
