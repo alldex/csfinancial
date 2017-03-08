@@ -7,6 +7,7 @@
 
 namespace AffiliateLTP\admin\GravityForms;
 use GF_Field;
+use AffiliateLTP\admin\Agent_Custom_Slug;
 
 /**
  * Handles the Gravity Forms Agent Custom Slug field.
@@ -104,6 +105,13 @@ class Agent_Slug_Field extends GF_Field {
         $field_id    = $is_entry_detail || $is_form_editor || $form_id == 0 ? "input_$id" : 'input_' . $form_id . "_$id";
 
         $value        = esc_attr( $value );
+        
+        if (!($is_form_editor || $is_entry_detail) && empty($value)) {
+            $affiliate_id = affwp_get_affiliate_id(); // returns the current logged in user
+            if (!empty($affiliate_id)) {
+                $value = Agent_Custom_Slug::get_slug_for_agent_id( $affiliate_id );
+            }
+        }
         $size         = $this->size;
         $class_suffix = $is_entry_detail ? '_admin' : '';
         $class        = $size . $class_suffix;
@@ -195,7 +203,7 @@ class Agent_Slug_Field extends GF_Field {
      * @param string $login
      * @return int
      */
-    public function return_agent_id_from_slug($affiliate_id, $login) {
+    public function return_agent_id_from_slug($affiliate_id, $login = '') {
         $agent_id = \AffiliateLTP\admin\Agent_Custom_Slug::get_agent_id_for_slug( $this->slug_value );
         if (empty($agent_id)) {
             error_log("Failed to find agent_id after successful validation for slug " . $this->slug_value

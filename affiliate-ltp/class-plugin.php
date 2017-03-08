@@ -85,8 +85,10 @@ class Plugin {
         
         add_filter( 'affwp_affiliate_area_show_tab', array($this, 'remove_unused_tabs'), 10, 2 );
         
-        add_action( 'affwp_affiliate_dashboard_tabs', array( $this, 'add_organization_tab' ), 10, 2 );
+        add_action( 'affwp_affiliate_dashboard_tabs', array( $this, 'add_agent_tabs' ), 10, 2 );
         
+        // this is actually called from the template file of dasbhoard-tab-organization.php since that's
+        // the way the affiliate-wp plugin works with tabs/tab-containers.
         add_action('affwp_affiliate_dashboard_organization_show', array( $this, 'render_organization_tree' ), 10, 1);
 			
         // Add template folder to hold the sub affiliates tab content
@@ -94,7 +96,9 @@ class Plugin {
         
         // so we can check to see if its active
         add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
-                return array_merge( $tabs, array( 'organization' ) );
+            
+                $new_tabs = array_merge( $tabs, array( 'organization', 'signup') );
+                return $new_tabs;
         } );
         
         // we need to clear the tracking cookie when an affiliate registers
@@ -315,13 +319,21 @@ class Plugin {
      * @param type $affiliate_id
      * @param type $active_tab
      */
-    public function add_organization_tab( $affiliate_id, $active_tab ) {
+    public function add_agent_tabs( $affiliate_id, $active_tab ) {
         
         // make sure we only show the tab if it hasn't been filtered out.
         if (affwp_affiliate_area_show_tab( 'organization' )) {
             ?>
             <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'organization' ? ' active' : ''; ?>">
                 <a href="<?php echo esc_url( add_query_arg( 'tab', 'organization' ) ); ?>"><?php _e( 'Organization', 'affiliate-ltp' ); ?></a>
+            </li>
+                <?php	
+        }
+        
+        if (affwp_affiliate_area_show_tab( 'signup' )) {
+            ?>
+            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'signup' ? ' active' : ''; ?>">
+                <a href="<?php echo esc_url( add_query_arg( 'tab', 'signup' ) ); ?>"><?php _e( 'Signup', 'affiliate-ltp' ); ?></a>
             </li>
                 <?php	
         }

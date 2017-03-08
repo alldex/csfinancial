@@ -3,7 +3,7 @@
 /*
         Plugin Name: Life Test Prep Affiliate-WP
         Plugin URI: https://www.lifetestprep.com/
-        Version: 0.1.0
+        Version: 0.2.0
         Description: Shortcodes, customization, classes, and assessment functionality.
         Author: stephen@nielson.org
         Author URI: http://stephen.nielson.org

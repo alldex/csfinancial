@@ -45,4 +45,31 @@ class Agent_Custom_Slug {
         }
         return $agent_id;
     }
+    
+    
+    public static function get_slug_for_agent_id ( $agent_id ) {
+        global $wpdb;
+        if ( defined( 'AFFILIATE_WP_NETWORK_WIDE' ) && AFFILIATE_WP_NETWORK_WIDE ) {
+            // Allows a single affiliate meta table for the whole network
+            $table_name = 'affiliate_wp_affiliatemeta';
+        } else {
+            $table_name = $wpdb->prefix . 'affiliate_wp_affiliatemeta';
+        }
+        
+        $meta_key = 'custom_slug';
+        $slug = null;
+       
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_value FROM $table_name where affiliate_id = %d and meta_key = '%s'",
+            $agent_id, $meta_key ) );
+
+        if ( ( $wpdb->num_rows ) > 0 ) {
+            // TODO: stephen there should not be any duplicates but we need to add in code to check for that here.
+           foreach ( $results as $result ) {
+               $slug = $result->meta_value;
+               break;
+           }
+        }
+        
+        return $slug;
+    }
 }

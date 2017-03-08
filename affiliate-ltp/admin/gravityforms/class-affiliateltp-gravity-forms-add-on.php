@@ -47,9 +47,14 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
     public function pre_init() {
         parent::pre_init();
 
-        if ($this->is_gravityforms_supported() && class_exists('GF_Field')) {
-            require_once( 'class-agent-slug-field.php' );
-            GF_Fields::register(new Agent_Slug_Field());
+        if ($this->is_gravityforms_supported()) {
+            if (class_exists('GF_Field')) {
+                require_once( 'class-agent-slug-field.php' );
+                GF_Fields::register(new Agent_Slug_Field());
+            }
+            
+            require_once( 'class-agent-register.php');
+            new Agent_Register(); // instantiate it once.
         }
     }
 }
