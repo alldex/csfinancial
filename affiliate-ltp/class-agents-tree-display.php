@@ -121,8 +121,19 @@ class Agents_Tree_Display {
         $parent_user = get_user_by('id', $parent_user_id);
 
         // Both names must match
+        $parent_slug = admin\Agent_Custom_Slug::get_slug_for_agent_id($parent_user_id);
+        $sub_slug = admin\Agent_Custom_Slug::get_slug_for_agent_id($sub_id);
+        
         $sub_name = $sub_user->display_name;
+        if (!empty($sub_slug)) {
+            $sub_name .= "(" . $sub_slug . ")";
+        }
+        
         $parent_name = $parent_user->display_name;
+        if (!empty($parent_slug)) {
+            $parent_name .= " (" . $parent_slug . ")";
+        }
+        
         
         if ($node->type === 'coleadership') {
             // update the coleadership name if we are in a new coleadership
@@ -134,11 +145,11 @@ class Agents_Tree_Display {
             // a node higher up may be on a CL which we want to display
             // also since the names have to be unique in our charts 
             // we have to add this name on.
-            $sub_name .= "- CL($parent_name)";
+            $sub_name .= ", CL($parent_name)";
         }
         else if (!empty($coleadership_name)) {
-            $sub_name .= "- CL($coleadership_name)";
-            $parent_name .= "- CL($coleadership_name)";
+            $sub_name .= ", CL($coleadership_name)";
+            $parent_name .= ", CL($coleadership_name)";
         }
         
         $affiliate_status = affwp_get_affiliate_status($sub_id);
