@@ -238,15 +238,10 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         if (!empty($agent_items)) {
             // merge the agent items with the global checklist items.
             foreach ($agent_items as $agent_item) {
-                $admin_id = $agent_item->progress_item_admin_id;
+                $admin_id = $agent_item['progress_item_admin_id'];
                 if (isset($checklist[$admin_id])) {
                     $name = $checklist[$admin_id]['name'];
-                    $checklist[$admin_id] = ["name" => $agent_item->name
-                        ,'progress_item_id' => $agent_item->progress_item_id
-                        ,'date_created' => $agent_item->date_created
-                        ,'date_completed' => $agent_item->date_completed
-                        ,'progress_item_admin_id' => $agent_item->progress_item_admin_id
-                    ];
+                    $checklist[$admin_id] = $agent_item;
                     $checklist[$admin_id]['name'] = $name;
                 }
                 else {
@@ -297,6 +292,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
             Plugin::instance()->get_progress_items_db()->add($progress_item);
         }
         else {
+            var_dump("updating item");
             Plugin::instance()->get_progress_items_db()->update($progress_item['progress_item_id'], $progress_item);
         }
     }

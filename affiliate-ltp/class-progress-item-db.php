@@ -79,7 +79,10 @@ class Progress_Item_DB extends Affiliate_WP_DB {
             $args = ["number" => 1, "offset" => 0];
             
             $results = $this->get_results( $clauses, $args, function ($item) { return $this->hydrate_progress_item($item); } );
-            return $results;
+            if (!empty($results)) {
+                return $results[0];
+            }
+            return null;
         }
 
         public function get_progress_items( $affiliate_id ) {
@@ -98,7 +101,14 @@ class Progress_Item_DB extends Affiliate_WP_DB {
         
         public function hydrate_progress_item( $record ) {
             // do any formatting or other special work we need with the record.
-            return $record;
+            return [
+                "progress_item_admin_id" => $record->progress_item_admin_id
+                ,"progress_item_id" => $record->progress_item_id
+                ,"affiliate_id" => $record->affiliate_id
+                ,"name" => $record->name
+                ,"date_created" => $record->date_created
+                ,"date_completed" => $record->date_completed
+            ];
         }
 	
         public function add( $record ) {

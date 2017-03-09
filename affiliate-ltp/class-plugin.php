@@ -75,11 +75,13 @@ class Plugin {
         require_once $includePath . "/class-shortcodes.php";
         require_once $includePath . "/class-agent-tree-partner-filterer.php";
         require_once $includePath . "/class-agent-checklist-filterer.php";
+        require_once $includePath . "/class-agent-checklist-ajax.php";
         new Shortcodes(); //setup the shortcodes.
         // setup the gravity forms
         // TODO: stephen we should probably take this out of admin since it
         // also controls non-admin functionality.
         new admin\GravityForms\Gravity_Forms_Bootstrap();
+        new Agent_Checklist_AJAX();
         
         
         // come in last here.
@@ -120,6 +122,10 @@ class Plugin {
     private function add_plugin_scripts_and_styles() {
         $includePath = plugin_dir_url( __FILE__ );
         wp_enqueue_style( 'affiliate-ltp', $includePath . 'assets/css/affiliate-ltp.css', array() );
+        
+        wp_enqueue_script( 'affiliate-ltp-core', $includePath . 'assets/js/affiliate-ltp-core.js', array( 'jquery', 'jquery-ui-autocomplete'  ) );
+        wp_localize_script( 'affiliate-ltp-core', 'wp_ajax_object',
+            array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
     
     /**
@@ -137,6 +143,14 @@ class Plugin {
      */
     public function get_agent_dal() {
         return new admin\Agent_DAL_Affiliate_WP_Adapter();
+    }
+    
+    /**
+     * 
+     * @return \AffiliateLTP\admin\Settings_DAL
+     */
+    public function get_settings_dal() {
+        return new admin\Settings_DAL_Affiliate_WP_Adapter();
     }
     
     // TODO: stephen is there a better place for this than the core plugin??
