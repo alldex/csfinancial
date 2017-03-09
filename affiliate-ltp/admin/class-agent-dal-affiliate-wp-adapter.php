@@ -1,6 +1,8 @@
 <?php
 namespace AffiliateLTP\admin;
 
+ use AffiliateLTP\Plugin;
+
 require_once dirname( dirname(__FILE__) ) . '/class-agent-tree-node.php';
 require_once dirname( dirname(__FILE__) ) . '/class-agent-coleadership-tree-node.php';
 
@@ -228,14 +230,77 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         $checklist = array();
         
         foreach ($progress_items as $key => $item) {
-            $checklist[$item['name']] = ["date_completed" => null];
+            $checklist[$item['id']] = ["name" => $item['name'], "date_completed" => null];
         }
         
         // now we need to get affiliate meta data
-        //$agent_progress_items = affiliate_wp()->affiliate_meta->get_meta( $agent_id , 'progress_items' );
+        $agent_items = Plugin::instance()->get_progress_items_db()->get_progress_items( $agent_id );
+        if (!empty($agent_items)) {
+            // merge the agent items with the global checklist items.
+            foreach ($agent_items as $agent_item) {
+                $admin_id = $agent_item->progress_item_admin_id;
+                if (isset($checklist[$admin_id])) {
+                    $name = $checklist[$admin_id]['name'];
+                    $checklist[$admin_id] = ["name" => $agent_item->name
+                        ,'progress_item_id' => $agent_item->progress_item_id
+                        ,'date_created' => $agent_item->date_created
+                        ,'date_completed' => $agent_item->date_completed
+                        ,'progress_item_admin_id' => $agent_item->progress_item_admin_id
+                    ];
+                    $checklist[$admin_id]['name'] = $name;
+                }
+                else {
+                    $checklist[$admin_id] = $agent_item;
+                }
+                
+            }
+        }
+        
         
         return $checklist;
     }
+    
+    public function update_agent_progress_item( $agent_id, $progress_item_admin_id, $completed ) {
+        
+        // client will send up agent, and item admin id
+        // system will try to grab the item by the admin id if it exists
+        // if it doesn't exist it will grab the admin item from the global system and create it
+        // if it does exist it will update the completed date on the item.
+        
+        
+        $progress_item = Plugin::instance()->get_progress_items_db()->get_by_admin_id($agent_id, $progress_item_admin_id);
+        if (empty($progress_item)) {
+            $progress_items = affiliate_wp()->settings->get( 'affwp_ltp_progress_items' );
+            foreach ($progress_items as $item) {
+                if ($item['id'] == $progress_item_admin_id) {
+                    $progress_item = ["progress_item_admin_id" => $item['id']
+                            ,'affiliate_id' => $agent_id
+                            ,'name' => $item['name']];
+                    break;
+                }
+            }
+        }
+        
+        if (empty($progress_item)) {
+            // TODO: stephen handle the error, return??
+            return null;
+        }
+        
+        if ($completed) {
+            $progress_item['date_completed'] = date("Y-m-d H:i:s");
+        }
+        else {
+            $progress_item['date_completed'] = null;
+        }
+        
+        if (empty($progress_item['progress_item_id'])) {
+            Plugin::instance()->get_progress_items_db()->add($progress_item);
+        }
+        else {
+            Plugin::instance()->get_progress_items_db()->update($progress_item['progress_item_id'], $progress_item);
+        }
+    }
+    
     
     /**
      * Returns the currently logged in user's agent id.

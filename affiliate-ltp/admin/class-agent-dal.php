@@ -110,6 +110,16 @@ interface Agent_DAL {
     function get_agent_progress_items( $agent_id );
     
     /**
+     * Updates the completion status of the progress item for the provided
+     * agent id.  It uses the admin id of the progress item which is the global
+     * progress item id stored in the plugin settings.
+     * @param int $agent_id
+     * @param int $progress_item_admin_id
+     * @param boolean $completed
+     */
+    function update_agent_progress_item( $agent_id, $progress_item_admin_id, $completed );
+    
+    /**
      * Retrieves the currently logged in user's agent id if there is one.
      * @returns int
      */

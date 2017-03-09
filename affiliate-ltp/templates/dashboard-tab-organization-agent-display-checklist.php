@@ -5,13 +5,13 @@
     <div class='statistics-row-category-items hidden'>
         <ol>
             <li>
-                <?php foreach ($checklist as $label => $item) : ?>
+                <?php foreach ($checklist as $id => $item) : ?>
                 <label><input type="checkbox" <?php
                 if (!empty($item['date_completed'])) {
                     echo 'checked="checked"';
                 }
                 ?> />
-                <?= $label; ?>
+                <?= $item['name']; ?>
                 <?php if (!empty($item['date_completed'])) { ?>
                     - <?= $item['date_completed'] ?>
                 <?php } else { ?>

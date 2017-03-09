@@ -7,6 +7,7 @@ use AffiliateLTP\admin\Menu;
 use AffiliateLTP\admin\Referrals;
 use AffiliateLTP\admin\Settings;
 use AffiliateLTP\admin\Tools;
+use AffiliateLTP\Progress_Item_DB;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -15,7 +16,7 @@ use AffiliateLTP\admin\Tools;
  */
 class Plugin {
         
-    const AFFILIATEWP_LTP_VERSION = "0.1.0";
+    const AFFILIATEWP_LTP_VERSION = "0.2.0";
     
     const LOCALHOST_RESTRICTED = true;
     
@@ -26,6 +27,12 @@ class Plugin {
      * @var Affiliate_WP_Referral_Meta_DB 
      */
     public $referralMeta;
+    
+    /**
+     * The progress items database for interacting with progress items.
+     * @var Progress_Item_DB
+     */
+    private $progress_items;
     
     /**
      *
@@ -209,10 +216,20 @@ class Plugin {
         return $this->referralMeta;
     }
     
+    /*
+     * Retrieves the progress item database
+     * @return Progress_Item_DB
+     */
+    public function get_progress_items_db() {
+        return $this->progress_items;
+    }
+    
     public function setup_dependent_objects() {
         require_once "class-referral-meta-db.php";
+        require_once "class-progress-item-db.php";
         
         $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
+        $this->progress_items = new Progress_Item_DB();
         
         if (is_admin()) {
             $this->adminReferrals = new Referrals($this->referralMeta);
