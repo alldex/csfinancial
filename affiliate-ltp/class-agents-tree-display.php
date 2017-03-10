@@ -36,6 +36,13 @@ class Agents_Tree_Display {
      */
     private $checklist_filterer;
     
+    /**
+     * Holds the id of the currently logged in agent which is used to display
+     * user specific items for the logged in agent.
+     * @var int
+     */
+    private $current_user_agent_id;
+    
     public function __construct(Agent_DAL $agent_dal, Agent_Tree_Node_Filterer $filterer = null
             ,  Agent_Tree_Node_Filterer $checklist_filterer) {
         $this->agent_dal = $agent_dal;
@@ -57,17 +64,8 @@ class Agents_Tree_Display {
         
         $downline_tree = $this->agent_dal->get_agent_downline_with_coleaderships( $agent_id );
         
-        $level_count = 0;
-        
-        $is_parent = affwp_mlm_is_parent_affiliate( $agent_id );
-        
-        $allow_affiliate_registration = false;
-        if (!$is_parent) {
-            $allow_affiliate_registration = affiliate_wp()->settings->get( 'allow_affiliate_registration' );
-        }
-        
+        // you should always at least have yourself.
         $nodes = $this->get_tree_data_for_agents( $downline_tree );
-        $has_sub_agents = !empty($nodes);
         $show_partners_checked = false;
         
         if ($show_controls) {
@@ -171,15 +169,31 @@ class Agents_Tree_Display {
             ,'parent_name' => $parent_name
             ,'status' => $affiliate_status
             ,"statistics" => $this->get_agent_statistics($sub_user, $sub_id)
+            ,"is_current_agent" => $this->is_current_agent( $sub_id )
+            ,"checklist_readonly" => false
         ];
         
-        if ($this->checklist_filterer->filter($node)) {
+        $include_checklist = $this->checklist_filterer->filter($node);
+        if ($include_checklist || $this->is_current_agent( $sub_id )) {
             $node_arr["checklist"] = $this->get_agent_checklist( $sub_id );
+            // if the checklist is supposed to be excluded but it's the current
+            // agent we want them to have readonly writes to the checklist.
+            if (!$include_checklist) {
+                $node_arr['checklist_readonly'] = true;
+            }
         }
         
         $nodes[] = $node_arr;
         
         $this->visit_children($nodes, $node, $coleadership_name);
+    }
+    
+    private function is_current_agent( $agent_id ) {
+        if (!isset($this->current_user_agent_id)) {
+            $this->current_user_agent_id = $this->agent_dal->get_current_user_agent_id();
+        }
+        
+        return $this->current_user_agent_id == $agent_id;
     }
     
     private function get_agent_checklist( $agent_id ) {

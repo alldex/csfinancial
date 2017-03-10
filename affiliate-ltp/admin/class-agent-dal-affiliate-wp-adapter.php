@@ -289,11 +289,12 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         }
         
         if (empty($progress_item['progress_item_id'])) {
-            Plugin::instance()->get_progress_items_db()->add($progress_item);
+            $item_id = Plugin::instance()->get_progress_items_db()->add($progress_item);
+            return $item_id !== false;
         }
         else {
             var_dump("updating item");
-            Plugin::instance()->get_progress_items_db()->update($progress_item['progress_item_id'], $progress_item);
+            return Plugin::instance()->get_progress_items_db()->update($progress_item['progress_item_id'], $progress_item);
         }
     }
     

@@ -5,8 +5,7 @@
  */
 ?>
 <div id="affwp-mlm-sub-affiliates-tree">
-    <?php if ($is_parent) : ?>
-        <?php if ($show_controls) : ?>
+    <?php if ($show_controls) : ?>
     <form method="POST">   
         <input type="checkbox" id="affiliate_ltp_show_partners" name="affiliate_ltp_show_partners" value="1"
                <?php if ($show_partners_checked) : ?>
@@ -19,7 +18,6 @@
     
 
         <h4><?php echo __('Sub Affiliates', 'affiliatewp-multi-level-marketing'); ?></h4>
-        <?php if ($has_sub_agents) {  ?>
             <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
             <script type="text/javascript">
                 google.charts.load('current', {packages: ["orgchart"]});
@@ -104,19 +102,6 @@
                 </div>
             </div>
             <?php } ?>
-    <?php } ?>
-
-
-    <?php else : ?>
-
-        <h4><?php _e('No Sub Affiliates yet.', 'affiliatewp-multi-level-marketing'); ?></h4>
-
-    <?php if ($allow_affiliate_registration) : ?>
-            <p><?php _e('When a user registers as an affiliate using your referral URL they will become your sub-affiliate.', 'affiliatewp-multi-level-marketing'); ?></p>
-        <?php endif; ?>
-
-    <?php endif; ?>
-
 </div>	
     <?php
     

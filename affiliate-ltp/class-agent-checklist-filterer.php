@@ -50,9 +50,6 @@ class Agent_Checklist_Filterer implements Agent_Tree_Node_Filterer {
         if ($this->override_display) {
             return true;
         }
-        else if ($node->id == $this->current_agent_id) {
-            return true;
-        }
         return false;
     }
 }

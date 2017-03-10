@@ -15,6 +15,11 @@
                 else {
                     echo 'data-completed="0" ';
                 }
+                
+                if ($node['checklist_readonly'] === true) {
+                    echo 'disabled="disabled" ';
+                }
+                
                 ?> />
                 <?= $item['name']; ?>
                     <span class='status'>

@@ -5,6 +5,13 @@
 jQuery(document).ready(function() {
    jQuery(".statistics-row-category-items .progress-item").click(function() {
        var item = jQuery(this);
+       
+       // do nothing if the item can't be changed.  Someone could try to change
+       // this, but the server side prevents changes as well.
+       if (item.attr('readonly') === 'readonly') {
+           return;
+       }
+       
        var action = item.closest(".checklist").data("action");
        var completed = 0;
        if (item.attr("checked") === "checked") {
