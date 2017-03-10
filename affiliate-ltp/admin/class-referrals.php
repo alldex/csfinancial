@@ -211,10 +211,7 @@ class Referrals {
         
         try {
             $request = Referrals_New_Request_Builder::build($requestData);
-            echo "<pre>";
-        var_dump($request);
-        echo "</pre>";
-        exit;
+
             $commissionProcessor = new Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
             $commissionProcessor->process_commission_request($request);
