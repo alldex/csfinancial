@@ -57,3 +57,6 @@ ul.affwp-mlm-aff-data-wrap:hover ul.affwp-mlm-aff-data {
     background: #fff;
     border: 2px solid;
 }
+.hidden {
+    display: none;
+}

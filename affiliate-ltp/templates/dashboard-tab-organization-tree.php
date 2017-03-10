@@ -74,14 +74,16 @@
                     google.visualization.events.addListener(chart, 'onmouseover', function() {
                         console.log("onmouseover",arguments);
                     });
+                    google.visualization.events.addListener(chart, 'ready', function() {
+                        // make it so we can click the dialogs.
+                        jQuery("a.agent-dialog").fancybox();
+                    });
                     // Draw the chart, setting the allowHtml option to true for the tooltips.
                     chart.draw(data, options);
                 }
                 
                 // TODO: stephen all this javascript should be put somewhere else..
                 jQuery(document).ready(function() {
-                    jQuery("a.agent-dialog").fancybox();
-                    
                     // handle the expansion
                     jQuery(".statistics-row-category .fa-chevron-down").click(function() {
                         jQuery(this).siblings(".statistics-row-category-items").toggleClass("hidden");

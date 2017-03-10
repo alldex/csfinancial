@@ -121,11 +121,17 @@ class Plugin {
     
     private function add_plugin_scripts_and_styles() {
         $includePath = plugin_dir_url( __FILE__ );
-        wp_enqueue_style( 'affiliate-ltp', $includePath . 'assets/css/affiliate-ltp.css', array() );
         
-        wp_enqueue_script( 'affiliate-ltp-core', $includePath . 'assets/js/affiliate-ltp-core.js', array( 'jquery', 'jquery-ui-autocomplete'  ) );
+        wp_enqueue_style('fancy-box', $includePath . 'assets/fancybox/source/jquery.fancybox.css');
+        wp_enqueue_script('fancy-box', $includePath . 'assets/fancybox/source/jquery.fancybox.js', array('jquery'));
+        
+        wp_enqueue_style( 'affiliate-ltp', $includePath . 'assets/css/affiliate-ltp.css', array('fancy-box') );
+        
+        wp_enqueue_script( 'affiliate-ltp-core', $includePath . 'assets/js/affiliate-ltp-core.js', array( 'jquery', 'jquery-ui-autocomplete', 'fancy-box'  ) );
         wp_localize_script( 'affiliate-ltp-core', 'wp_ajax_object',
             array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+        
+        
     }
     
     /**

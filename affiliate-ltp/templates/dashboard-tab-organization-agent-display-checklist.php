@@ -5,8 +5,8 @@
     <i class="fa fa-chevron-down"></i>
     <div class='statistics-row-category-items hidden'>
         <ol>
+            <?php foreach ($checklist as $id => $item) : ?>
             <li class="checklist-item">
-                <?php foreach ($checklist as $id => $item) : ?>
                 <label><input class='progress-item' data-id='<?= $id; ?>' data-agent-id='<?= $agent_id; ?>' type="checkbox" <?php
                 if (!empty($item['date_completed'])) {
                     echo 'checked="checked" ';
@@ -25,8 +25,8 @@
                 <?php } ?>
                     </span>
                 </label>
-                <?php endforeach; ?>
             </li>
+            <?php endforeach; ?>
         </ol>
     </div>
 </li>
