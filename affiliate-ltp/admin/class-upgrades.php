@@ -27,7 +27,7 @@ class Upgrades {
             $this->v0_1_0_upgrades();
         }
         
-        if ( version_compare( $version, PLUGIN::AFFILIATEWP_LTP_VERSION, '<')) {
+        if ( version_compare( $version, "0.2.0", '<')) {
             $this->v0_2_0_upgrades();
         }
         

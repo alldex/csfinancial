@@ -24,23 +24,32 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
     }
     
     public function add_commission( $commission ) {
-        $commission_id = affiliate_wp()->referrals->add( $commission );
+        $insert_referral = $commission;
+        $insert_referral['affiliate_id'] = $commission['agent_id'];
+        unset($insert_referral['agent_id']);
+        unset($insert_referral['meta']);
+        
+        $commission_id = affiliate_wp()->referrals->add( $insert_referral );
         
         
         
         if (!empty($commission_id)) {
              // TODO: stephen should we refactor so we add in the client info here?
-            $this->add_commission_meta($commission_id, 'agent_rate', $commission['agent_rate'] );
-            $this->add_commission_meta($commission_id, 'points', $commission['points']);
+            foreach ($commission['meta'] as $key => $value) {
+                $this->add_commission_meta($commission_id, $key, $value );
+            }
+//            
+//            $this->add_commission_meta($commission_id, 'agent_rate', $commission['agent_rate'] );
+//            $this->add_commission_meta($commission_id, 'points', $commission['points']);
             $this->connect_commission_to_client($commission_id, $commission['client']);
             
-            if (!empty($commission['coleadership_id'])) {
-                $this->add_commission_meta($commission_id, 'coleadership_id', $commission['coleadership_id']);
-            }
-            
-            if (!empty($commission['coleadership_rate'])) {
-                $this->add_commission_meta($commission_id, 'coleadership_rate', $commission['coleadership_rate']);
-            }
+//            if (!empty($commission['coleadership_id'])) {
+//                $this->add_commission_meta($commission_id, 'coleadership_id', $commission['coleadership_id']);
+//            }
+//            
+//            if (!empty($commission['coleadership_rate'])) {
+//                $this->add_commission_meta($commission_id, 'coleadership_rate', $commission['coleadership_rate']);
+//            }
         }
         
         return $commission_id;

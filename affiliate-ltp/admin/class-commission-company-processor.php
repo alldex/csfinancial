@@ -168,8 +168,7 @@ class Commission_Company_Processor {
 
         // Process cart and get amount
         $company_commission = array(
-            // TODO: stephen we need to change this to be agent_id to be consistent in terminology...
-            "affiliate_id" => absint($company_agent_id)
+            "agent_id" => absint($company_agent_id)
             , "description" => __("Override", "affiliate-ltp")
             , "reference" => $new_request->client['contract_number']
             , "amount" => $company_amount
@@ -177,8 +176,13 @@ class Commission_Company_Processor {
             , "context" => $new_request->type
             , "status" => CommissionStatus::PAID
             , "date" => $new_request->date
-            , "points" => $company_amount
-            , "agent_rate" => $company_commission_rate
+            , "meta" => [
+                "points" => $company_amount
+                , "agent_rate" => $company_commission_rate
+                , "original_amount" => $orig_request->amount
+                , "new_business" => "Y"
+                , "company_commission" => "Y"
+            ]
             , "client" => $new_request->client
         );
         

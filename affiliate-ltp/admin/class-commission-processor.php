@@ -12,6 +12,8 @@ require_once 'class-commission-company-processor.php';
 
 class Commission_Processor_Item {
 
+    public $commission_id;
+    public $child_commission_id = null;
     public $amount;
     public $agent_id;
     public $points;
@@ -24,7 +26,25 @@ class Commission_Processor_Item {
     public $rate = 0;
     public $contract_number;
     public $client_id;
+    public $meta_items = [];
+}
 
+class Commission_Processor_Meta_Item {
+    private $key;
+    private $value;
+    
+    public function __construct($key, $value) {
+        $this->key = $key;
+        $this->value = $value;
+    }
+    
+    public function key() {
+        return $this->key;
+    }
+    
+    public function value() {
+        return $this->value;
+    }
 }
 
 /**
@@ -80,7 +100,6 @@ class Commission_Processor {
         // prepare the initial company cut and update the request that
         // other subsequent commissions are based off of.
         $updatedRequest = $company_processor->prepare_company_commission($request);
-        //$updatedRequest = $this->process_company_commission($request);
 
         $processingStack = $this->get_initial_commissions_to_process_from_request($updatedRequest);
         $stackBreakCount = 0;
@@ -103,7 +122,7 @@ class Commission_Processor {
 
             $adjusted_amount = $item->amount * $item->rate;
 //            error_log("Agent '{$item->agent_id}' {$item->amount} * {$item->rate} = $adjusted_amount");
-            $commission_id = $this->create_commission_for_item($item, $adjusted_amount);
+            $item->commission_id = $this->create_commission_for_item($item, $adjusted_amount);
         }
         // TODO: stephen add logging to state that the commission was added.
 
@@ -119,7 +138,7 @@ class Commission_Processor {
         }
 
         $commission = array(
-            "affiliate_id" => $item->agent_id
+            "agent_id" => $item->agent_id
             , "description" => $description
             , "amount" => $adjusted_amount
             , "reference" => $item->contract_number
@@ -127,11 +146,22 @@ class Commission_Processor {
             , "context" => $item->type
             , "status" => self::STATUS_DEFAULT
             , "date" => $item->date
-            , "agent_rate" => $item->rate
-            , "client" => array("id" => $item->client_id
-                , "contract_number" => $item->contract_number)
-            , "points" => $item->points
+            , "client" => ["id" => $item->client_id
+                                , "contract_number" => $item->contract_number
+                        ]
+            , "meta" => [
+                "points" => $item->points
+                ,"agent_rate" => $item->rate
+                ,"original_amount" => $item->amount
+                ,"new_business" => 'Y' // TODO: stephen need to have a way of differentiating new from old. (the earliest date would probably be sufficient).
+            ]
         );
+        foreach ($item->meta_items as $key => $value) {
+            $commission['meta'][$key] = $value;
+        }
+        if (isset($item->child_commission_id)) {
+            $commission['meta']["child_commission_id"] = $item->child_commission_id;
+        }
 
 
         // TODO: stephen is this the best place for this?? Do we really want it
@@ -139,12 +169,13 @@ class Commission_Processor {
         $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($item->agent_id);
         if ($coleadership_id) {
             $coleadership_rate = $this->agent_dal->get_agent_coleadership_agent_rate($item->agent_id);
-            $commission['coleadership_id'] = $coleadership_id;
-            $commission['coleadership_rate'] = $coleadership_rate;
+            $commission['meta']["coleadership_id"] = $coleadership_id;
+            $commission['meta']["coleadership_rate"] = $coleadership_rate;
         }
 //        error_log("gen count: {$item->generational_count}");
         if ($item->generational_count > 0) {
             $commission['description'] .= "- {$item->generational_count} Generation ";
+            $commission['meta']['generation_count'] = $item->generational_count;
         }
 
         // create referral
@@ -152,6 +183,7 @@ class Commission_Processor {
         //$commission_id = affiliate_wp()->referrals->add($commission);
 
         if ($commission_id) {
+            $commission['id'] = $commission;
             $this->processed_items[] = $commission;
             do_action('affwp_ltp_commission_created', $commission);
             return $commission_id;
@@ -216,8 +248,11 @@ class Commission_Processor {
         $item->agent_id = $parent_agent_id;
         $item->is_direct_sale = false;
         $item->previous_rate = max($previous_rate, $parent_rate);
+        $item->child_commission_id = $child_item->commission_id;
+        $item->commission_id = null;
 //        error_log("setting previous rate to be $previous_rate");
         $item->rate = $adjusted_rate;
+        $item->meta_items = [];
         return $item;
     }
 
@@ -288,13 +323,17 @@ class Commission_Processor {
         $processingStack->push($passive_gen_item);
     }
 
-    private function get_generational_item($child_item, $parent_agent_id) {
+    private function get_generational_item(Commission_Processor_Item $child_item, $parent_agent_id) {
         $item = clone $child_item;
         $item->agent_id = $parent_agent_id;
         $item->is_direct_sale = false;
         $item->previous_rate = $item->rate;
         $item->rate = $this->get_generational_rate($item);
         $item->generational_count += 1;
+        // switch the commission ids so we can track them.
+        $item->child_commission_id = $child_item->commission_id;
+        $item->commission_id = null;
+        $item->meta_items = [];
         return $item;
     }
 
@@ -349,7 +388,9 @@ class Commission_Processor {
 
             $item = new Commission_Processor_Item();
             $item->amount = $request->amount * $splitPercent;
-            ;
+            // TODO: stephen not sure I like this split rate piece here
+            // either it needs to be it's own attribute or other things like contract_number should go there.
+            $item->meta_items['split_rate'] = $splitPercent;
             $item->agent_id = $agent->id;
             $item->date = $request->date;
             $item->is_direct_sale = true;
@@ -378,13 +419,6 @@ class Commission_Processor {
         // create the client on the sugar CRM system.
         $instance = Plugin::instance()->getSugarCRM();
         return $instance->createAccount($clientData);
-    }
-
-    private function process_company_commission(Referrals_New_Request $request) {
-
-        $company_processor = new Commission_Company_Processor($this->commission_dal, $this->settings_dal);
-
-        return $company_processor->create_company_commission($request);
     }
 
 }
