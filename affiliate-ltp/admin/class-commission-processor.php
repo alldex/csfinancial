@@ -179,8 +179,8 @@ class Commission_Processor {
         }
         
         // add the rank of the individual
-        $rank_id = $this->agent_dal->get_agent_rank($agent_id);
-        if ($rank_id) {
+        $rank_id = $this->agent_dal->get_agent_rank($item->agent_id);
+        if (!empty($rank_id)) { 
             $commission['meta']['rank_id'] = $rank_id;
         }
 
