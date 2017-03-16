@@ -177,6 +177,12 @@ class Commission_Processor {
             $commission['description'] .= "- {$item->generational_count} Generation ";
             $commission['meta']['generation_count'] = $item->generational_count;
         }
+        
+        // add the rank of the individual
+        $rank_id = $this->agent_dal->get_agent_rank($agent_id);
+        if ($rank_id) {
+            $commission['meta']['rank_id'] = $rank_id;
+        }
 
         // create referral
         $commission_id = $this->commission_dal->add_commission($commission);
