@@ -209,19 +209,25 @@ class Referrals {
             wp_die(__('Security check failed', 'affiliate-wp'), array('response' => 403));
         }
         
+        $response = ["type" => "error", "message" => "Server Error occurred"];
+//        $response = ["type" => "success", "redirect" => admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added')];
+        
         try {
             $request = Referrals_New_Request_Builder::build($requestData);
 
             $commissionProcessor = new Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
             $commissionProcessor->process_commission_request($request);
-            wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added'));
+            $response['type'] = 'success';
+            $response['message'] = __("Commission Added", 'affiliate-ltp');
+            $response['redirect'] = admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added');
+            // add validation exceptions here...
         } catch (\Exception $ex) {
             $message = $ex->getMessage() . "\nTrace: " . $ex->getTraceAsString(); 
             error_log($message);
-            $message = urlencode("A server error occurred and we could not process the request.  Check the server logs for more details");
-            wp_safe_redirect(admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_add_failed&affwp_message=' . $message));
+            $response['message'] = __("A server error occurred and we could not process the request.  Check the server logs for more details", 'affiliate-ltp');
         }
+        echo json_encode($response);
         exit;
     }
 

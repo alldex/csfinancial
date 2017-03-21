@@ -5,6 +5,9 @@ namespace AffiliateLTP\admin;
 use AffiliateLTP\Plugin;
 use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\CommissionType;
+use AffiliateLTP\admin\Life_License_Status;
+
+require_once dirname( dirname(__FILE__) ) . '/admin/class-life-license-status.php';
 
 // TODO: stephen need to save the agent_parent_id piece... 
 // how to do this I'm not sure.
@@ -27,6 +30,26 @@ class Commission_Processor_Item {
     public $contract_number;
     public $client_id;
     public $meta_items = [];
+    
+    public $rank;
+    
+    /**
+     *
+     * @var Life_License_Status
+     */
+    public $life_license_status;
+    
+    /**
+     *
+     * @var Commission_Processor_Item 
+     */
+    public $parent_node;
+    
+    /**
+     *
+     * @var Commission_Processor_Item 
+     */
+    public $coleadership_node;
 }
 
 class Commission_Processor_Meta_Item {
@@ -53,6 +76,12 @@ class Commission_Processor_Meta_Item {
  * @author snielson
  */
 class Commission_Processor {
+    
+    /**
+     * Safety catch to break loops that exceed this level in case
+     * there is a recursive loop.
+     */
+    const HEIARCHY_MAX_LEVEL_BREAK = 100;
 
     /**
      *
@@ -86,7 +115,142 @@ class Commission_Processor {
         $this->settings_dal = $settings_dal;
         $this->processed_items = [];
     }
+    
+    public function parse_agent_trees(Referrals_New_Request $request) {
+        $trees = [];
+        
+        // if the company is taking everything we don't process anything for other
+        // agents
+        if ($request->companyHaircutAll) {
+            return $trees;
+        }
+        
+        // need to have a branch on whether to grab data from existing commission records
+        // or create the tree ourselves
+        if ($this->is_repeat_business($request)) {
+            // handle the population this way
+        }
+        else {
+            
+            foreach ($request->agents as $agent) {
+                $splitPercent = $agent->split / 100;
 
+                $item = $this->create_initial_processor_item($agent->id);
+//                $item->amount = $request->amount * $splitPercent;
+    //            // TODO: stephen not sure I like this split rate piece here
+    //            // either it needs to be it's own attribute or other things like contract_number should go there.
+                $item->meta_items['split_rate'] = $splitPercent;
+                $item->date = $request->date;
+                $item->is_direct_sale = true;
+                $item->points = $request->points;
+                $item->type = $request->type;
+                $item->contract_number = $request->client['contract_number'];
+                $item->client_id = $request->client['id'];
+                $this->populate_tree_with_parents($item);
+                $trees[] = $item;
+            }
+        
+        }
+    }
+    
+    private function is_repeat_business(Referrals_New_Request $request) {
+        // for now there is no repeat business.
+        return false;
+    }
+    
+    public function validate_agent_trees_with_request(Referrals_New_Request $request, array $trees) {
+        $errors = [];
+        
+        foreach ($trees as $tree) {
+            if (!$tree instanceof Commission_Processor_Item) {
+                throw new \LogicException("passed in parameters are not of type Commission_Processor_Item");
+            }
+            
+            if ($request->type === CommissionType::TYPE_LIFE) {
+                // need to check if anyone has life insurance problems.
+                $this->validate_tree_for_valid_life_insurance($tree, $errors);
+            }
+        }
+        
+        return $errors;
+    }
+    
+    private function validate_tree_for_valid_life_insurance(Commission_Processor_Item $tree, &$errors) {
+        if ($tree->life_license_status->has_license()
+                && !$tree->life_license_status->has_active_licensed()) {
+            // TODO: stephen need to add in the agent username
+            $message = "Agent with id " . $tree->agent_id . " life insurance license has expired";
+            $errors[] = ['type' => 'life_expired', 'message' => $message];
+        }
+        if (!empty($tree->parent_node)) {
+            $this->validate_tree_for_valid_life_insurance($tree->parent_node, $errors);
+        }
+        if (!empty($tree->coleadership_node)) {
+            $this->validate_tree_for_valid_life_insurance($tree->coleadership_node, $errors);
+        }
+    }
+    
+    private function populate_tree_with_parents(Commission_Processor_Item $node, $count) {
+        
+        /**
+         * 100 parent heirarchy is extremely deep for recursion.
+         */
+        if ($count > self::HEIARCHY_MAX_LEVEL_BREAK) {
+            throw new \RuntimeException("Max level heirarchy reached.  Terminating recursive loop.  Check for circular references.");
+        }
+        
+        $parent_agent_id = $this->agent_dal->get_parent_agent_id($node->agent_id);
+        if (!empty($parent_agent_id)) {
+            $node->parent_node = $this->create_initial_processor_item($parent_agent_id);
+            $this->populate_tree_with_parents($node->parent_node, $count + 1);
+        }
+        
+        $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($node->agent_id);
+        if (!empty($coleadership_id)) {
+            $node->coleadership_node = $this->create_initial_processor_item($coleadership_id);
+            $this->populate_tree_with_parents($node->coleadership_node, $count + 1);
+        }
+    }
+    
+    private function create_initial_processor_item($agent_id) {
+        $item = new Commission_Processor_Item();
+        $item->agent_id = $agent_id;
+        $item->rank = $this->agent_dal->get_agent_rank($agent_id);
+        $item->life_license_status = $this->agent_dal->get_life_license_status($agent_id);
+        $item->rate = $this->agent_dal->get_agent_commission_rate($agent_id);
+
+        return $item;
+    }
+    
+    public function process_commission_request_updated(Referrals_New_Request $request) {
+        $company_processor = new Commission_Company_Processor($this->commission_dal, $this->settings_dal);
+        
+        // reset this so we can stay clean.
+        $this->processedItems = [];
+        
+        // create the client if necessary
+        $request->client['id'] = $this->createClient($request->client);
+        
+        // prepare the initial company cut and update the request that
+        // other subsequent commissions are based off of.
+        $updatedRequest = $company_processor->prepare_company_commission($request);
+        
+        $agent_trees = $this->parse_agent_trees($request);
+        $errors = $this->validate_agent_trees_with_request($request, $agent_trees);
+        if (!empty($errors)) {
+            // TODO: stephen throw an exception here???
+            error_log(var_export($errors, true));
+            return;
+        }
+        
+        
+        
+        foreach ($agent_trees as $tree) {
+            $pruned_tree = $this->prune_tree($tree);
+            $this->process_item($pruned_tree, null);
+        }
+    }
+    
     public function process_commission_request(Referrals_New_Request $request) {
 
         $company_processor = new Commission_Company_Processor($this->commission_dal, $this->settings_dal);
@@ -211,7 +375,8 @@ class Commission_Processor {
     }
 
     private function process_parent_item(Commission_Processor_Item $item, \SPLStack $processingStack) {
-        if ($this->is_partner($item->agent_id)) {
+        
+        if ($this->is_partner($item)) {
 //            error_log("agent is partner, processing generational override");
             $this->add_generational_override_agent($item, $processingStack);
         } else if ($this->agent_has_coleadership($item)) {
@@ -269,12 +434,11 @@ class Commission_Processor {
         return 0;
     }
 
-    private function is_partner($agent_id) {
+    private function is_partner(Commission_Processor_Item $item) {
 
-        $rank = $this->agent_dal->get_agent_rank($agent_id);
         $partner_rank_id = $this->settings_dal->get_partner_rank_id();
 //        error_log("is_partner: agent rank '$rank' partner rank id '$partner_rank_id'");
-        if (!empty($partner_rank_id) && $rank === $partner_rank_id) {
+        if (!empty($partner_rank_id) && $item->rank === $partner_rank_id) {
             return true;
         }
         return false;
@@ -285,7 +449,7 @@ class Commission_Processor {
      * @param \AffiliateLTP\admin\Commission_Processor_Item $child_item
      * @param \SplStack $processingStack
      */
-    private function add_generational_override_agent(Commission_Processor_Item $child_item, \SplStack $processingStack) {
+        private function add_generational_override_agent(Commission_Processor_Item $child_item, \SplStack $processingStack) {
         // if partner create a new item and increment the generational override
 
         $coleadership_agent_id = $this->agent_dal->get_agent_coleadership_agent_id($child_item->agent_id);

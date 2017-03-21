@@ -154,9 +154,37 @@
         setupAgentSearch("#affwp_add_affiliate .affwp-agent-search");
         setupAgentSearch("#affwp_edit_affiliate .affwp-agent-search");
     }
+    
+    function setupCommissionScreen() {
+        $("#affwp_add_referral #submit").click(function(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            alert("clicked on submit button");
+            
+            var data = $("#affwp_add_referral").serialize();
+            
+            $.post(window.location, data, function(data, success) {
+                if (!data || !success) {
+                    alert("An error occurred in communicating with the server.  Please try again.");
+                    return;
+                }
+                if (data.type === 'success') {
+                    window.location.href = data.redirect;
+                }
+                else if (data.type == 'error') {
+                    // TODO: stephen need to drill down into the error
+                    alert("an error occurred: " + data.message);
+                }
+            }, 'json');
+            
+            return false;
+        });
+    }
+    
     $(document).ready(function() {
         setupAddReferralScreen();
         setupAgentScreen();
+        setupCommissionScreen();
         
        $( '.affwp-client-search-reset').click(resetClientSearch);
        
@@ -207,5 +235,8 @@
 			}
 		} );
 	} ); 
+        
+        
+        
     });
 })(jQuery);

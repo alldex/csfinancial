@@ -5,6 +5,7 @@ namespace AffiliateLTP\admin;
 
 require_once dirname( dirname(__FILE__) ) . '/class-agent-tree-node.php';
 require_once dirname( dirname(__FILE__) ) . '/class-agent-coleadership-tree-node.php';
+require_once dirname( dirname(__FILE__) ) . '/admin/class-life-license-status.php';
 
 /**
  * Description of class-agent-dal-affiliate-wp-adapter
@@ -41,6 +42,18 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     
     public function get_agent_upline( $agent_id ) {
         return affwp_mlm_get_upline( $agent_id );
+    }
+    
+    /**
+     * Returns the life insurance license status for the agent.
+     * @param string $agent_id
+     * @return \AffiliateLTP\admin\Life_License_Status
+     */
+    public function get_life_license_status($agent_id) {
+        $license_date = affwp_get_affiliate_meta( $agent_id, 'life_expiration_date', true);
+        $license_number = affwp_get_affiliate_meta( $agent_id, 'life_license_number', true);
+        
+        return new Life_License_Status($license_number, $license_date);
     }
     
     public function is_life_licensed($agent_id) {

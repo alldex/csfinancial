@@ -50,6 +50,13 @@ interface Agent_DAL {
     function is_life_licensed( $agent_id );
     
     /**
+     * Returns the life insurance license status for the agent.
+     * @param string $agent_id
+     * @return \AffiliateLTP\admin\Life_License_Status
+     */
+    function get_life_license_status($agent_id);
+    
+    /**
      * Filters the agents list to only include agents whose status is the passed
      * in status.
      * @param array $agents
