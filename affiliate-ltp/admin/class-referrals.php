@@ -197,6 +197,9 @@ class Referrals {
     }
 
     public function processAddReferralRequest($requestData) {
+        
+        var_dump($requestData);
+        exit;
         if (!is_admin()) {
             return false;
         }

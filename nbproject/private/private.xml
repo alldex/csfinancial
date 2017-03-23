@@ -4,10 +4,10 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-commission-processor.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/assets/js/affiliate-ltp-core.js</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/templates/admin-referral-new.php</file>
+            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/class-plugin.php</file>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-life-license-status.php</file>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-agent-dal.php</file>
-            <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-referrals.php</file>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/assets/js/admin/ltp-admin.js</file>
             <file>file:/projects/lifetestprep/wp-content/plugins/affiliate-ltp/admin/class-agent-dal-affiliate-wp-adapter.php</file>
         </group>

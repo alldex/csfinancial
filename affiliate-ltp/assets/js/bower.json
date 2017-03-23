@@ -1,0 +1,22 @@
+{
+  "name": "affiliate-ltp",
+  "authors": [
+    "Stephen Nielson <stephen@nielson.org>"
+  ],
+  "description": "Plugin for My Common Sense Financial",
+  "main": "",
+  "moduleType": [],
+  "license": "All Rights Reserved",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "angularjs#~1.6.3"
+  }
+}

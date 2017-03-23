@@ -1,30 +1,265 @@
-(function($) {
+(function($, angular) {
     
-    var rowId = 1;
+    function getAutocompleteLinker(name, service, eventName) {
+        return function (scope, elem, attr, ctrl) {
+            var autoCompleteIndex = null;
+            
+            if (attr.hasOwnProperty(name + "Index")) {
+                attr.$observe(name + "Index", function(value) {
+                    autoCompleteIndex = value;
+                });
+            }
+            
+            
+            elem.autocomplete({
+                source: function (searchTerm, response) {
+                    service.search(searchTerm.term).then(function (autocompleteResults) {
+                        response(autocompleteResults);
+                    });
+                },
+                delay: 500,
+                position: { offset: '0, -1' },
+                minLength: 3,
+                open: function() {
+                        elem.addClass( 'open' );
+                },
+                close: function() {
+                        elem.removeClass( 'open' );
+                }
+                ,select: function (event, selectedItem) {
+                    
+                    // Do something with the selected item, e.g. 
+                    var type = attr[name] ? attr[name] : null;
+                    scope.ngModel = selectedItem.item.value;
+                    scope.$emit(eventName, selectedItem.item, type, autoCompleteIndex);
+                    scope.$apply();
+                    event.preventDefault();
+                }
+            });
+        }
+    }
     
     /**
-     * Clears up the search and resets all the fields
-     * @returns
+     * Takes all of the values in obj2 that have a corresponding key in obj1
+     * and overwrites the obj1 value
+     * @param object obj1
+     * @param object obj2
+     * @returns object
      */
-    function resetClientSearch() {
-        $('.affwp-client-search').val('');
-        $( '#client_id' ).val("");
+    function fillObject(obj1, obj2) {
+        for (var index in obj1) {
+            if (obj2.hasOwnProperty(index)
+                    && obj1.hasOwnProperty(index)) {
+                obj1[index] = obj2[index];
+            }
+        }
+        return obj1;
+    }
+    
+    angular.module('commissionsApp', [])
+            .factory("CommissionService", ["$http", function($http) {
+                    return {
+                        save: function (data) {
+                            return $http.post(window.location.href).then(function (response) {
+                                return response.data;
+                            });
+                        }
+                    };
+            }])
+            .factory("AgentAutoCompleteService", ["$http", function($http) {
+                    return {
+                        search: function (term) {
+                            return $http.get(ajaxurl + '?action=affwp_search_users&status=active&term=' + term).then(function (response) {
+                                return response.data;
+                            });
+                        }
+                    };
+                    
+            }])
+            .factory("ClientAutoCompleteService", ["$http", function($http) {
+                    return {
+                        search: function (term) {
+                            return $http.get(ajaxurl + '?action=affwp_ltp_search_clients&term=' + term).then(function (response) {
+                                return response.data;
+                            });
+                        }
+                    };
+                    
+            }])
+            .directive("ltpAgentAutocomplete", ["AgentAutoCompleteService", function (AgentAutoCompleteService) {
+                return {
+                    restrict: "A"
+                    ,scope: {
+                        ngModel: '=ngModel'
+                        ,autocompleteType: '&autocompleteType'
+                        ,autocompleteIndex: '&autocompleteIndex'
+                    }
+                    ,link: getAutocompleteLinker("ltpAgentAutocomplete", AgentAutoCompleteService, 'agent.autocomplete.selected')
+                };
+            }])
+            .directive("ltpClientAutocomplete", ["ClientAutoCompleteService", function (ClientAutoCompleteService) {
+            return {
+                restrict: "A"
+                ,scope: {
+                    ngModel: '=ngModel'
+                    ,autocompleteType: '&autocompleteType'
+                    ,autocompleteIndex: '&autocompleteIndex'
+                }
+                ,link: getAutocompleteLinker("ltpClientAutocomplete", ClientAutoCompleteService, 'client.autocomplete.selected') 
+            };
+        }])
+        .controller('CommissionAddController', ['$scope', 'CommissionService', function($scope, CommissionService) {
+        
 
-        var items = [
-            "client_name"
-            ,"client_street_address"
-            ,"client_city_address"
-            ,"client_zip_address"
-            ,"client_phone"
-            ,"client_email"
-        ];
-        items.forEach(function(item) {
-            $('#' + item).prop("readonly", false)
-                    .val("");
+        // handle when a client is selected.
+        $scope.$on('client.autocomplete.selected', function(event, client) {            
+            fillObject(commissionsAdd.client, client);
+            
+            if (commissionsAdd.client.id) {
+                commissionsAdd.readonlyClient = true;
+            }
         });
         
-        $('.readonly-description').addClass('hidden');
-    }
+        // handle when an agent is selected
+        $scope.$on('agent.autocomplete.selected', function(event, agent, type, agentIndex) {
+            if (type === 'writing') {
+                commissionsAdd.commission.writing_agent.id = agent.user_id;
+                commissionsAdd.commission.writing_agent.name = agent.value;
+            }
+            else {
+                if (commissionsAdd.commission.split_agents[agentIndex]) {
+                    commissionsAdd.commission.split_agents[agentIndex].id = agent.user_id;
+                    commissionsAdd.commission.split_agents[agentIndex].name = agent.value;
+                }
+            };
+        });
+
+        function Client() {
+            this.contract_number = null;
+            this.name = null;
+            this.id = null;
+            this.street_address = null; // client_street_address
+            this.city = null; // client_city_address
+            this.zip = null; // client_zip_address
+            this.phone = null; // client_phone
+            this.email = null; // client_email
+        }
+        
+        function Agent() {
+            this.id = null;
+            this.name = null;
+            this.split = 0;
+        }
+        
+        function Commission() {
+            this.is_life_commission = false;
+            this.split_commission = false;
+            this.writing_agent = new Agent();
+            this.writing_agent.split = 100;
+            this.split_agents = [];
+            this.skip_company_haircut = false;
+            this.company_haircut_all = false;
+            
+            this.getSplitTotal = function() {
+                var total = !isNaN(+this.writing_agent.split) ? +this.writing_agent.split : 0;
+                this.split_agents.forEach(function(agent) { total += !isNaN(+agent.split) ? +agent.split : 0 });
+                return total;
+            };
+            
+            this.getSplitKey = function(agentSplitIndex) {
+                return "split:" + agentSplitIndex;
+            };
+        }
+            
+          var commissionsAdd = this;
+          commissionsAdd.readonlyClient = false;
+          commissionsAdd.commission = new Commission();
+          commissionsAdd.splitTotalInvalid = false;
+          commissionsAdd.nonce = null;
+          
+          commissionsAdd.client = new Client();
+         
+          commissionsAdd.resetClient = function() {
+              commissionsAdd.client = new Client();
+              commissionsAdd.readonlyClient = false;
+              commissionsAdd.commission = new Commission();
+          };
+          
+          commissionsAdd.isSplit = function() {
+              return commissionsAdd.commission.split_commission;
+          };
+          commissionsAdd.isLifePolicy = function() {
+              return commissionsAdd.commission.is_life_commission;
+          };
+          commissionsAdd.toggleSplit = function() {
+              commissionsAdd.commission.split_commission = !commissionsAdd.commission.split_commission;
+          };
+          commissionsAdd.toggleLifePolicy = function() {
+              commissionsAdd.commission.is_life_commission = !commissionsAdd.commission.is_life_commission;
+          };
+          
+          commissionsAdd.addSplit = function() {
+              commissionsAdd.commission.split_agents.push(new Agent());
+          };
+          
+          commissionsAdd.removeSplit = function(split) {
+              var index = commissionsAdd.commission.split_agents.indexOf(split);
+              if (index >= 0) {
+                  commissionsAdd.commission.split_agents.splice(index, 1);
+              }
+          };
+          
+          commissionsAdd.getSplitTotal = function() {
+              return commissionsAdd.commission.getSplitTotal();;
+          };
+          
+          commissionsAdd.isSplitTotalInvalid = function() {
+              return commissionsAdd.commission.getSplitTotal() !== 100;
+          };
+          
+          commissionsAdd.save = function() {
+            alert("clicked on submit button");
+            
+            var commission = commissionsAdd.commission;
+            // need to convert the data here.
+            var agents = [].concat(commission.writing_agent, commission.agents);
+            var data = {
+                client: commissionsAdd.client
+                ,cb_is_life_commission: commission.is_life_commission
+                ,cb_split_commission: commission.split_commission
+                ,cb_skip_company_haircut: commission.skip_company_haircut
+                ,cb_company_haircut_all: commission.company_haircut_all
+                ,agents: agents
+                // we still have to go and fetch the existing record.
+                // is this a new record or an existing record
+                ,new_business: commissionsAdd.readonlyClient
+                ,action: "add_referral"
+                ,'affwp_add_referral_nonce': commissionsAdd.nonce
+            };
+            console.log("saving data", data);
+            
+            CommissionService.save(data).then(function(data) {
+                if (data.type === 'success') {
+                    window.location.href = data.redirect;
+                }
+                else if (data.type === 'error') {
+                    // TODO: stephen need to drill down into the error
+                    alert("an error occurred: " + data.message);
+                }
+            })
+            .catch(function(error) {
+                alert("An error occurred in communicating with the server.  Please try again.");
+                console.log(error);
+                // TODO: stephen handle this better
+            });
+          };
+          commissionsAdd.searchCommission = function() {
+              
+          };
+    }]);
+    
+    var rowId = 1;
+
     function setupAgentSearch(selector) {
         		var	$this    = $( selector ),
 			$action  = 'affwp_search_users',
@@ -60,94 +295,9 @@
         return rowId++;
     }
     
-    /**
-     * Adds a row to the split list that an agent and a split percentage can be added to.
-     * @param Event evt
-     * @param number agentSplit The percentage of the commission that goes to the agent.
-     * @returns {undefined}
-     */
-    function addSplitRow(evt, agentSplit) {
-        if (!agentSplit) {
-            agentSplit = 0;
-        }
-        
-        var rowId = getRowId();
-        
-        var splitRow = [];
-           splitRow.push("<tr>");
-           
-           // agent search
-           splitRow.push("<td>");
-           splitRow.push("<span class='affwp-ajax-search-wrap'>");
-           splitRow.push("<input class='agent-name affwp-agent-search' type='text' name=\"agents[" + rowId + "][user_name]\" data-affwp-status='active' autocomplete='off' />");
-           splitRow.push("<input class='agent-id' type='hidden' name=\"agents[" + rowId + "][user_id]\" value='' />");
-           splitRow.push("</span>");
-           splitRow.push("</td>");
-           
-           // rate
-           splitRow.push("<td>");
-           splitRow.push("<input class='agent-split' type='text' name=\"agents[" + rowId + "][agent_split]\" value='" + agentSplit + "' />");
-           splitRow.push("</td>");
-           
-           // actions
-           splitRow.push("<td>");
-           splitRow.push("<input type='button' class='remove-row' value='Remove' />");
-           splitRow.push("</td>");
-           
-           splitRow.push("</tr>");
-           $("#affwp_add_referral .split-list tbody").append(splitRow.join(""));
-           $("#affwp_add_referral .split-list tbody tr:last-child .remove-row").click(function removeSplitRow() {
-               $(this).closest("tr").remove();
-           });
-           setupAgentSearch("#affwp_add_referral .split-list tbody tr:last-child .affwp-agent-search");
-           $("#affwp_add_referral .split-list .agent-split").change(calculateAgentSplitTotal);
-    }
-    function calculateAgentSplitTotal(evt) {
-        var total = 0;
-        $("#affwp_add_referral .split-list .agent-split").each(function() {
-            $this = $(this);
-            $this.removeClass("error");
-            var value = +$this.val();
-            if (!isNaN(value) && value >= 0 && value <= 100) {
-                total += value;
-            }
-            else {
-                $this.addClass("error");
-            }
-        });
-        $splitTotal = $("#affwp_add_referral .split-list .split-total");
-        $splitTotal.html(total);
-        if (total < 100 || total > 100) {
-            $splitTotal.addClass("error");
-        }
-        else {
-            $splitTotal.removeClass("error");
-        }
-    }
-    
     function setupAddReferralScreen() {
-        var firstTimeSplitShown = true;
-        // hide the different pieces of the site based on the check value.
-        $( '#affwp_add_referral #cb_split_commission' ).click(function() {
-            $('#affwp_add_referral .commission_row_multiple').toggleClass('hidden');
-            
-            // add a row with the default being zero
-            if (firstTimeSplitShown) {
-                firstTimeSplitShown = false;
-                addSplitRow({}, 0);
-            }
-        });
-        
-        $( '#affwp_add_referral .split-add').click(addSplitRow);
-        
-        // setup the initial split calculation for the first agent row.
-        $("#affwp_add_referral .split-list .agent-split").change(calculateAgentSplitTotal);
-        
-        setupAgentSearch("#affwp_add_referral .commission_row_single .affwp-agent-search");
-        
-        $("#affwp_add_referral #cb_is_life_commission").click(function() {
-            $("#affwp_add_referral .life-commission-row").toggleClass("hidden");
-        })
+       
+//        setupAgentSearch("#affwp_add_referral .commission_row_single .affwp-agent-search");
     }
     
     function setupAgentScreen() {
@@ -185,58 +335,5 @@
         setupAddReferralScreen();
         setupAgentScreen();
         setupCommissionScreen();
-        
-       $( '.affwp-client-search-reset').click(resetClientSearch);
-       
-       $( '.affwp-client-search' ).each( function() {
-		var	$this    = $( this ),
-			$action  = 'affwp_ltp_search_clients',
-			$search  = $this.val(),
-			$client_id = $( '#client_id' );
-
-		$this.autocomplete( {
-			source: ajaxurl + '?action=' + $action + '&term=' + $search,
-			delay: 500,
-			minLength: 2,
-			position: { offset: '0, -1' },
-			select: function( event, data ) {
-				$client_id.val( data.item.id );
-                                $('.readonly-description').removeClass('hidden');
-                                $('#client_name')
-                                        .prop("readonly", true)
-                                        .val(data.item.name);
-                                $('#client_street_address')
-                                        .prop("readonly", true)
-                                        .val(data.item.street_address);
-                                $('#client_city_address')
-                                        .prop("readonly", true)
-                                        .val(data.item.city);
-                                $('#client_zip_address')
-                                        .prop("readonly", true)
-                                        .val(data.item.zip);
-                                $('#client_phone')
-                                        .prop("readonly", true)
-                                        .val(data.item.phone);
-                                $('#client_email').prop("readonly", true)
-                                        .val(data.item.email);
-			},
-			open: function() {
-				$this.addClass( 'open' );
-			},
-			close: function() {
-				$this.removeClass( 'open' );
-			}
-		} );
-
-		// Unset the user_id input if the input is cleared.
-		$this.on( 'keyup', function() {
-			if ( ! this.value ) {
-                            resetClientSearch();
-			}
-		} );
-	} ); 
-        
-        
-        
     });
-})(jQuery);
+})(jQuery, angular);
