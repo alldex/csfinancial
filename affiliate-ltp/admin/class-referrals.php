@@ -56,6 +56,7 @@ class Referrals {
         add_action('affwp_add_referral', array($this, 'processAddReferralRequest'));
 
         add_action('wp_ajax_affwp_ltp_search_clients', array($this, 'ajaxSearchClients'));
+        add_action('wp_ajax_affwp_add_referral', array($this, 'processAddReferralRequest'));
 
         add_action('affwp_delete_referral', array($this, 'cleanupReferralMetadata'), 10, 1);
 
@@ -196,13 +197,16 @@ class Referrals {
         include_once $templatePath;
     }
 
-    public function processAddReferralRequest($requestData) {
-        
-        var_dump($requestData);
-        exit;
+    public function processAddReferralRequest() {
+        // since the data is received using application/json we read it from
+        // the request body.
         if (!is_admin()) {
             return false;
         }
+        
+        $method = filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING);
+        // Retrieve JSON payload as hash arrays (I like that better than stdObj
+        $requestData = json_decode(file_get_contents('php://input'), true);
 
         if (!current_user_can('manage_referrals')) {
             wp_die(__('You do not have permission to manage referrals', 'affiliate-wp'), __('Error', 'affiliate-wp'), array('response' => 403));
@@ -212,10 +216,13 @@ class Referrals {
             wp_die(__('Security check failed', 'affiliate-wp'), array('response' => 403));
         }
         
-        $response = ["type" => "error", "message" => "Server Error occurred"];
+//        var_dump($data);
+        
+        $response = ["type" => "error", "message" => __("Server Error occurred", 'affiliate-ltp')];
 //        $response = ["type" => "success", "redirect" => admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added')];
         
         try {
+            error_log(var_export($requestData, true));
             $request = Referrals_New_Request_Builder::build($requestData);
 
             $commissionProcessor = new Commission_Processor($this->commission_dal, 

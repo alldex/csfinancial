@@ -206,7 +206,7 @@
 				</th>
 
 				<td>
-					<input type="text" name="points" id="points" />
+					<input type="text" name="points" id="points" ng-model="commissionAdd.commission.points" />
 					<p class="description"><?php _e( 'The points earned for this commission.', 'affiliate-ltp' ); ?></p>
 				</td>
 
@@ -219,7 +219,7 @@
 				</th>
 
 				<td>
-					<input type="text" name="amount" id="amount" />
+					<input type="text" name="amount" id="amount" ng-model="commissionAdd.commission.amount" />
 					<p class="description"><?php _e( 'The amount of the referral, such as 15.', 'affiliate-wp' ); ?></p>
 				</td>
 
@@ -232,7 +232,9 @@
 				</th>
 
 				<td>
-					<input type="text" name="date" id="date" class="affwp-datepicker" autocomplete="off" placeholder="<?php echo esc_attr( date_i18n( 'm/d/y', strtotime( 'today' ) ) ); ?>"/>
+					<input type="text" ltp-date-picker
+                                               ng-model="commissionAdd.commission.date"
+                                               name="date" id="date" placeholder="<?php echo esc_attr( date_i18n( 'm/d/y', strtotime( 'today' ) ) ); ?>"/>
 				</td>
 
 			</tr>
@@ -266,7 +268,7 @@
 		<?php do_action( 'affwp_new_referral_bottom' ); ?>
 
 		<?php echo wp_nonce_field( '', '' ); ?>
-		<input ng-model="commissionAdd.nonce" type="hidden" value="<?php echo wp_create_nonce( 'affwp_add_referral_nonce' ); ?>" />
+		<input ng-model="commissionAdd.nonce" type="hidden" ng-init="commissionAdd.nonce='<?php echo wp_create_nonce( 'affwp_add_referral_nonce' ); ?>'" />
                 <input type="hidden" name="affwp_action" value="add_referral" />
 
                 <input type="button" value="<?php _e( 'Add Referral', 'affiliate-wp' ); ?>" ng-click="commissionAdd.save()" />

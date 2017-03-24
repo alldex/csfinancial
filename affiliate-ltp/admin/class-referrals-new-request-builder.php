@@ -33,13 +33,13 @@ class Referrals_New_Request_Builder {
         return $clientArgs;
     }
     private static function parseAgent($rowNumber, $agentData) {
-        if ( !array_key_exists( 'user_id', $agentData )) {
-            throw new Exception("For row: $rowNumber missing agent_id ");
+        if ( !array_key_exists( 'id', $agentData )) {
+            throw new Exception("For agent row: $rowNumber missing id ");
         }
-        $userId      = absint( $agentData['user_id'] );
+        $userId      = absint( $agentData['id'] );
 
         $agentId = affiliate_wp()->affiliates->get_column_by( 'affiliate_id', 'user_id', $userId );
-        $split = abs($agentData['agent_split']);
+        $split = abs($agentData['split']);
 
         if ( ! empty( $agentId ) ) {
             $agent = new Referrals_Agent_Request();
@@ -76,19 +76,19 @@ class Referrals_New_Request_Builder {
         
         // if there is no other split then we drop all the other agent pieces
         // and force the commission to be 100.
-        if (!isset($requestData['cb_split_commission'])) {
+        if (!isset($requestData['split_commission'])) {
             $requestData['agents'] = array(
                 self::SINGLE_AGENT_ROW_NUMBER => $requestData['agents'][self::SINGLE_AGENT_ROW_NUMBER]
             );
             // make sure that the split is always 100%
-            $requestData['agents'][self::SINGLE_AGENT_ROW_NUMBER]['agent_split'] = 100; 
+            $requestData['agents'][self::SINGLE_AGENT_ROW_NUMBER]['split'] = 100; 
         }
         
-        if (isset($requestData['cb_skip_company_haircut'])) {
+        if (isset($requestData['skip_company_haircut'])) {
             $request->skipCompanyHaircut = true;
         }
         
-        if (isset($requestData['cb_company_haircut_all'])) {
+        if (isset($requestData['company_haircut_all'])) {
             $request->companyHaircutAll = true;
         }
         
@@ -101,7 +101,7 @@ class Referrals_New_Request_Builder {
         $request->date = self::parseDate($requestData);
         $request->points = $request->amount;
         
-        if (isset($requestData['cb_is_life_commission'])) {
+        if (isset($requestData['is_life_commission'])) {
             $request->type = CommissionType::TYPE_LIFE;
             // set the points to be whatever was entered for a life commission
             $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : $request->amount;
