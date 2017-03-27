@@ -38,12 +38,16 @@
 //            include 'dashboard-tab-organization-agent-display.php';
 //            $sub_data = ob_get_clean();
             
+            $life_licensed_class = $node['life_licensed'] === true ? 'life-licensed': '';
+            $checklist_complete_class = $node['checklist_complete'] === true ? 'checklist-complete': '';
+//            $life_licensed_class = 'life-licensed';
+//            $checklist_complete_class = 'checklist-complete';
             //$sub_data = show_affiliate_data($node['id']);
-            $sub_avatar = addslashes(get_avatar($node['user_id']));
             $sub_node = '<div class="sub_node ' . $node['status'] . ' affwp-mlm-aff">';
-            $sub_node .= '<div class="affwp-mlm-aff-avatar">' . $sub_avatar . '</div>';
-            $sub_node .= '<span class="affwp-mlm-aff-name">' . $node['name'] . '</span>';
-            $sub_node .= '<ul class="affwp-mlm-aff-data-wrap"><a class="agent-dialog" href="#agent-row-' . $count++ . '"><i class="fa fa-chevron-down"></i></a></ul>';
+            $sub_node .= '<div class="affwp-mlm-aff-avatar">' . addslashes($node['avatar']) . '</div>';
+            $sub_node .= '<span class="affwp-mlm-aff-name ' . $life_licensed_class . '">' . $node['name'] . '</span>';
+            $sub_node .= '<ul class="affwp-mlm-aff-data-wrap"><a class="agent-dialog" href="#agent-row-' . $count++ 
+                    . '"><i class="fa fa-chevron-down '. $checklist_complete_class . '"></i></a></ul>';
             //$sub_node .= preg_replace( "/\r|\n/", "", $sub_data );
             $sub_node .= '</div>';
 

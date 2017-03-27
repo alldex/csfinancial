@@ -1,5 +1,5 @@
-<div class="affwp-mlm-aff-avatar"><?php echo get_avatar($node['user_id']); ?></div>
-<span class="affwp-mlm-aff-name"><?= $node['name'] ?></span>
+<div class="affwp-mlm-aff-avatar"><?php echo $node['avatar']; ?></div>
+<span class="affwp-mlm-aff-name <?= $node['life_licensed'] === true ? 'life-licensed': ''; ?>"><?= $node['name'] ?></span>
 <ul class="agent-data">
     <?php
     $stats = $node['statistics'];

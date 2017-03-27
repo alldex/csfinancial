@@ -2,10 +2,11 @@
 namespace AffiliateLTP\admin;
 
  use AffiliateLTP\Plugin;
-
+ use AffiliateLTP\admin\Affiliates;
 require_once dirname( dirname(__FILE__) ) . '/class-agent-tree-node.php';
 require_once dirname( dirname(__FILE__) ) . '/class-agent-coleadership-tree-node.php';
 require_once dirname( dirname(__FILE__) ) . '/admin/class-life-license-status.php';
+require_once dirname( dirname(__FILE__) ) . '/admin/class-affiliates.php';
 
 /**
  * Description of class-agent-dal-affiliate-wp-adapter
