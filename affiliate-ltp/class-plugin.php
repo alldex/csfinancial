@@ -16,7 +16,7 @@ use AffiliateLTP\Progress_Item_DB;
  */
 class Plugin {
         
-    const AFFILIATEWP_LTP_VERSION = "0.2.0";
+    const AFFILIATEWP_LTP_VERSION = "0.2.1";
     
     const LOCALHOST_RESTRICTED = true;
     
