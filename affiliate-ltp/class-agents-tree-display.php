@@ -168,9 +168,11 @@ class Agents_Tree_Display {
             ,'name' => $sub_name
             ,'parent_name' => $parent_name
             ,'status' => $affiliate_status
+            ,'life_licensed' => $this->agent_dal->is_life_licensed($sub_id)
             ,"statistics" => $this->get_agent_statistics($sub_user, $sub_id)
             ,"is_current_agent" => $this->is_current_agent( $sub_id )
             ,"checklist_readonly" => false
+            ,"checklist_complete" => true
         ];
         
         $include_checklist = $this->checklist_filterer->filter($node);
@@ -181,11 +183,29 @@ class Agents_Tree_Display {
             if (!$include_checklist) {
                 $node_arr['checklist_readonly'] = true;
             }
+            // need to have a status item that the checklist is complete if 
+            // all the items are completed
+            foreach ($node_arr['checklist'] as $item) {
+                if (!isset($item['date_completed']) || $item['date_completed'] === null) {
+                    $node_arr['checklist_complete'] = false;
+                    break;
+                }
+            }
         }
+        $node_arr['avatar'] = $this->get_avatar_for_node( $node_arr );
         
         $nodes[] = $node_arr;
         
         $this->visit_children($nodes, $node, $coleadership_name);
+    }
+    
+    private function get_avatar_for_node( array $node ) {
+        if ( $node['checklist_complete'] ) {
+            return "<img class='avatar avatar-96 photo' src='" . plugin_dir_url(__FILE__) . 'assets/images/person.png' . "' />";
+        }
+        else {
+            return get_avatar($node['user_id']);
+        }
     }
     
     private function is_current_agent( $agent_id ) {

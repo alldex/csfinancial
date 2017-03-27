@@ -60,3 +60,6 @@ ul.affwp-mlm-aff-data-wrap:hover ul.affwp-mlm-aff-data {
 .hidden {
     display: none;
 }
+.affwp-mlm-aff-name.life-licensed {
+    color: #84bd00;
+}
