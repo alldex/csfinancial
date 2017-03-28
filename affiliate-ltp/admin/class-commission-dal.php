@@ -74,4 +74,10 @@ interface Commission_DAL {
      * @param array $client_data
      */
     function connect_commission_to_client( $commission_id, $client_data );
+    
+    /**
+     * The contract number we are attempting to get repeat business for.
+     * @param string $contract_number
+     */
+    function get_repeat_commission_data($contract_number);
 }

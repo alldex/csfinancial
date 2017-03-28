@@ -18,17 +18,16 @@ class Referrals_New_Request_Builder {
     const SINGLE_AGENT_ROW_NUMBER = 0;
     
     private static function parseClientArgs($data) {
-         // TODO: stephen group all the client information into a single client array.
         $clientArgs = array (
-            'id'      => ! empty( $data['client_id'] ) ? sanitize_text_field( $data['client_id'] ) : null,
-            'contract_number' => ! empty( $data['client_contract_number'] ) ? sanitize_text_field( $data['client_contract_number'] ) : null,
-            'name'    => ! empty( $data['client_name'] ) ? sanitize_text_field( $data['client_name'] ) : '',
-            'street_address' => ! empty( $data['client_street_address'] ) ? sanitize_text_field( $data['client_street_address'] ) : '',
-            'city' => ! empty( $data['client_city_address'] ) ? sanitize_text_field( $data['client_city_address'] ) : '',
+            'id'      => ! empty( $data['id'] ) ? sanitize_text_field( $data['id'] ) : null,
+            'contract_number' => ! empty( $data['contract_number'] ) ? sanitize_text_field( $data['contract_number'] ) : null,
+            'name'    => ! empty( $data['name'] ) ? sanitize_text_field( $data['name'] ) : '',
+            'street_address' => ! empty( $data['street_address'] ) ? sanitize_text_field( $data['street_address'] ) : '',
+            'city' => ! empty( $data['city_address'] ) ? sanitize_text_field( $data['city_address'] ) : '',
             'country' => 'USA', // TODO: stephen extract this to a setting or constant.
-            'zip' => ! empty( $data['client_zip_address'] ) ? sanitize_text_field( $data['client_zip_address'] ) : '',
-            'phone'   => ! empty( $data['client_phone'] ) ? sanitize_text_field( $data['client_phone'] ) : '',
-            'email'   => ! empty( $data['client_email'] ) ? sanitize_text_field( $data['client_email'] ) : '',
+            'zip' => ! empty( $data['zip_address'] ) ? sanitize_text_field( $data['zip_address'] ) : '',
+            'phone'   => ! empty( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '',
+            'email'   => ! empty( $data['email'] ) ? sanitize_text_field( $data['email'] ) : '',
         );
         return $clientArgs;
     }
@@ -84,11 +83,11 @@ class Referrals_New_Request_Builder {
             $requestData['agents'][self::SINGLE_AGENT_ROW_NUMBER]['split'] = 100; 
         }
         
-        if (isset($requestData['skip_company_haircut'])) {
+        if (isset($requestData['skip_company_haircut']) && $requestData['skip_company_haircut'] === true) {
             $request->skipCompanyHaircut = true;
         }
         
-        if (isset($requestData['company_haircut_all'])) {
+        if (isset($requestData['company_haircut_all']) && $requestData['company_haircut_all'] === true) {
             $request->companyHaircutAll = true;
         }
         
@@ -96,12 +95,12 @@ class Referrals_New_Request_Builder {
             $request->agents[] = self::parseAgent($rowNumber, $agent);
         }
 
-        $request->client = self::parseClientArgs($requestData);
+        $request->client = isset($requestData['client']) ? self::parseClientArgs($requestData['client']) : null;
         $request->amount = ! empty( $requestData['amount'] ) ? sanitize_text_field( $requestData['amount'] )      : '';
         $request->date = self::parseDate($requestData);
         $request->points = $request->amount;
         
-        if (isset($requestData['is_life_commission'])) {
+        if (isset($requestData['is_life_commission']) && $requestData['is_life_insurance'] === true) {
             $request->type = CommissionType::TYPE_LIFE;
             // set the points to be whatever was entered for a life commission
             $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : $request->amount;

@@ -137,7 +137,7 @@
                 </th>
 
                 <td>
-                    <input type="checkbox" name="cb_split_commission" id="cb_split_commission" ng-click="commissionAdd.toggleSplit()" />
+                    <input type="checkbox" name="cb_split_commission" id="cb_split_commission" ng-checked="commissionAdd.isSplit()" ng-click="commissionAdd.toggleSplit()" />
                     <p class="description"><?php _e( 'If the commission is split up between two or more agents.', 'affiliate-ltp' ); ?></p>
                 </td>
             </tr>
@@ -193,7 +193,9 @@
 				</th>
 
 				<td>
-					<input type="checkbox" name="cb_is_life_commission" id="cb_is_life_commission" ng-click="commissionAdd.toggleLifePolicy()" />
+					<input type="checkbox" name="cb_is_life_commission" id="cb_is_life_commission" 
+                                               ng-checked="commissionAdd.isLifePolicy()"
+                                               ng-click="commissionAdd.toggleLifePolicy()" />
 					<p class="description"><?php _e( 'If the commission is for a life insurance policy.', 'affiliate-ltp' ); ?></p>
 				</td>
 

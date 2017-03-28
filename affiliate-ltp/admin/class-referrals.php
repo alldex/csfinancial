@@ -57,6 +57,8 @@ class Referrals {
 
         add_action('wp_ajax_affwp_ltp_search_clients', array($this, 'ajaxSearchClients'));
         add_action('wp_ajax_affwp_add_referral', array($this, 'processAddReferralRequest'));
+        
+        add_action('wp_ajax_affwp_search_commission', array($this, 'ajaxSearchCommission'));
 
         add_action('affwp_delete_referral', array($this, 'cleanupReferralMetadata'), 10, 1);
 
@@ -121,6 +123,78 @@ class Referrals {
         } else {
             $this->handleDisplayListReferralsScreen();
         }
+    }
+    
+    public function ajaxSearchCommission() {
+        
+        $this->debugLog("searching commission");
+        
+        if (!is_admin()) {
+            return false;
+        }
+        
+        if (!current_user_can('manage_referrals')) {
+            wp_die(__('You do not have permission to manage referrals', 'affiliate-wp'), __('Error', 'affiliate-wp'), array('response' => 403));
+        }
+        
+        $contract_number = sanitize_text_field($_REQUEST['contract_number']);
+        // TODO: stephen validate the contract_number
+        
+        $this->debugLog("contract submitted is " . $contract_number);
+        
+        // search through all commissions where the reference = contract_number
+        //   and where the new_business = 'N'
+        //   and where the type of commission is personal rather than override
+        //   
+        //   order by referral_id so we can make sure we can get the right data
+        $commission_data = $this->commission_dal->get_repeat_commission_data($contract_number);
+        if (!empty($commission_data)) {
+            // need to convert it to maintain the same data format on the way down
+            $agent_convert = [
+                "agent_id" => ["name" => "id", "formatter" => absint]
+                ,"split_rate" => ["name" => "split", "formatter" => function($val) { return floatval($val) * 100; }]
+                ,"commission_id" => ["name" => "commission_id", "formatter" => absint]
+                ,"email" => ["name" => "name", "formatter" => function($val) { return $val; }] // use identity function so code works the same
+                ,"user_id" => ["name" => "user_id", "formatter" => absint]
+            ];
+            $commission_data['writing_agent'] = $this->remapAgentObject($agent_convert, $commission_data['writing_agent']);
+            $commission_data['agents'] = $this->remapAgentArray($agent_convert, $commission_data['agents']);
+            $result = array("data" => $commission_data);
+        }
+        else {
+            http_response_code(404);
+            $result = array("message" => __("Repeat business not found for contract number", "affiliate-ltp"));
+        }
+        
+        
+        
+        echo json_encode($result);
+        exit;
+    }
+    
+    private function remapAgentArray($keyMap, $agents) {
+        if (empty($agents)) {
+            return [];
+        }
+        $results = [];
+        foreach ($agents as $agent) {
+             $results[] = $this->remapAgentObject($keyMap, $agent);
+        }
+        return $results;
+    }
+    
+    private function remapAgentObject($keyMap, $agent) {
+        if (empty($agent)) {
+            return [];
+        }
+        
+        $result = [];
+        foreach ($keyMap as $old => $mapper) {
+            if (!empty($mapper['formatter'])) {
+                $result[$mapper['name']] = $mapper['formatter']($agent[$old]);
+            }
+        }
+        return $result;
     }
 
     /**
@@ -222,9 +296,10 @@ class Referrals {
 //        $response = ["type" => "success", "redirect" => admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added')];
         
         try {
-            error_log(var_export($requestData, true));
+//            error_log(var_export($requestData, true));
             $request = Referrals_New_Request_Builder::build($requestData);
-
+//            error_log(var_export($request, true));
+            
             $commissionProcessor = new Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
             $commissionProcessor->process_commission_request($request);
@@ -244,5 +319,10 @@ class Referrals {
     public function cleanupReferralMetadata( $referralId ) {
         // delete all the meta information.
         $this->commission_dal->delete_commission_meta_all( $referralId );
+    }
+    
+    private function debugLog($message) {
+        // TODO: stephen need to put in the logger here.
+        error_log($message);
     }
 }

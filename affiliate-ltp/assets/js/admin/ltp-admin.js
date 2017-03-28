@@ -1,8 +1,8 @@
 (function ($, angular) {
     function Client() {
+        this.id = null;
         this.contract_number = null;
         this.name = null;
-        this.id = null;
         this.street_address = null; // client_street_address
         this.city = null; // client_city_address
         this.zip = null; // client_zip_address
@@ -58,16 +58,21 @@
                 commissionsAdd.readonlyClient = true;
             }
             CommissionService.findCommissionByContractNumber(client.contract_number)
-                    .then(function(commission) {
-                        if (!commission) {
-                            // TODO: stephen deal with the error where we have a client
-                            // but no attached commission....
-                            alert("no existing commission found for client's contract number");
+                    .then(function(commissionResult) {
+                        commissionsAdd.populateCommission(commissionResult.data);
+                    })
+                    .catch(function(error) {
+                        // TODO: stephen change to something better than alerts
+                        if (error && error.data) {
+                            // we don't care about 404's as that is our not found message.
+                            if (error.status !== 404 && error.data.message) {
+                                alert("A server error occurred. Error: " + error.data.message);
+                            }
                         }
                         else {
-                            commissionsAdd.populateCommission(commission);
+                            alert("A server error occurred and we could not check for repeat business with this contract number");
                         }
-            })
+            });
         });
 
         // handle when an agent is selected
@@ -85,16 +90,11 @@
         });
         
         commissionsAdd.populateCommission = function(popCommission) {
-             commissionsAdd.commission.new_business = false;
+             commissionsAdd.commission.new_business = popCommission.new_business === 'Y';
              commissionsAdd.commission.is_life_commission = popCommission.is_life_commission;
-             
-             if (popCommission.agents.length) {
-                if (popCommission.agents.length > 1) {
-                    commissionsAdd.commission.split_commission = true;
-                }
-                commissionsAdd.commission.writing_agent = popCommission.agents.shift();
-                commissionsAdd.commission.agents = popCommission.agents;
-            }
+             commissionsAdd.commission.split_commission = popCommission.split_commission;
+             commissionsAdd.commission.writing_agent = popCommission.writing_agent;
+             commissionsAdd.commission.split_agents = popCommission.agents ? popCommission.agents : [];
         };
 
         commissionsAdd.resetClient = function () {
@@ -239,6 +239,13 @@
                         save: function (data) {
                             return $http.post(ajaxurl + '?action=affwp_add_referral', data).then(function (response) {
                                 return response.data;
+                            });
+                        }
+                        ,findCommissionByContractNumber: function(contractNumber) {
+                            var encodedNumber = encodeURIComponent(contractNumber);
+                            return $http.get(ajaxurl + '?action=affwp_search_commission&contract_number=' + encodedNumber)
+                                    .then(function (response) {
+                                        return response.data;
                             });
                         }
                     };
