@@ -100,13 +100,21 @@ class Referrals_New_Request_Builder {
         $request->date = self::parseDate($requestData);
         $request->points = $request->amount;
         
-        if (isset($requestData['is_life_commission']) && $requestData['is_life_insurance'] === true) {
+        if (isset($requestData['is_life_commission']) && $requestData['is_life_commission']) {
             $request->type = CommissionType::TYPE_LIFE;
             // set the points to be whatever was entered for a life commission
             $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : $request->amount;
         }
         else {
             $request->type = CommissionType::TYPE_NON_LIFE;
+        }
+        
+        if (isset($requestData['skip_life_licensed_check']) && $requestData['skip_life_licensed_check'] === true) {
+            $request->skip_life_licensed_check = true;
+        }
+        
+        if (isset($requestData['new_business']) && $requestData['new_business'] === false) {
+            $request->new_business = false;
         }
         
         return $request;

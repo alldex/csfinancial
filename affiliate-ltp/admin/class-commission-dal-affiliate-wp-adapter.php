@@ -4,6 +4,7 @@ namespace AffiliateLTP\admin;
 
 use \Affiliate_WP_Referral_Meta_DB;
 use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Request_DB;
 
 /**
  * Wraps around all of the affiliate_wp() methods to implement what we need
@@ -20,8 +21,20 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
      */
     private $referral_meta_db;
     
+    /**
+     * Handles the saving and creating of commission request objects.
+     * @var Commission_Request_DB
+     */
+    private $commission_request_db;
+    
     public function __construct(Affiliate_WP_Referral_Meta_DB $meta_db) {
         $this->referral_meta_db = $meta_db;
+        $this->commission_request_db = new Commission_Request_DB();
+    }
+    
+    public function add_commission_request( $commission_request ) {
+        $record_id = $this->commission_request_db->add( $commission_request );
+        return $record_id;
     }
     
     public function add_commission( $commission ) {

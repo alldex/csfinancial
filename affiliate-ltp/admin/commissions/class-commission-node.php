@@ -13,10 +13,6 @@ namespace AffiliateLTP\admin\commissions;
  * @author snielson
  */
 class Commission_Node {
-    public $amount;
-    public $points;
-    public $commission_id;
-    
     /**
      * @var Agent_Data
      */

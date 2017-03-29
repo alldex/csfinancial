@@ -7,6 +7,9 @@
 
 namespace AffiliateLTP\admin\commissions;
 
+use AffiliateLTP\admin\Referrals_New_Request;
+use AffiliateLTP\CommissionType;
+
 /**
  * Description of class-commission-tree-validator
  *
@@ -33,7 +36,8 @@ class Commission_Tree_Validator {
                 throw new \LogicException("passed in parameters are not of type Commission_Processor_Item");
             }
 
-            if ($request->type === CommissionType::TYPE_LIFE) {
+            if ($request->type == CommissionType::TYPE_LIFE 
+                    && !$request->skip_life_licensed_check) {
                 // need to check if anyone has life insurance problems.
                 $this->validate_tree_for_valid_life_insurance($tree, $errors);
             }
@@ -43,7 +47,7 @@ class Commission_Tree_Validator {
     }
     
     private function validate_tree_for_valid_life_insurance(Commission_Node $tree, &$errors) {
-        if ($tree->life_license_status->has_license() && !$tree->life_license_status->has_active_licensed()) {
+        if ($tree->agent->life_license_status->has_license() && !$tree->agent->life_license_status->has_active_licensed()) {
             // TODO: stephen need to add in the agent username
             $message = "Agent with id " . $tree->agent_id . " life insurance license has expired";
             $errors[] = ['type' => 'life_expired', 'message' => $message];

@@ -31,6 +31,10 @@ class Upgrades {
             $this->v0_2_0_upgrades();
         }
         
+        if ( version_compare( $version, "0.3.0", '<')) {
+            $this->v0_3_0_upgrades();
+        }
+        
         // If upgrades have occurred
         if ( $this->upgraded ) {
                 update_option( 'affwp_ltp_version_upgraded_from', $version );
@@ -48,6 +52,12 @@ class Upgrades {
         // TODO: stephen I don't like this being public... is there a better
         // way to do this?
         Plugin::instance()->get_progress_items_db()->create_table();
+    }
+    
+    public function v0_3_0_upgrades() {
+        // TODO: stephen I don't like this being public... is there a better
+        // way to do this?
+        Plugin::instance()->get_commission_request_db()->create_table();
         $this->upgraded = true;
     }
     

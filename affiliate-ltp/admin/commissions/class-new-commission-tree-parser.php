@@ -8,6 +8,10 @@
 namespace AffiliateLTP\admin\commissions;
 use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\admin\Agent_DAL;
+use AffiliateLTP\admin\Settings_DAL;
+
+require_once 'class-commission-node.php';
+require_once 'class-agent-data.php';
 
 /**
  * For new commissions it creates the processing tree that mimics the agent
@@ -16,6 +20,12 @@ use AffiliateLTP\admin\Agent_DAL;
  * @author snielson
  */
 class New_Commission_Tree_Parser {
+    
+    /**
+     * Safety catch to break loops that exceed this level in case
+     * there is a recursive loop.
+     */
+    const HEIARCHY_MAX_LEVEL_BREAK = 100;
     
     /**
      *
@@ -60,7 +70,7 @@ class New_Commission_Tree_Parser {
 
         foreach ($request->agents as $agent) {
             $item = $this->get_initial_processor_item_for_agent($request, $agent);
-            $this->populate_tree_with_parents($item);
+            $this->populate_tree_with_parents($item, 0);
             $trees[] = $this->process_transformations($item);
         }
         return $trees;
@@ -98,7 +108,7 @@ class New_Commission_Tree_Parser {
         $parent_node = null;
         $parent_agent_id = $this->agent_dal->get_parent_agent_id($node->agent->id);
         if (!empty($parent_agent_id)) {
-            $parent_node = $this->create_initial_processor_item($node, $parent_agent_id);
+            $parent_node = $this->create_initial_processor_item($parent_agent_id, $node);
         }
         return $parent_node;
     }
@@ -106,7 +116,7 @@ class New_Commission_Tree_Parser {
     protected function get_coleadership_for_node(Commission_node $node) {
         $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($node->agent->id);
         if (!empty($coleadership_id)) {
-            $coleadership_node = $this->create_initial_processor_item($node, $coleadership_id);
+            $coleadership_node = $this->create_initial_processor_item($coleadership_id, $node);
             $coleadership_node->coleadership_rate = 
                     $this->agent_dal->get_agent_coleadership_agent_rate($node->agent->id);
         }

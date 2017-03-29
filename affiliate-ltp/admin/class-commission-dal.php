@@ -80,4 +80,10 @@ interface Commission_DAL {
      * @param string $contract_number
      */
     function get_repeat_commission_data($contract_number);
+    
+    /**
+     * Adds a commission request record to the system.
+     * @param array $commission_request
+     */
+    function add_commission_request( $commission_request );
 }

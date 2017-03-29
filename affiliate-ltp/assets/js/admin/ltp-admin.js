@@ -45,7 +45,7 @@
         commissionsAdd.commission = new Commission();
         commissionsAdd.splitTotalInvalid = false;
         commissionsAdd.nonce = null;
-
+        commissionsAdd.skip_life_licensed_check = false;
         commissionsAdd.client = new Client();
         
         
@@ -90,7 +90,7 @@
         });
         
         commissionsAdd.populateCommission = function(popCommission) {
-             commissionsAdd.commission.new_business = popCommission.new_business === 'Y';
+             commissionsAdd.commission.new_business = false; // if we are populating it's not new_business
              commissionsAdd.commission.is_life_commission = popCommission.is_life_commission;
              commissionsAdd.commission.split_commission = popCommission.split_commission;
              commissionsAdd.commission.writing_agent = popCommission.writing_agent;
@@ -101,6 +101,7 @@
             commissionsAdd.client = new Client();
             commissionsAdd.readonlyClient = false;
             commissionsAdd.commission = new Commission();
+            commissionsAdd.commission.new_business = true;
         };
 
         commissionsAdd.isSplit = function () {
@@ -156,6 +157,7 @@
                 , new_business: commissionsAdd.commission.new_business
                 , action: "add_referral"
                 , 'affwp_add_referral_nonce': commissionsAdd.nonce
+                , skip_life_licensed_check: commissionsAdd.skip_life_licensed_check
             };
             console.log("saving data", data);
 
@@ -168,12 +170,19 @@
                     // TODO: stephen need to drill down into the error
                     alert("an error occurred: " + data.message);
                 }
+                else if (data.type === 'validation') {
+                    var message = "One or more agents do not have active life insurance licenses, do you still want to continue";
+                    if (confirm(message)) {
+                        commissionsAdd.skip_life_licensed_check = true;
+                        commissionsAdd.save(); // save again.
+                    }   
+                }
             })
-                    .catch(function (error) {
-                        alert("An error occurred in communicating with the server.  Please try again.");
-                        console.log(error);
-                        // TODO: stephen handle this better
-                    });
+            .catch(function (error) {
+                alert("An error occurred in communicating with the server.  Please try again.");
+                console.log(error);
+                // TODO: stephen handle this better
+            });
         };
     }
 

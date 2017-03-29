@@ -31,6 +31,19 @@ class Referrals_New_Request {
      * @var boolean
      */
     public $companyHaircutAll;
+    
+    /**
+     * Wheather to skip the check to verify that the agents have a valid
+     * life insurance policy when dealing with a life insurance commission.
+     * @var boolean
+     */
+    public $skip_life_licensed_check;
+    
+    /**
+     * Whether the request is for new business or not.
+     * @var boolean
+     */
+    public $new_business;
 
     public function __construct() {
         $this->agents = array();
@@ -39,5 +52,7 @@ class Referrals_New_Request {
         $this->type = CommissionType::TYPE_NON_LIFE;
         $this->skipCompanyHaircut = false;
         $this->companyHaircutAll = false;
+        $this->skip_life_licensed_check = false;
+        $this->new_business = true;
     }
 }

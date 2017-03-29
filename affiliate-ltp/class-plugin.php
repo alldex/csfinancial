@@ -16,7 +16,7 @@ use AffiliateLTP\Progress_Item_DB;
  */
 class Plugin {
         
-    const AFFILIATEWP_LTP_VERSION = "0.2.1";
+    const AFFILIATEWP_LTP_VERSION = "0.3.0";
     
     const LOCALHOST_RESTRICTED = true;
     
@@ -244,12 +244,22 @@ class Plugin {
         return $this->progress_items;
     }
     
+    /**
+     * Retrieves the commission request db
+     * @return Commission_Request_DB
+     */
+    public function get_commission_request_db() {
+        return $this->commission_request_db;
+    }
+    
     public function setup_dependent_objects() {
         require_once "class-referral-meta-db.php";
         require_once "class-progress-item-db.php";
+        require_once "class-commission-request-db.php";
         
         $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
         $this->progress_items = new Progress_Item_DB();
+        $this->commission_request_db = new Commission_Request_DB();
         
         if (is_admin()) {
             $this->adminReferrals = new Referrals($this->referralMeta);

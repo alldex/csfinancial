@@ -6,13 +6,30 @@ use AffiliateLTP\Plugin;
 use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\CommissionType;
 use AffiliateLTP\admin\Life_License_Status;
+use AffiliateLTP\admin\commissions\Real_Rate_Calculate_Transformer;
+use AffiliateLTP\admin\commissions\Commission_Tree_Validator;
+use AffiliateLTP\admin\commissions\Commission_Node;
 
 require_once dirname(dirname(__FILE__)) . '/admin/class-life-license-status.php';
+require_once 'commissions/class-new-commission-tree-parser.php';
+require_once 'commissions/class-real-rate-calculate-transfomer.php';
+require_once 'commissions/class-commission-tree-validator.php';
 
 // TODO: stephen need to save the agent_parent_id piece... 
 // how to do this I'm not sure.
 require_once 'class-commission-company-processor.php';
 
+class Commission_Validation_Exception extends \RuntimeException {
+    private $validation_errors;
+    public function __construct($validation_errors, $message, $code, $previous) {
+        $this->validation_errors;
+        parent::__construct($message, $code, $previous);
+    }
+    
+    public function get_validation_errors() {
+        return $this->validation_errors;
+    }
+}
 class Commission_Processor_Item {
 
     public $commission_id;
@@ -110,7 +127,9 @@ class Commission_Processor {
      * @var array
      */
     private $processed_items;
-
+    
+    private $commission_request_id = null;
+    
     const STATUS_DEFAULT = 'unpaid';
 
     public function __construct(Commission_DAL $commission_dal, Agent_DAL $agent_dal, Settings_DAL $settings_dal) {
@@ -135,8 +154,8 @@ class Commission_Processor {
             // handle the population this way
             // $tree_parser = new commissions\Repeat_Commission_Tree_Parser($this->agent_dal);
         } else {
-            $tree_parser = new commissions\New_Commission_Tree_Parser($this->agent_dal);
-            $tree_parser->add_transformer(new Real_Rate_Calculate_Transformer());
+            $tree_parser = new commissions\New_Commission_Tree_Parser($this->settings_dal, $this->agent_dal);
+//            $tree_parser->add_transformer(new Real_Rate_Calculate_Transformer());
         }
         return $tree_parser->parse($request);
     }
@@ -169,13 +188,58 @@ class Commission_Processor {
         $errors = $this->validate_agent_trees_with_request($request, $agent_trees);
         if (!empty($errors)) {
             // TODO: stephen throw an exception here???
-            $this->debugLog(var_export($errors, true));
-            return;
+            throw new Commission_Validation_Exception($errors, "Commission Validation Error");
         }
         
+        $this->record_commission_request($request, $agent_trees);
+        
+        // transform the trees now
+        $this->perform_tree_transformations($request, $agent_trees);
+        
         foreach ($agent_trees as $tree) {
-            $this->process_item($tree, null);
+            $this->process_item_updated($request, $tree);
         }
+    }
+    
+    private function perform_tree_transformations(Referrals_New_Request $request, $agent_trees) {
+        $transformations = [
+            new Real_Rate_Calculate_Transformer($request)
+        ];
+        $transformed_trees = [];
+        foreach ($agent_trees as $tree) {
+            $transformed_tree = $tree;
+            foreach ($transformations as $transformer) {
+                $transformed_tree = $transformer->transform($transformed_tree);
+            }
+            $transformed_trees[] = $transformed_tree;
+        }
+        return $transformed_trees;
+    }
+    
+    private function record_commission_request(Referrals_New_Request $request, $agent_trees) {
+        /**
+         * 'contract_number' => '%s',
+			'creator_user_id' => '%d',
+			'writing_agent_id'     => '%d',
+                        'amount'     => '%d',
+                        'points'     => '%d',
+                        'date_created'     => '%s',
+			'request_type'   => '%s',
+                        'new_business' => '%s',
+                        'request'   => '%s',
+                        'agent_tree'   => '%s',
+         */
+        $commission_request = [
+            "writing_agent_id" => $request->agents[0]->id
+           ,"contract_number" => $request->client['contract_number']
+           ,"amount" => $request->amount
+                ,"points" => $request->points
+                ,"request_type" => $request->type
+                ,"new_business" => $request->new_business ? "Y" : "N"
+                ,"request" => json_encode($request)
+                ,"agent_tree" => json_encode($agent_trees)
+        ];
+        $this->commission_request_id = $this->commission_dal->add_commission_request($commission_request);
     }
 
     public function process_commission_request(Referrals_New_Request $request) {
@@ -208,6 +272,37 @@ class Commission_Processor {
         $this->processed_items = [];
         return $items;
     }
+    
+    private function process_item_updated(Referrals_New_Request $request, Commission_Node $item) {
+        $adjusted_amount = $request->amount * $item->rate;
+        $this->create_commission_for_item_updated($request, $item, $adjusted_amount);
+        
+        if ($item->coleadership_node != null) {
+            $this->process_coleadership_item_updated($request, $item);
+            
+        }
+        else if ($item->parent_node != null) {
+            $this->process_item_updated($request, $item->parent_node);
+        }
+    }
+    
+    private function process_coleadership_item_updated(Referrals_New_Request $request, Commission_Node $item) {
+        $coleadership_rate = $item->coleadership_rate;
+        
+        $active_request = clone $request;
+        $active_request->amount = round($request->amount * $coleadership_rate, 2);
+        $active_request->points = round($request->points * $coleadership_rate, 2);
+        $this->process_item_updated($active_request, $item->coleadership_node);
+
+        // we should have both a coleadership and a parent, but a safety check here
+        // in case the heirarchy wasnt setup properly.
+        if (!empty($item->parent_node)) {
+            $passive_request = clone $request;
+            $passive_request->amount = $request->amount - $active_request->amount;
+            $passive_request->points = $request->points - $active_request->points;
+            $this->process_item_updated($passive_request, $item->parent_node);
+        }
+    }
 
     private function process_item(Commission_Processor_Item $item, \SplStack $processingStack) {
         if ($this->should_process_item($item)) {
@@ -221,6 +316,73 @@ class Commission_Processor {
         // TODO: stephen add logging to state that the commission was added.
 
         $this->process_parent_item($item, $processingStack);
+    }
+    
+    private function create_commission_for_item_updated(Referrals_New_Request $request, Commission_Node $item, $adjusted_amount) {
+        $this->debugLog("create_commission_for_item() creating commission for agent '{$item->agent_id}'");
+        $custom = 'direct';
+        $description = __("Personal sale", "affiliate-ltp");
+        if (!$item->is_direct_sale) {
+            $custom = 'indirect';
+            $description = __("Override", "affiliate-ltp");
+        }
+
+        // TODO: stephen I think most the metadata stuff is redundant now with the commission_request
+        // records... look at cleaning this up.
+        $commission = array(
+            "agent_id" => $item->agent->id
+            , "description" => $description
+            , "amount" => $adjusted_amount
+            , "reference" => $request->client['contract_number']
+            , "custom" => $custom
+            , "context" => $request->type
+            , "status" => self::STATUS_DEFAULT
+            , "date" => $request->date
+            , "client" => $request->client
+            , "meta" => [
+                "points" => $item->points
+                // TODO: stephen agent_rate and agent_real_rate may not be needed anymore...?
+                , "agent_rate" => $item->agent->rate
+                , "agent_real_rate" => $item->rate
+                // TODO: stephen should this be bundled into the referrals_new_request piece??
+                , "commission_request_id" => $this->commission_request_id
+            ]
+        );
+        if (isset($item->parent_node)) {
+            $commission['meta']['agent_parent_id'] = $item->parent_node->agent->id;
+        }
+        
+        if (isset($item->coleadership_node)) {
+            $commission['meta']['coleadership_id'] = $item->coleadership_node->agent->id;
+            $commission['meta']['coleadership_rate'] = $item->coleadership_rate;
+        }
+        
+//        $this->debugLog("create_commission_for_item() gen count: {$item->generational_count}");
+        if ($item->generational_count > 0) {
+            $commission['description'] .= "- {$item->generational_count} Generation ";
+            $commission['meta']['generation_count'] = $item->generational_count;
+        }
+
+        // add the rank of the individual
+        $rank_id = $this->agent_dal->get_agent_rank($item->agent_id);
+        if (!empty($item->agent->rank)) {
+            $commission['meta']['rank_id'] = $rank_id;
+        }
+
+        // create referral
+        $commission_id = $this->commission_dal->add_commission($commission);
+        //$commission_id = affiliate_wp()->referrals->add($commission);
+
+        if ($commission_id) {
+            $this->debugLog("create_commission_for_item() created commission for '{$item->agent_id}'");
+            $commission['id'] = $commission;
+            $this->processed_items[] = $commission;
+            do_action('affwp_ltp_commission_created', $commission);
+            return $commission_id;
+        } else {
+            // TODO: stephen add more details here.
+            throw new \Exception("Failed to create commission id for commission data: " . var_export($commission, true));
+        }
     }
 
     private function create_commission_for_item(Commission_Processor_Item $item, $adjusted_amount) {

@@ -6,6 +6,7 @@
  */
 
 namespace AffiliateLTP\admin\commissions;
+use AffiliateLTP\admin\Life_License_Status;
 
 /**
  * Description of agent-data
@@ -22,4 +23,10 @@ class Agent_Data {
      * @var Life_License_Status
      */
     public $life_license_status;
+    
+    /**
+     * Whether the agent is a partner or not (for generational counting purposes)
+     * @var boolean
+     */
+    public $is_partner = false;
 }
