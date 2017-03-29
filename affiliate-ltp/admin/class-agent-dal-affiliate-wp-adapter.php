@@ -325,6 +325,30 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         return $val;
     }
     
+    public function get_agent_name($agent_id) {
+        if (empty($agent_id)) {
+            return null;
+        }
+        
+        return affwp_get_affiliate_name( $agent_id);
+    }
+    
+    public function get_agent_email($agent_id) {
+        if (empty($agent_id)) {
+            return null;
+        }
+        
+        return affwp_get_affiliate_email( $agent_id);
+    }
+    
+    public function get_agent_username($agent_id) {
+        if (empty($agent_id)) {
+            return null;
+        }
+        
+        return affwp_get_affiliate_username( $agent_id);
+    }
+    
     private function get_new_agent_tree_node($type, $id) {
         $obj = new \AffiliateLTP\Agent_Tree_Node();
         $obj->type = $type;

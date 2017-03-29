@@ -116,7 +116,7 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         return $this->referral_meta_db->get_meta( $commission_id, 'client_id', true );
     }
     
-    public function get_repeat_commission_data($contract_number, $include_override = false) {
+    public function get_repeat_commission_data($contract_number) {
         // select * FROM wp_affiliate_wp_referrals ref
         // JOIN wp_affiliate_wp_referralmeta refm ON ref.referral_id = refm.referral_id
         // WHERE ref.referral_id IN (
@@ -129,111 +129,14 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         
         // complex query here...
         
-        $results = $this->get_repeat_commission_from_database( $contract_number, $include_override );
-        
-        if (!empty($results)) {
-            $commission = $this->convert_results_to_commission_data( $results, $contract_number );
-            return $commission;
+//        $results = $this->get_repeat_commission_from_database( $contract_number );
+        $commission_request = $this->commission_request_db->get_new_commission_request($contract_number);
+        if (empty($commission_request)) {
+            return null;
         }
         
-        return null;
-    }
-    
-    private function get_repeat_commission_from_database($contract_number, $include_override) {
-        // if we want override sales agents here.
-        $direct_sales_clause = $include_override  ? '' : "r.custom = 'direct' AND ";
-        
-        $sql = <<<EOD
-select 
-    a.affiliate_id, a.user_id, wu.user_email,
-    ref.referral_id,ref.status,ref.amount,ref.custom, ref.context,
-    ref.reference,ref.date, 
-    refm.meta_id,refm.meta_key,refm.meta_value
-FROM
-    wp_affiliate_wp_referrals ref
-    JOIN 
-        wp_affiliate_wp_referralmeta refm 
-            ON ref.referral_id = refm.referral_id
-    JOIN 
-        wp_affiliate_wp_affiliates a 
-            ON ref.affiliate_id = a.affiliate_id
-    JOIN
-        wp_users wu
-            ON a.user_id = wu.ID
-WHERE 
-    ref.referral_id IN (
-        select 
-            DISTINCT r.referral_id 
-        FROM 
-            wp_affiliate_wp_referrals r 
-        JOIN 
-            wp_affiliate_wp_referralmeta rm 
-                ON r.referral_id = rm.referral_id
-WHERE 
-    $direct_sales_clause r.reference = '%s'
-    AND meta_key = 'new_business' and meta_value = 'Y'
-)
-ORDER BY 
-    ref.date asc
-EOD;
-        global $wpdb;
-        $results = $wpdb->get_results( $wpdb->prepare($sql, $contract_number), ARRAY_A);
-        if ($results->num_rows > 0) {
-            error_log('rows returned ' . $results->num_rows);
-            return $results;
-        }
-        else {
-            error_log('num rows was 0');
-        }
-        return null;
-    }
-    
-    private function convert_results_to_commission_data($results, $contract_number) {
-        $commission = [
-            "agents" => []
-            ,"writing_agent" => []
-            ,"contract_number" => $contract_number
-            ,"is_life_commission" => true
-            ,"split_commission" => false
-        ];
-        
-         // the writing agent is the first agent of the commission created
-         // we need to make sure he is first.
-        $ordered_ids = [];
-        $records_by_agent = array();
-        $current_agent = null;
-        foreach ($results as $record) {
-            if ($record['affiliate_id'] != $current_agent) {
-                $current_agent = $record['affiliate_id'];
-                if (empty($records_by_agent[$current_agent])) {
-                    error_log("adding agent $current_agent");
-                    $records_by_agent[$current_agent] = [
-                        "agent_id" => $current_agent
-                        ,"user_id" => $record['user_id']
-                        ,'email' => $record['user_email']
-                    ];
-                    $ordered_ids[] = $current_agent;
-                }
-            }
-            // all of the contexts should be the same
-            $commission['is_life_commission'] = absint($record['context']) == CommissionType::TYPE_LIFE;
-            
-            // this assumes there is only one value for the meta which there
-            // should only be one value. First record takes precedence if there
-            // are duplicate meta_keys
-            $meta_key = $record['meta_key'];
-            $meta_value = $record['meta_value'];
-            if (empty($records_by_agent[$current_agent][$meta_key])) {
-                $records_by_agent[$current_agent][$meta_key] = $meta_value;
-            }
-        }
-        $commission['writing_agent'] = $records_by_agent[array_shift($ordered_ids)];
-        $commission['agents'] = array_map(function($id) use($records_by_agent) {
-                                            return $records_by_agent[$id]; }
-                                , $ordered_ids);
-        if (!empty($commission['agents'])) {
-            $commission['split_commission'] = true;
-        }
-        return $commission;
+        $hydrated_request = json_decode($commission_request['request']);
+        $hydrated_request->commission_request_id = $commission_request['commission_request_id'];
+        return $hydrated_request;
     }
 }

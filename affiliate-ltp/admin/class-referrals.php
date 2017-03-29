@@ -149,17 +149,26 @@ class Referrals {
         //   order by referral_id so we can make sure we can get the right data
         $commission_data = $this->commission_dal->get_repeat_commission_data($contract_number);
         if (!empty($commission_data)) {
-            // need to convert it to maintain the same data format on the way down
-            $agent_convert = [
-                "agent_id" => ["name" => "id", "formatter" => absint]
-                ,"split_rate" => ["name" => "split", "formatter" => function($val) { return floatval($val) * 100; }]
-                ,"commission_id" => ["name" => "commission_id", "formatter" => absint]
-                ,"email" => ["name" => "name", "formatter" => function($val) { return $val; }] // use identity function so code works the same
-                ,"user_id" => ["name" => "user_id", "formatter" => absint]
+//            // need to convert it to maintain the same data format on the way down
+//            $agent_convert = [
+//                "agent_id" => ["name" => "id", "formatter" => absint]
+//                ,"split_rate" => ["name" => "split", "formatter" => function($val) { return floatval($val) * 100; }]
+//                ,"commission_id" => ["name" => "commission_id", "formatter" => absint]
+//                ,"email" => ["name" => "name", "formatter" => function($val) { return $val; }] // use identity function so code works the same
+//                ,"user_id" => ["name" => "user_id", "formatter" => absint]
+//            ];
+//            $commission_data['writing_agent'] = $this->remapAgentObject($agent_convert, $commission_data['writing_agent']);
+//            $commission_data['agents'] = $this->remapAgentArray($agent_convert, $commission_data['agents']);
+            $agents = $this->populate_agent_array($commission_data->agents);
+            $formatted_commission = [
+                "writing_agent" => array_shift($agents)
+                ,"agents" => $agents
+                ,"contract_number" => $contract_number
+                ,"is_life_commission" => absint($commission_data->type) == CommissionType::TYPE_LIFE
+                ,"split_commission" => count($agents) > 0
+                ,'commission_request_id' => $commission_data->commission_request_id
             ];
-            $commission_data['writing_agent'] = $this->remapAgentObject($agent_convert, $commission_data['writing_agent']);
-            $commission_data['agents'] = $this->remapAgentArray($agent_convert, $commission_data['agents']);
-            $result = array("data" => $commission_data);
+            $result = array("data" => $formatted_commission);
         }
         else {
             http_response_code(404);
@@ -170,6 +179,17 @@ class Referrals {
         
         echo json_encode($result);
         exit;
+    }
+    
+    private function populate_agent_array($agents) {
+        $result_agents = [];
+        foreach ($agents as $agent) {
+            $copy_agent = clone $agent;
+            // TODO: stephen need to add in name
+            $copy_agent->name = $this->agent_dal->get_agent_email($copy_agent->id);
+            $result_agents[] = $copy_agent;
+        }
+        return $result_agents;
     }
     
     private function remapAgentArray($keyMap, $agents) {

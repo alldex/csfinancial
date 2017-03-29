@@ -131,4 +131,19 @@ interface Agent_DAL {
      * @returns int
      */
     function get_current_user_agent_id();
+    
+    /**
+     * Retrieves the name of the passed in agent_id
+     */
+    function get_agent_name( $agent_id);
+    
+    /**
+     * Retrieves the email of the passed in agent_id
+     */
+    function get_agent_email( $agent_id);
+    
+    /**
+     * Retrieves the username of the passed in agent_id
+     */
+    function get_agent_username( $agent_id);
 }

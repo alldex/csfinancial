@@ -83,9 +83,30 @@ class Commission_Request_DB extends Affiliate_WP_DB {
                 ,"count" => false
             ];
             $args = ["number" => 1000, "offset" => 0];
-            $results = $this->get_results( $clauses, $args, function ($item) { return $this->hydrate_progress_item($item); } );
+            $results = $this->get_results( $clauses, $args, function ($item) { return $this->hydrate_commission_request($item); } );
             return $results;
         }
+        
+        public function get_new_commission_request( $contract_number ) {
+            $clauses = [
+                "fields" => "*"
+                ,"join" => ""
+                ,"where" => "WHERE " . sprintf("`contract_number` = '%s'", $contract_number) 
+                                . " AND new_business = 'Y'"
+                ,"orderby" => "date_created"
+                ,"order" => "DESC"
+                ,"count" => false
+            ];
+            // there should only be one.
+            $args = ["number" => 1, "offset" => 0];
+            $results = $this->get_results( $clauses, $args, function ($item) { return $this->hydrate_commission_request($item); } );
+            if (!empty($results)) {
+                return $results[0];
+            }
+            return null;
+        }
+        
+        
         
         public function hydrate_commission_request( $record ) {
             // do any formatting or other special work we need with the record.

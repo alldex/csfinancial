@@ -184,20 +184,21 @@ class Commission_Processor {
         // other subsequent commissions are based off of.
         $updatedRequest = $company_processor->prepare_company_commission($request);
 
-        $agent_trees = $this->parse_agent_trees($request);
-        $errors = $this->validate_agent_trees_with_request($request, $agent_trees);
+        $agent_trees = $this->parse_agent_trees($updatedRequest);
+        $errors = $this->validate_agent_trees_with_request($updatedRequest, $agent_trees);
         if (!empty($errors)) {
             // TODO: stephen throw an exception here???
             throw new Commission_Validation_Exception($errors, "Commission Validation Error");
         }
         
+        // record the original request, not the updated request.
         $this->record_commission_request($request, $agent_trees);
         
         // transform the trees now
-        $this->perform_tree_transformations($request, $agent_trees);
+        $this->perform_tree_transformations($updatedRequest, $agent_trees);
         
         foreach ($agent_trees as $tree) {
-            $this->process_item_updated($request, $tree);
+            $this->process_item_updated($updatedRequest, $tree);
         }
     }
     
