@@ -133,26 +133,12 @@ class Commission_Processor {
         // or create the tree ourselves
         if ($this->is_repeat_business($request)) {
             // handle the population this way
+            // $tree_parser = new commissions\Repeat_Commission_Tree_Parser($this->agent_dal);
         } else {
-
-            foreach ($request->agents as $agent) {
-                $splitPercent = $agent->split / 100;
-
-                $item = $this->create_initial_processor_item($agent->id);
-//                $item->amount = $request->amount * $splitPercent;
-                //            // TODO: stephen not sure I like this split rate piece here
-                //            // either it needs to be it's own attribute or other things like contract_number should go there.
-                $item->meta_items['split_rate'] = $splitPercent;
-                $item->date = $request->date;
-                $item->is_direct_sale = true;
-                $item->points = $request->points;
-                $item->type = $request->type;
-                $item->contract_number = $request->client['contract_number'];
-                $item->client_id = $request->client['id'];
-                $this->populate_tree_with_parents($item);
-                $trees[] = $item;
-            }
+            $tree_parser = new commissions\New_Commission_Tree_Parser($this->agent_dal);
+            $tree_parser->add_transformer(new Real_Rate_Calculate_Transformer());
         }
+        return $tree_parser->parse($request);
     }
 
     private function is_repeat_business(Referrals_New_Request $request) {
@@ -161,66 +147,9 @@ class Commission_Processor {
     }
 
     public function validate_agent_trees_with_request(Referrals_New_Request $request, array $trees) {
-        $errors = [];
-
-        foreach ($trees as $tree) {
-            if (!$tree instanceof Commission_Processor_Item) {
-                throw new \LogicException("passed in parameters are not of type Commission_Processor_Item");
-            }
-
-            if ($request->type === CommissionType::TYPE_LIFE) {
-                // need to check if anyone has life insurance problems.
-                $this->validate_tree_for_valid_life_insurance($tree, $errors);
-            }
-        }
-
-        return $errors;
-    }
-
-    private function validate_tree_for_valid_life_insurance(Commission_Processor_Item $tree, &$errors) {
-        if ($tree->life_license_status->has_license() && !$tree->life_license_status->has_active_licensed()) {
-            // TODO: stephen need to add in the agent username
-            $message = "Agent with id " . $tree->agent_id . " life insurance license has expired";
-            $errors[] = ['type' => 'life_expired', 'message' => $message];
-        }
-        if (!empty($tree->parent_node)) {
-            $this->validate_tree_for_valid_life_insurance($tree->parent_node, $errors);
-        }
-        if (!empty($tree->coleadership_node)) {
-            $this->validate_tree_for_valid_life_insurance($tree->coleadership_node, $errors);
-        }
-    }
-
-    private function populate_tree_with_parents(Commission_Processor_Item $node, $count) {
-
-        /**
-         * 100 parent heirarchy is extremely deep for recursion.
-         */
-        if ($count > self::HEIARCHY_MAX_LEVEL_BREAK) {
-            throw new \RuntimeException("Max level heirarchy reached.  Terminating recursive loop.  Check for circular references.");
-        }
-
-        $parent_agent_id = $this->agent_dal->get_parent_agent_id($node->agent_id);
-        if (!empty($parent_agent_id)) {
-            $node->parent_node = $this->create_initial_processor_item($parent_agent_id);
-            $this->populate_tree_with_parents($node->parent_node, $count + 1);
-        }
-
-        $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($node->agent_id);
-        if (!empty($coleadership_id)) {
-            $node->coleadership_node = $this->create_initial_processor_item($coleadership_id);
-            $this->populate_tree_with_parents($node->coleadership_node, $count + 1);
-        }
-    }
-
-    private function create_initial_processor_item($agent_id) {
-        $item = new Commission_Processor_Item();
-        $item->agent_id = $agent_id;
-        $item->rank = $this->agent_dal->get_agent_rank($agent_id);
-        $item->life_license_status = $this->agent_dal->get_life_license_status($agent_id);
-        $item->rate = $this->agent_dal->get_agent_commission_rate($agent_id);
-
-        return $item;
+        
+        $validator = new commissions\Commission_Tree_Validator();
+        return $validator->validate($request, $trees);
     }
 
     public function process_commission_request_updated(Referrals_New_Request $request) {
@@ -243,12 +172,9 @@ class Commission_Processor {
             $this->debugLog(var_export($errors, true));
             return;
         }
-
-
-
+        
         foreach ($agent_trees as $tree) {
-            $pruned_tree = $this->prune_tree($tree);
-            $this->process_item($pruned_tree, null);
+            $this->process_item($tree, null);
         }
     }
 

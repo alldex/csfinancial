@@ -103,7 +103,7 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         return $this->referral_meta_db->get_meta( $commission_id, 'client_id', true );
     }
     
-    public function get_repeat_commission_data($contract_number) {
+    public function get_repeat_commission_data($contract_number, $include_override = false) {
         // select * FROM wp_affiliate_wp_referrals ref
         // JOIN wp_affiliate_wp_referralmeta refm ON ref.referral_id = refm.referral_id
         // WHERE ref.referral_id IN (
@@ -116,7 +116,7 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         
         // complex query here...
         
-        $results = $this->get_repeat_commission_from_database( $contract_number );
+        $results = $this->get_repeat_commission_from_database( $contract_number, $include_override );
         
         if (!empty($results)) {
             $commission = $this->convert_results_to_commission_data( $results, $contract_number );
@@ -126,7 +126,10 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         return null;
     }
     
-    private function get_repeat_commission_from_database($contract_number) {
+    private function get_repeat_commission_from_database($contract_number, $include_override) {
+        // if we want override sales agents here.
+        $direct_sales_clause = $include_override  ? '' : "r.custom = 'direct' AND ";
+        
         $sql = <<<EOD
 select 
     a.affiliate_id, a.user_id, wu.user_email,
@@ -154,7 +157,7 @@ WHERE
             wp_affiliate_wp_referralmeta rm 
                 ON r.referral_id = rm.referral_id
 WHERE 
-    r.custom = 'direct' AND r.reference = '%s'
+    $direct_sales_clause r.reference = '%s'
     AND meta_key = 'new_business' and meta_value = 'Y'
 )
 ORDER BY 
