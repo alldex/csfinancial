@@ -144,12 +144,6 @@ class Commission_Processor {
     public function parse_agent_trees(Referrals_New_Request $request) {
         $trees = [];
 
-        // if the company is taking everything we don't process anything for other
-        // agents
-        if ($request->companyHaircutAll) {
-            return $trees;
-        }
-
         // need to have a branch on whether to grab data from existing commission records
         // or create the tree ourselves
         if ($this->is_repeat_business($request)) {
@@ -193,17 +187,23 @@ class Commission_Processor {
         }
         
         // record the original request, not the updated request.
-        $this->record_commission_request($request, $agent_trees);
+        // even if it's a company only request we still grab all the trees and
+        // save it off for future processing.
+        $this->save_commission_request($request, $agent_trees);
         
         // transform the trees now
         $transformed_trees = $this->perform_tree_transformations($updatedRequest, $agent_trees);
         error_log(count($transformed_trees));
         
-        foreach ($transformed_trees as $tree) {
-            $this->process_item_updated($updatedRequest, $tree);
+         // if the company is taking everything we don't process anything for other
+        // agents
+        if (!$request->companyHaircutAll) {
+            foreach ($transformed_trees as $tree) {
+                $this->process_item_updated($updatedRequest, $tree);
+            }
         }
         
-        $this->print_trees($transformed_trees);
+        $this->log_request($request, $transformed_trees);
         
         // adds to the company cut any remaining funds that were not used
         // in the commissions to the other agents.
@@ -214,10 +214,22 @@ class Commission_Processor {
         return $items;
     }
     
-    private function print_trees($agent_trees) {
+    private function log_request(Referrals_New_Request $request, $agent_trees) {
+        echo "Date: {$request->date}\n";
+        echo "Commission Request id: {$this->commission_request_id}\n";
+        echo "Contract Number is: {$request->client['contract_number']}\n";
+        echo "Company Haircut All is: " . ($request->companyHaircutAll ? "YES" : "NO") . "\n";
+        echo "New Business: " . ($request->new_business ? "YES" : "NO") . "\n";
+        echo "Company Haircut Skip is: " . ($request->skipCompanyHaircut ? "YES" : "NO") . "\n";
+        echo "Skip Life License Check is: " . ($request->skip_life_licensed_check ? "YES" : "NO") . "\n";
+        echo "Amount: {$request->amount}\n";
+        echo "Points: {$request->point}\n";
+        echo "Type: " . ($request->type == CommissionType::TYPE_LIFE ? "LIFE" :"NON-LIFE") ."\n";
+        echo "Agent Trees\n";
         foreach ($agent_trees as $tree) {
-            $this->print_tree($tree, '');
+            $this->print_tree($tree, '>');
         }
+        echo "------------------------\n\n";
     }
     
     private function print_tree(Commission_Node $tree, $prefix) {
@@ -225,9 +237,14 @@ class Commission_Processor {
         if ($tree->agent->life_license_status->has_active_licensed()) {
             $life_license_message = "YES";
         }
+        $active_message = "NO";
+        if ($tree->agent->is_active) {
+            $active_message = "YES";
+        }
         echo "$prefix ------\n";
         echo "$prefix ID: " . $tree->agent->id. "\n";
         echo "$prefix Real Rate: " . $tree->rate . "\n";
+        echo "$prefix Is Active: " . $active_message . "\n";
         echo "$prefix Agent Rate: " . $tree->agent->rate. "\n";
         echo "$prefix Rank: " . $tree->agent->rank . "\n";
         echo "$prefix Active Life License: $life_license_message \n";
@@ -260,7 +277,7 @@ class Commission_Processor {
         return $transformed_trees;
     }
     
-    private function record_commission_request(Referrals_New_Request $request, $agent_trees) {
+    private function save_commission_request(Referrals_New_Request $request, $agent_trees) {
         /**
          * 'contract_number' => '%s',
 			'creator_user_id' => '%d',
@@ -370,7 +387,7 @@ class Commission_Processor {
             $custom = 'indirect';
             $description = __("Override", "affiliate-ltp");
         }
-
+        
         // TODO: stephen I think most the metadata stuff is redundant now with the commission_request
         // records... look at cleaning this up.
         $commission = array(
@@ -384,7 +401,7 @@ class Commission_Processor {
             , "date" => $request->date
             , "client" => $request->client
             , "meta" => [
-                "points" => $item->points
+                "points" => $request->points
                 // TODO: stephen agent_rate and agent_real_rate may not be needed anymore...?
                 , "agent_rate" => $item->agent->rate
                 , "agent_real_rate" => $item->rate

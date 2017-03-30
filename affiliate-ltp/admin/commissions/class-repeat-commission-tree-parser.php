@@ -91,6 +91,7 @@ class Repeat_Commission_Tree_Parser  {
         }
         
         $agent->life_license_status = $this->agent_dal->get_life_license_status($agent->id);
+        $agent->is_active = $this->agent_dal->is_active($agent->id);
         
         return $agent;
     }

@@ -129,6 +129,7 @@ class New_Commission_Tree_Parser {
         $agent->id = $agent_id;
         $agent->rank = $this->agent_dal->get_agent_rank($agent_id);
         $agent->life_license_status = $this->agent_dal->get_life_license_status($agent_id);
+        $agent->is_active = $this->agent_dal->is_active($agent_id);
         
         $agent->is_partner = $this->is_partner($agent->rank);
         $item->agent = $agent;

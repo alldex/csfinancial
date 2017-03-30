@@ -53,12 +53,13 @@ class Real_Rate_Calculate_Transformer {
         $copy->agent = clone $parent->agent;
         
         // set the agent to receive nothing if they have no license.
-        if ($this->check_life_licensing()
-                && $this->has_invalid_license($copy->agent)) {
+        // check licensing, active status, and other conditions preventing
+        // them from having the commission.
+        if ($this->should_skip_commission($copy)) {
             echo "setting rate of agent: {$copy->agent->id} to 0\n";
             $copy->rate = 0;
         }
-        else if (!$copy->agent->is_partner) { // we only adjust the rates for non-partners
+        else if (!$copy->agent->is_partner) { // we only adjust the rates for non-partners (assuming we process them.
             if ($copy->agent->rate > $current_rate) {
                 $copy->rate = $copy->agent->rate - $current_rate;
                 $current_rate = $copy->rate;
@@ -77,6 +78,19 @@ class Real_Rate_Calculate_Transformer {
         }
         
         return $copy;
+    }
+    
+    private function should_skip_commission(Commission_Node $copy) {
+        $skip = false;
+        if ($this->check_life_licensing()
+                && $this->has_invalid_license($copy->agent)) {
+            $skip = true;
+        }
+        
+        if (!$copy->agent->is_active) {
+            $skip = true;
+        }
+        return $skip;
     }
     
     private function has_invalid_license(Agent_Data $agent) {

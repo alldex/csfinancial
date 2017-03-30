@@ -29,4 +29,10 @@ class Agent_Data {
      * @var boolean
      */
     public $is_partner = false;
+    
+    /**
+     * Returns whether the agent is active (hasn't been disabled)
+     * @var boolean
+     */
+    public $is_active = false;
 }
