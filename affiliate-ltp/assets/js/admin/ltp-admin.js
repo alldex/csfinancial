@@ -266,7 +266,8 @@
             .factory("AgentAutoCompleteService", ["$http", function ($http) {
                     return {
                         search: function (term) {
-                            return $http.get(ajaxurl + '?action=affwp_search_users&status=active&term=' + term).then(function (response) {
+                            var encodedTerm = encodeURIComponent(term);
+                            return $http.get(ajaxurl + '?action=affwp_search_users&status=active&term=' + encodedTerm).then(function (response) {
                                 return response.data;
                             });
                         }
@@ -276,7 +277,8 @@
             .factory("ClientAutoCompleteService", ["$http", function ($http) {
                     return {
                         search: function (term) {
-                            return $http.get(ajaxurl + '?action=affwp_ltp_search_clients&term=' + term).then(function (response) {
+                            var encodedTerm = encodeURIComponent(term);
+                            return $http.get(ajaxurl + '?action=affwp_ltp_search_clients&term=' + encodedTerm).then(function (response) {
                                 return response.data;
                             });
                         }

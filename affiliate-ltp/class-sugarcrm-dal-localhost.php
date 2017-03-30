@@ -26,14 +26,25 @@ class SugarCRMDALLocalhost extends SugarCRMDAL {
         return uniqid();
     }
     
-    public function searchAccounts($searchValue = "", $limit = 5) {
-        return array(0 => $this->getAccountById("#555-5555-5")); // return a dummy account.
+    public function searchAccounts($searchValue = "#1", $limit = 5) {
+       $results = [];
+       error_log("searching $searchValue");
+       $startValue = preg_replace("/[^a-z0-9\-]+/i","",$searchValue);
+       
+        for ($count = 2; $count < $limit+2; $count++) {
+            $contract_number = "#" 
+                    . str_repeat($startValue, $count);
+            $results[] = $this->getAccountById($contract_number);
+        }
+       
+        return $results;
     }
     
      public function getAccountById($accountId) {
+         
         return array(
             "id" => $accountId
-            ,"contract_number" => "#555-5555-5"
+            ,"contract_number" => $accountId
             ,"agent_id" => "1"
             ,"name" => "Stephen Nielson"
             ,"description" => "Some description"
