@@ -214,7 +214,7 @@ class Commission_Processor {
         
         // adds to the company cut any remaining funds that were not used
         // in the commissions to the other agents.
-        $company_processor->create_company_commission($this->processed_items, $updatedRequest);
+        $company_processor->create_company_commission($this->processed_items, $updatedRequest, $this->commission_request_id);
 
         $items = $this->processed_items;
         $this->processed_items = [];

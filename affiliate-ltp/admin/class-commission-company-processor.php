@@ -62,7 +62,7 @@ class Commission_Company_Processor {
      * @throws \LogicException
      * @throws \Exception
      */
-    public function create_company_commission(array $agent_commissions) {
+    public function create_company_commission(array $agent_commissions, Referrals_New_Request $request, $commission_request_id) {
         
         if (empty($this->orig_request)) {
             throw new \LogicException("prepare_company_commission must be called before calling create_company_commission");
@@ -96,14 +96,16 @@ class Commission_Company_Processor {
         }
         $company_amount = round($orig_amount - $total_agent_commisions, 2);
         $this->company_cut['amount'] = $company_amount;
-        $this->company_cut['agent_rate'] = round( ($company_amount / $orig_amount), 4);
+        $this->company_cut['meta']['agent_real_rate'] = round( ($company_amount / $orig_amount), 4);
         
         if ($this->orig_request->type != CommissionType::TYPE_LIFE) {
-            $this->company_cut['points'] = $company_amount;
+            $this->company_cut['meta']['points'] = $company_amount;
         }
         else {
-            $this->company_cut['points'] = $this->company_cut['agent_rate'] * $this->orig_request->points;
+            $this->company_cut['meta']['points'] = $this->company_cut['agent_rate'] * $this->orig_request->points;
         }
+        
+        $this->company_cut['meta']['commission_request_id'] = $commission_request_id;
         
         // create commission
         $commission_id = $this->commission_dal->add_commission( $this->company_cut );
