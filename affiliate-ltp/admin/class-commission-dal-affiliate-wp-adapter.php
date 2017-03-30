@@ -130,7 +130,7 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         // complex query here...
         
 //        $results = $this->get_repeat_commission_from_database( $contract_number );
-        $commission_request = $this->commission_request_db->get_new_commission_request($contract_number);
+        $commission_request = $this->get_repeat_commission_record($contract_number);
         if (empty($commission_request)) {
             return null;
         }
@@ -138,5 +138,13 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         $hydrated_request = json_decode($commission_request['request']);
         $hydrated_request->commission_request_id = $commission_request['commission_request_id'];
         return $hydrated_request;
+    }
+    
+    public function get_repeat_commission_record($contract_number) {
+        $commission_request = $this->commission_request_db->get_new_commission_request($contract_number);
+        if (empty($commission_request)) {
+            return null;
+        }
+        return $commission_request;
     }
 }

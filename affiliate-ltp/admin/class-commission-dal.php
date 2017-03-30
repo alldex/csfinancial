@@ -77,9 +77,16 @@ interface Commission_DAL {
     
     /**
      * The contract number we are attempting to get repeat business for.
+     * TODO: stephen fix this duplicate naming.
      * @param string $contract_number
      */
     function get_repeat_commission_data($contract_number);
+    
+    /**
+     * The contract number we are attempting to get repeat business for.
+     * @param string $contract_number
+     */
+    function get_repeat_commission_record($contract_number);
     
     /**
      * Adds a commission request record to the system.

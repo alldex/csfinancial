@@ -55,6 +55,7 @@ class Real_Rate_Calculate_Transformer {
         // set the agent to receive nothing if they have no license.
         if ($this->check_life_licensing()
                 && $this->has_invalid_license($copy->agent)) {
+            echo "setting rate of agent: {$copy->agent->id} to 0\n";
             $copy->rate = 0;
         }
         else if (!$copy->agent->is_partner) { // we only adjust the rates for non-partners
@@ -79,15 +80,11 @@ class Real_Rate_Calculate_Transformer {
     }
     
     private function has_invalid_license(Agent_Data $agent) {
+        echo "checking life license of agent: {$agent->id}\n";
         return !$agent->life_license_status->has_active_licensed();
     }
     
     private function check_life_licensing() {
-        if ($this->request->type == CommissionType::TYPE_LIFE) {
-            if (!$this->request->skip_life_licensed_check) {
-                return true;
-            }
-        }
-        return false;
+        return $this->request->type == CommissionType::TYPE_LIFE;
     }
 }

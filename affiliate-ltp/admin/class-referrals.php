@@ -149,16 +149,6 @@ class Referrals {
         //   order by referral_id so we can make sure we can get the right data
         $commission_data = $this->commission_dal->get_repeat_commission_data($contract_number);
         if (!empty($commission_data)) {
-//            // need to convert it to maintain the same data format on the way down
-//            $agent_convert = [
-//                "agent_id" => ["name" => "id", "formatter" => absint]
-//                ,"split_rate" => ["name" => "split", "formatter" => function($val) { return floatval($val) * 100; }]
-//                ,"commission_id" => ["name" => "commission_id", "formatter" => absint]
-//                ,"email" => ["name" => "name", "formatter" => function($val) { return $val; }] // use identity function so code works the same
-//                ,"user_id" => ["name" => "user_id", "formatter" => absint]
-//            ];
-//            $commission_data['writing_agent'] = $this->remapAgentObject($agent_convert, $commission_data['writing_agent']);
-//            $commission_data['agents'] = $this->remapAgentArray($agent_convert, $commission_data['agents']);
             $agents = $this->populate_agent_array($commission_data->agents);
             $formatted_commission = [
                 "writing_agent" => array_shift($agents)
@@ -175,8 +165,6 @@ class Referrals {
             $result = array("message" => __("Repeat business not found for contract number", "affiliate-ltp"));
         }
         
-        
-        
         echo json_encode($result);
         exit;
     }
@@ -192,31 +180,6 @@ class Referrals {
         return $result_agents;
     }
     
-    private function remapAgentArray($keyMap, $agents) {
-        if (empty($agents)) {
-            return [];
-        }
-        $results = [];
-        foreach ($agents as $agent) {
-             $results[] = $this->remapAgentObject($keyMap, $agent);
-        }
-        return $results;
-    }
-    
-    private function remapAgentObject($keyMap, $agent) {
-        if (empty($agent)) {
-            return [];
-        }
-        
-        $result = [];
-        foreach ($keyMap as $old => $mapper) {
-            if (!empty($mapper['formatter'])) {
-                $result[$mapper['name']] = $mapper['formatter']($agent[$old]);
-            }
-        }
-        return $result;
-    }
-
     /**
      * Handle ajax requests for searching through a list of clients.
      */
@@ -324,6 +287,7 @@ class Referrals {
                     $this->agent_dal, $this->settings_dal);
 //            $commissionProcessor->process_commission_request($request);
             $commissionProcessor->process_commission_request_updated($request);
+            exit;
             $response['type'] = 'success';
             $response['message'] = __("Commission Added", 'affiliate-ltp');
             $response['redirect'] = admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added');

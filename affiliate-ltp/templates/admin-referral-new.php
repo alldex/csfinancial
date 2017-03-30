@@ -123,7 +123,8 @@
                     <span class="affwp-ajax-search-wrap">
                         <input class="agent-name affwp-agent-search" 
                                ng-model="commissionAdd.commission.writing_agent.name"
-                               ltp-agent-autocomplete="writing" type="text" name="agents[0][user_name]">
+                               ltp-agent-autocomplete="writing" type="text" name="agents[0][user_name]"
+                               ng-disabled="commissionAdd.isRepeatBusiness()">
                     </span>
                     <p class="description"><?php _e( 'Enter the name of the affiliate or enter a partial name or email to perform a search.', 'affiliate-wp' ); ?></p>
                 </td>
@@ -149,7 +150,7 @@
                 </th>
 
                 <td>
-                    <input type="button" class="split-add" value="Add Split" ng-click="commissionAdd.addSplit()" />
+                    <input type="button" class="split-add" value="Add Split" ng-disabled="commissionAdd.isRepeatBusiness()" ng-click="commissionAdd.addSplit()" />
                     <table class="split-list">
                         <thead>
                             <th><?php _e( 'Agent', 'affiliate-ltp') ; ?></th>
@@ -163,16 +164,20 @@
                                 </td>
                                 <td>
                                     <input class="agent-split" type="number" step="1" max="100" 
-                                           min="0" name="agents[0][agent_split]" ng-model="commissionAdd.commission.writing_agent.split" />
+                                           min="0" name="agents[0][agent_split]" ng-model="commissionAdd.commission.writing_agent.split"
+                                           ng-disabled="commissionAdd.isRepeatBusiness()" />
                                 </td>
                                 <td>
                                 </td>
                             </tr>
                             <tr ng-repeat="agent in commissionAdd.commission.split_agents track by $index">
-                                <td><input type='text' ltp-agent-autocomplete="split" ltp-agent-autocomplete-index="{{$index}}" ng-model="agent.name" /></td>
+                                <td><input type='text' ltp-agent-autocomplete="split" ltp-agent-autocomplete-index="{{$index}}" ng-model="agent.name"
+                                           ng-disabled="commissionAdd.isRepeatBusiness()" /></td>
                                 <td><input type="number" step="1" max="100" min="0" 
-                                           ng-model="agent.split" /></td>
-                                <td><input type='button' class='remove-row' value='Remove' ng-click="commissionAdd.removeSplit(agent)" />
+                                           ng-model="agent.split"
+                                           ng-disabled="commissionAdd.isRepeatBusiness()" /></td>
+                                <td><input type='button' class='remove-row' value='Remove' ng-click="commissionAdd.removeSplit(agent)"
+                                           ng-disabled="commissionAdd.isRepeatBusiness()"/>
                             </tr>
                         </tbody>
                         <tfoot>
@@ -195,7 +200,8 @@
 				<td>
 					<input type="checkbox" name="cb_is_life_commission" id="cb_is_life_commission" 
                                                ng-checked="commissionAdd.isLifePolicy()"
-                                               ng-click="commissionAdd.toggleLifePolicy()" />
+                                               ng-click="commissionAdd.toggleLifePolicy()"
+                                               ng-disabled="commissionAdd.isRepeatBusiness()" />
 					<p class="description"><?php _e( 'If the commission is for a life insurance policy.', 'affiliate-ltp' ); ?></p>
 				</td>
 

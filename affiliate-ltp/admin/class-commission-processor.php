@@ -9,9 +9,11 @@ use AffiliateLTP\admin\Life_License_Status;
 use AffiliateLTP\admin\commissions\Real_Rate_Calculate_Transformer;
 use AffiliateLTP\admin\commissions\Commission_Tree_Validator;
 use AffiliateLTP\admin\commissions\Commission_Node;
+use AffiliateLTP\admin\commissions\Repeat_Commission_Tree_Parser;
 
 require_once dirname(dirname(__FILE__)) . '/admin/class-life-license-status.php';
 require_once 'commissions/class-new-commission-tree-parser.php';
+require_once 'commissions/class-repeat-commission-tree-parser.php';
 require_once 'commissions/class-real-rate-calculate-transfomer.php';
 require_once 'commissions/class-commission-tree-validator.php';
 
@@ -152,7 +154,7 @@ class Commission_Processor {
         // or create the tree ourselves
         if ($this->is_repeat_business($request)) {
             // handle the population this way
-            // $tree_parser = new commissions\Repeat_Commission_Tree_Parser($this->agent_dal);
+             $tree_parser = new commissions\Repeat_Commission_Tree_Parser($this->agent_dal, $this->commission_dal);
         } else {
             $tree_parser = new commissions\New_Commission_Tree_Parser($this->settings_dal, $this->agent_dal);
 //            $tree_parser->add_transformer(new Real_Rate_Calculate_Transformer());
@@ -161,8 +163,7 @@ class Commission_Processor {
     }
 
     private function is_repeat_business(Referrals_New_Request $request) {
-        // for now there is no repeat business.
-        return false;
+        return !$request->new_business;
     }
 
     public function validate_agent_trees_with_request(Referrals_New_Request $request, array $trees) {
@@ -195,11 +196,53 @@ class Commission_Processor {
         $this->record_commission_request($request, $agent_trees);
         
         // transform the trees now
-        $this->perform_tree_transformations($updatedRequest, $agent_trees);
+        $transformed_trees = $this->perform_tree_transformations($updatedRequest, $agent_trees);
+        error_log(count($transformed_trees));
         
-        foreach ($agent_trees as $tree) {
+        foreach ($transformed_trees as $tree) {
             $this->process_item_updated($updatedRequest, $tree);
         }
+        
+        $this->print_trees($transformed_trees);
+        
+        // adds to the company cut any remaining funds that were not used
+        // in the commissions to the other agents.
+        $company_processor->create_company_commission($this->processed_items, $updatedRequest);
+
+        $items = $this->processed_items;
+        $this->processed_items = [];
+        return $items;
+    }
+    
+    private function print_trees($agent_trees) {
+        foreach ($agent_trees as $tree) {
+            $this->print_tree($tree, '');
+        }
+    }
+    
+    private function print_tree(Commission_Node $tree, $prefix) {
+        $life_license_message = "NO";
+        if ($tree->agent->life_license_status->has_active_licensed()) {
+            $life_license_message = "YES";
+        }
+        echo "$prefix ------\n";
+        echo "$prefix ID: " . $tree->agent->id. "\n";
+        echo "$prefix Real Rate: " . $tree->rate . "\n";
+        echo "$prefix Agent Rate: " . $tree->agent->rate. "\n";
+        echo "$prefix Rank: " . $tree->agent->rank . "\n";
+        echo "$prefix Active Life License: $life_license_message \n";
+        echo "$prefix Generational Count: " . $tree->generational_count . " \n";
+        
+        if ($tree->parent_node != null) {
+            echo "$prefix Parent Node\n";
+            $this->print_tree($tree->parent_node, $prefix . "    ");
+        }
+        if ($tree->coleadership_node != null) {
+            echo "$prefix Coleadership Rate: " . $tree->coleadership_rate . "\n";
+            echo "$prefix Coleadership Node\n";
+            $this->print_tree($tree->coleadership_node, $prefix . "    ");
+        }
+        echo "$prefix ------\n";
     }
     
     private function perform_tree_transformations(Referrals_New_Request $request, $agent_trees) {

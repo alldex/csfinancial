@@ -136,6 +136,10 @@
         commissionsAdd.isSplitTotalInvalid = function () {
             return commissionsAdd.commission.getSplitTotal() !== 100;
         };
+        
+        commissionsAdd.isRepeatBusiness = function() {
+            return !(commissionsAdd.commission.new_business);
+        };
 
         commissionsAdd.save = function () {
             var commission = commissionsAdd.commission;
