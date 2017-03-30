@@ -56,13 +56,12 @@ class Real_Rate_Calculate_Transformer {
         // check licensing, active status, and other conditions preventing
         // them from having the commission.
         if ($this->should_skip_commission($copy)) {
-            echo "setting rate of agent: {$copy->agent->id} to 0\n";
             $copy->rate = 0;
         }
         else if (!$copy->agent->is_partner) { // we only adjust the rates for non-partners (assuming we process them.
             if ($copy->agent->rate > $current_rate) {
                 $copy->rate = $copy->agent->rate - $current_rate;
-                $current_rate = $copy->rate;
+                $current_rate = $copy->agent->rate;
             }
             else {
                 $copy->rate = 0;

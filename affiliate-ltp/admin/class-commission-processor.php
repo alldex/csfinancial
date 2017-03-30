@@ -199,7 +199,14 @@ class Commission_Processor {
         // agents
         if (!$request->companyHaircutAll) {
             foreach ($transformed_trees as $tree) {
-                $this->process_item_updated($updatedRequest, $tree);
+                if ($tree->split_rate < 100) {
+                    $split_request = $this->get_split_request($updatedRequest, $tree->split_rate);
+//                    $this->log_request($split_request, [$tree]);
+                    $this->process_item_updated($split_request, $tree);
+                }
+                else {
+                    $this->process_item_updated($updatedRequest, $tree);
+                }
             }
         }
         
@@ -212,6 +219,13 @@ class Commission_Processor {
         $items = $this->processed_items;
         $this->processed_items = [];
         return $items;
+    }
+    
+    private function get_split_request(Referrals_New_Request $request, $split_rate) {
+        echo "split rate is: $split_rate\n";
+        $split = clone $request;
+        $split->amount = $split_rate * $request->amount;
+        return $split;
     }
     
     private function log_request(Referrals_New_Request $request, $agent_trees) {
@@ -409,6 +423,9 @@ class Commission_Processor {
                 , "commission_request_id" => $this->commission_request_id
             ]
         );
+        if (!empty($item->split_rate)) {
+            $commission['meta']["split_rate"] = $item->split_rate;
+        }
         if (isset($item->parent_node)) {
             $commission['meta']['agent_parent_id'] = $item->parent_node->agent->id;
         }

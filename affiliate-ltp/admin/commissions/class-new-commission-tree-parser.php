@@ -87,13 +87,8 @@ class New_Commission_Tree_Parser {
     }
     
     protected function get_initial_processor_item_for_agent(Referrals_New_Request $request, $agent) {
-        $splitPercent = $agent->split / 100;
-
         $item = $this->create_initial_processor_item($agent->id);
-//                $item->amount = $request->amount * $splitPercent;
-//            // TODO: stephen not sure I like this split rate piece here
-//            // either it needs to be it's own attribute or other things like contract_number should go there.
-        $item->meta_items['split_rate'] = $splitPercent;
+        $item->split_rate = $agent->split / 100;
         $item->date = $request->date;
         $item->is_direct_sale = true;
         $item->points = $request->points;
