@@ -285,9 +285,7 @@ class Referrals {
             
             $commissionProcessor = new Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
-//            $commissionProcessor->process_commission_request($request);
-            $commissionProcessor->process_commission_request_updated($request);
-            exit;
+            $commissionProcessor->process_commission_request($request);
             $response['type'] = 'success';
             $response['message'] = __("Commission Added", 'affiliate-ltp');
             $response['redirect'] = admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added');

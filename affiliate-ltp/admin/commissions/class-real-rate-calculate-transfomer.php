@@ -108,7 +108,6 @@ class Real_Rate_Calculate_Transformer {
     }
     
     private function has_invalid_license(Agent_Data $agent) {
-        echo "checking life license of agent: {$agent->id}\n";
         return !$agent->life_license_status->has_active_licensed();
     }
     

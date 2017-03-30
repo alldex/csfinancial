@@ -190,10 +190,6 @@ class Commission_Company_Processor {
         
         // save it off so we can use it in the finalize process.
         $this->company_cut = $company_commission;
-//        echo "<pre>";
-//        var_dump($new_request);
-//        echo "</pre>";
-//        exit;
 
         return $new_request;
     }

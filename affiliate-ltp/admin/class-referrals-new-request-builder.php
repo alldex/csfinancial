@@ -94,7 +94,11 @@ class Referrals_New_Request_Builder {
         foreach ( $requestData['agents'] as $rowNumber => $agent) {
             $request->agents[] = self::parseAgent($rowNumber, $agent);
         }
-
+        
+        
+        if (isset($requestData['new_business']) && $requestData['new_business'] === false) {
+            $request->new_business = false;
+        }
         $request->client = isset($requestData['client']) ? self::parseClientArgs($requestData['client']) : null;
         $request->amount = ! empty( $requestData['amount'] ) ? sanitize_text_field( $requestData['amount'] )      : '';
         $request->date = self::parseDate($requestData);
@@ -103,7 +107,13 @@ class Referrals_New_Request_Builder {
         if (isset($requestData['is_life_commission']) && $requestData['is_life_commission']) {
             $request->type = CommissionType::TYPE_LIFE;
             // set the points to be whatever was entered for a life commission
-            $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : $request->amount;
+            if ($request->new_business) {
+                $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : $request->amount;
+            }
+            else {
+                // for repeat business the points are allowed to be 0
+                $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : 0;
+            }
         }
         else {
             $request->type = CommissionType::TYPE_NON_LIFE;
@@ -111,10 +121,6 @@ class Referrals_New_Request_Builder {
         
         if (isset($requestData['skip_life_licensed_check']) && $requestData['skip_life_licensed_check'] === true) {
             $request->skip_life_licensed_check = true;
-        }
-        
-        if (isset($requestData['new_business']) && $requestData['new_business'] === false) {
-            $request->new_business = false;
         }
         
         return $request;

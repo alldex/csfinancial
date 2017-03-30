@@ -114,7 +114,6 @@ class New_Commission_Tree_Parser {
             $coleadership_node = $this->create_initial_processor_item($coleadership_id, $node);
             $node->coleadership_rate = 
                     $this->agent_dal->get_agent_coleadership_agent_rate($node->agent->id);
-            echo "setting coleadership rate to be " . $node->coleadership_rate . "\n";
         }
         return $coleadership_node;
     }
