@@ -10,6 +10,7 @@ use AffiliateLTP\admin\commissions\Commission_Node;
 use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\CommissionType;
 use AffiliateLTP\admin\commissions\Agent_Data;
+use AffiliateLTP\admin\Settings_DAL;
 
 /**
  * Runs through the tree and changes the agent rate to be what the actual rate
@@ -26,8 +27,19 @@ class Real_Rate_Calculate_Transformer {
      */
     private $request;
     
-    public function __construct(Referrals_New_Request $request) {
+    /**
+     * We don't calculate commissions for the company as that is handled
+     * separately in the company processors.  If for some reason the
+     * company agent user accidently gets added into the heirarchy
+     * we need to skip commissions for it.
+     * @var int
+     */
+    private $company_agent_id;
+    
+    public function __construct(Settings_DAL $settings_dal, Referrals_New_Request $request) {
         $this->request = $request;
+        
+        $this->company_agent_id = $settings_dal->get_company_agent_id();
     }
     /**
      * Clones and updates all of the agent rates for the tree heirachy
@@ -58,7 +70,7 @@ class Real_Rate_Calculate_Transformer {
         if ($this->should_skip_commission($copy)) {
             $copy->rate = 0;
         }
-        else if (!$copy->agent->is_partner) { // we only adjust the rates for non-partners (assuming we process them.
+        else if (!$copy->is_generational_partner()) { // we only adjust the rates for direct team members, not integenerational
             if ($copy->agent->rate > $current_rate) {
                 $copy->rate = $copy->agent->rate - $current_rate;
                 $current_rate = $copy->agent->rate;
@@ -81,6 +93,9 @@ class Real_Rate_Calculate_Transformer {
     
     private function should_skip_commission(Commission_Node $copy) {
         $skip = false;
+        if ($copy->agent->id == $this->company_agent_id) {
+            $skip = true;
+        }
         if ($this->check_life_licensing()
                 && $this->has_invalid_license($copy->agent)) {
             $skip = true;

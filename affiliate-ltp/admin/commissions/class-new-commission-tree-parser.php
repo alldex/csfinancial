@@ -112,8 +112,9 @@ class New_Commission_Tree_Parser {
         $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($node->agent->id);
         if (!empty($coleadership_id)) {
             $coleadership_node = $this->create_initial_processor_item($coleadership_id, $node);
-            $coleadership_node->coleadership_rate = 
+            $node->coleadership_rate = 
                     $this->agent_dal->get_agent_coleadership_agent_rate($node->agent->id);
+            echo "setting coleadership rate to be " . $node->coleadership_rate . "\n";
         }
         return $coleadership_node;
     }
@@ -129,7 +130,9 @@ class New_Commission_Tree_Parser {
         $agent->is_partner = $this->is_partner($agent->rank);
         $item->agent = $agent;
         
-        if ($agent->is_partner && !empty($child_node)) {
+        // we go 1st, 2nd, and 3rd generation from the partner.
+        if ($agent->is_partner 
+                && !empty($child_node) && $child_node->agent->is_partner) {
             $item->generational_count = $child_node->generational_count + 1;
             $agent->rate = $this->get_generational_override_rate($item->generational_count);
         }

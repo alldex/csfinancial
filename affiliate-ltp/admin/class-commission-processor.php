@@ -278,7 +278,7 @@ class Commission_Processor {
     
     private function perform_tree_transformations(Referrals_New_Request $request, $agent_trees) {
         $transformations = [
-            new Real_Rate_Calculate_Transformer($request)
+            new Real_Rate_Calculate_Transformer($this->settings_dal, $request)
         ];
         $transformed_trees = [];
         foreach ($agent_trees as $tree) {

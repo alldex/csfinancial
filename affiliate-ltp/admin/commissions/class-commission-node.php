@@ -53,4 +53,8 @@ class Commission_Node {
      * @var double
      */
     public $rate;
+    
+    public function is_generational_partner() {
+        return $this->agent->is_partner && $this->generational_count > 0;
+    }
 }
