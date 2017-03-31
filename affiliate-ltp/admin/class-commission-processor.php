@@ -20,8 +20,8 @@ require_once 'class-commission-company-processor.php';
 
 class Commission_Validation_Exception extends \RuntimeException {
     private $validation_errors;
-    public function __construct($validation_errors, $message, $code, $previous) {
-        $this->validation_errors;
+    public function __construct($validation_errors, $message, $code=null, $previous = null) {
+        $this->validation_errors = $validation_errors;
         parent::__construct($message, $code, $previous);
     }
     
@@ -43,7 +43,7 @@ class Commission_Processor {
      */
     const HEIARCHY_MAX_LEVEL_BREAK = 100;
     
-    const DEBUG_ENABLED = true;
+    const DEBUG_ENABLED = false;
 
     /**
      *
@@ -154,7 +154,9 @@ class Commission_Processor {
             }
         }
         
-//        $this->log_request($request, $transformed_trees);
+        if (self::DEBUG_ENABLED) {
+            $this->log_request($request, $transformed_trees);
+        }
         
         // adds to the company cut any remaining funds that were not used
         // in the commissions to the other agents.

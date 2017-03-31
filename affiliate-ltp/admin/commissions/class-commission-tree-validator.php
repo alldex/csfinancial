@@ -47,10 +47,18 @@ class Commission_Tree_Validator {
     }
     
     private function validate_tree_for_valid_life_insurance(Commission_Node $tree, &$errors) {
-        if ($tree->agent->life_license_status->has_license() && !$tree->agent->life_license_status->has_active_licensed()) {
+        if (!$tree->agent->life_license_status->has_active_licensed()) {
             // TODO: stephen need to add in the agent username
-            $message = "Agent with id " . $tree->agent_id . " life insurance license has expired";
-            $errors[] = ['type' => 'life_expired', 'message' => $message];
+            if ($tree->agent->life_license_status->has_license()) { 
+                $message = "Agent with id " . $tree->agent->id . " life insurance license has expired";
+                $type = 'life_expired';
+            }
+            else {
+                $message = "Agent with id " . $tree->agent->id . " is not licensed to sell life insurance policies";
+                $type = 'life_missing';
+            }
+           
+            $errors[] = ['type' => $type, 'message' => $message];
         }
         if (!empty($tree->parent_node)) {
             $this->validate_tree_for_valid_life_insurance($tree->parent_node, $errors);
