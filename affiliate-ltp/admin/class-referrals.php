@@ -174,7 +174,10 @@ class Referrals {
         foreach ($agents as $agent) {
             $copy_agent = clone $agent;
             // TODO: stephen need to add in name
+            // TODO: stephen I don't like how the abstraction layer is broken here with agent_id/user_id switching.
             $copy_agent->name = $this->agent_dal->get_agent_email($copy_agent->id);
+            $copy_agent->agent_id = $copy_agent->id;
+            $copy_agent->id = $this->agent_dal->get_agent_user_id($copy_agent->id);
             $result_agents[] = $copy_agent;
         }
         return $result_agents;

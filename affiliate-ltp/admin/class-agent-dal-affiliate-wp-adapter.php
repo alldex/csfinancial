@@ -356,4 +356,12 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         $obj->children = [];
         return $obj;
     }
+    
+    public function get_agent_user_id($agent_id) {
+        if (empty($agent_id)) {
+            return null;
+        }
+        
+        return affwp_get_affiliate_user_id($agent_id);
+    }
 }

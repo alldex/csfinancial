@@ -146,4 +146,10 @@ interface Agent_DAL {
      * Retrieves the username of the passed in agent_id
      */
     function get_agent_username( $agent_id);
+    
+    /**
+     * Retrieves the user id of the passed in agent_id
+     * @param int $agent_id
+     */
+    function get_agent_user_id( $agent_id );
 }

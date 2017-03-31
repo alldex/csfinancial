@@ -96,7 +96,13 @@ class Commission_Processor {
     }
 
     private function is_repeat_business(Referrals_New_Request $request) {
-        return !$request->new_business;
+        if ($request->type == CommissionType::TYPE_LIFE) {
+            return !$request->new_business;
+        }
+        else {
+            // we treat non-life business as just a new request
+            return false;
+        }
     }
 
     public function validate_agent_trees_with_request(Referrals_New_Request $request, array $trees) {
