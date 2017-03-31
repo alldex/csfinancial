@@ -108,6 +108,13 @@ public function __construct() {
 						'size' => 'small',
 						'std' => ''
 					),
+                                    'affwp_ltp_minimum_default_payout_amount' => array(
+						'name' => '<strong>' . __( 'Minimum Default Payout Amount', 'affiliate-ltp' ) . '</strong>',
+						'desc' => '<p class="description">' . __( 'Enter the default value for the minimum payout amount an agent must earn before they can receive their commissions.' ) . '</p>',
+                                                'type' => 'number',
+						'size' => 'small',
+						'std' => ''
+					),
                                     
 				)
 			)

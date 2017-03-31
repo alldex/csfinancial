@@ -18,7 +18,13 @@
             <p>
                 <input type="text" class="affwp-datepicker" autocomplete="off" name="from" placeholder="<?php _e('From - mm/dd/yyyy', 'affiliate-wp'); ?>"/>
                 <input type="text" class="affwp-datepicker" autocomplete="off" name="to" placeholder="<?php _e('To - mm/dd/yyyy', 'affiliate-wp'); ?>"/>
-                <input type="text" class="affwp-text" name="minimum" placeholder="<?php esc_attr_e('Minimum amount', 'affiliate-wp'); ?>"/>
+                <label>
+                    <?= _e('Minimum amount', 'affiliate-wp'); ?><input type="text" class="affwp-text" name="minimum" 
+                       title=""
+                       alt="<?= _e('Minimum amount', 'affiliate-wp'); ?>" 
+                       placeholder="<?php esc_attr_e('Minimum amount', 'affiliate-wp'); ?>" value="<?= $minimum_payout_amount; ?>"/>
+                
+                </label>
                 <input type="checkbox" class="affwp-checkbox" name="is_life_commission" checked /> Life Insurance Only
                 <input type="hidden" name="affwp_action" value="generate_commission_payout"/>
                 <?php do_action('affwp_referrals_page_csv_export_form'); ?>

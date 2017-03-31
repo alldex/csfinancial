@@ -25,4 +25,11 @@ interface Settings_DAL {
      * @param int $override_level The current level to retrieve the rank for.
      */
     function get_generational_override_rate( $override_level );
+    
+    /**
+     * Returns the minimum amount an agent must earn before they can receive
+     * their payout.
+     * @return double
+     */
+    function get_minimum_payout_amount();
 }

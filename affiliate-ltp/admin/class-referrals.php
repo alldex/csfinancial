@@ -104,6 +104,7 @@ class Referrals {
         $referrals_table = new AffWP_Referrals_Table();
         $referrals_table->prepare_items();
 
+        $minimum_payout_amount = $this->settings_dal->get_minimum_payout_amount();
         $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 'list', false);
 
         include_once $templatePath;

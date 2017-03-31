@@ -61,5 +61,13 @@ class Settings_DAL_Affiliate_WP_Adapter implements Settings_DAL {
         
         return $rate;
     }
+    
+    public function get_minimum_payout_amount() {
+        $val = $this->get_setting("affwp_ltp_minimum_default_payout_amount");
+        if (!empty($val)) {
+            return floatval($val);
+        }
+        return 0;
+    }
 
 }
