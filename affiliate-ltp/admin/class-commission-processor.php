@@ -243,7 +243,7 @@ class Commission_Processor {
     }
 
     private function process_item(Referrals_New_Request $request, Commission_Node $item) {
-        $adjusted_amount = $request->amount * $item->rate;
+        $adjusted_amount = round($request->amount * $item->rate, 2, PHP_ROUND_HALF_DOWN);
         $this->create_commission_for_item($request, $item, $adjusted_amount);
         
         if ($item->coleadership_node != null) {
