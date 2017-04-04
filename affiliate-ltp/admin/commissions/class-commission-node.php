@@ -54,6 +54,12 @@ class Commission_Node {
      */
     public $rate;
     
+    /**
+     * The calculated points for the commission.
+     * @var int
+     */
+    public $points;
+    
     public function is_generational_partner() {
         return $this->agent->is_partner && $this->generational_count > 0;
     }

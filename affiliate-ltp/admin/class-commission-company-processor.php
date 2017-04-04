@@ -99,7 +99,7 @@ class Commission_Company_Processor {
         $this->company_cut['meta']['agent_real_rate'] = round( ($company_amount / $orig_amount), 4);
         
         if ($this->orig_request->type != CommissionType::TYPE_LIFE) {
-            $this->company_cut['meta']['points'] = $company_amount;
+            $this->company_cut['meta']['points'] = round($company_amount);
         }
         else {
             $this->company_cut['meta']['points'] = $this->company_cut['agent_rate'] * $this->orig_request->points;

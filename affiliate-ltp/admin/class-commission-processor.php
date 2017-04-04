@@ -7,11 +7,13 @@ use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\CommissionType;
 use AffiliateLTP\admin\commissions\Real_Rate_Calculate_Transformer;
 use AffiliateLTP\admin\commissions\Commission_Node;
+use AffiliateLTP\admin\commissions\Points_Calculate_Transformer;
 
 require_once dirname(dirname(__FILE__)) . '/admin/class-life-license-status.php';
 require_once 'commissions/class-new-commission-tree-parser.php';
 require_once 'commissions/class-repeat-commission-tree-parser.php';
 require_once 'commissions/class-real-rate-calculate-transfomer.php';
+require_once 'commissions/class-points-calculate-transformer.php';
 require_once 'commissions/class-commission-tree-validator.php';
 
 // TODO: stephen need to save the agent_parent_id piece... 
@@ -168,6 +170,7 @@ class Commission_Processor {
     }
     
     private function get_split_request(Referrals_New_Request $request, $split_rate) {
+        // TODO: stephen do we want to conver this to a transformer??
         $split = clone $request;
         $split->amount = $split_rate * $request->amount;
         return $split;
@@ -203,6 +206,7 @@ class Commission_Processor {
         echo "$prefix ------\n";
         echo "$prefix ID: " . $tree->agent->id. "\n";
         echo "$prefix Real Rate: " . $tree->rate . "\n";
+        echo "$prefix Points: " . $tree->points . "\n";
         echo "$prefix Is Active: " . $active_message . "\n";
         echo "$prefix Agent Rate: " . $tree->agent->rate. "\n";
         echo "$prefix Rank: " . $tree->agent->rank . "\n";
@@ -224,6 +228,7 @@ class Commission_Processor {
     private function perform_tree_transformations(Referrals_New_Request $request, $agent_trees) {
         $transformations = [
             new Real_Rate_Calculate_Transformer($this->settings_dal, $request)
+            ,new Points_Calculate_Transformer($request)
         ];
         $transformed_trees = [];
         foreach ($agent_trees as $tree) {
@@ -268,7 +273,7 @@ class Commission_Processor {
         
         $active_request = clone $request;
         $active_request->amount = round($request->amount * $coleadership_rate, 2);
-        $active_request->points = round($request->points * $coleadership_rate, 2);
+//        $active_request->points = round($request->points * $coleadership_rate, 2);
         $this->process_item($active_request, $item->coleadership_node);
 
         // we should have both a coleadership and a parent, but a safety check here
@@ -276,7 +281,7 @@ class Commission_Processor {
         if (!empty($item->parent_node)) {
             $passive_request = clone $request;
             $passive_request->amount = $request->amount - $active_request->amount;
-            $passive_request->points = $request->points - $active_request->points;
+//            $passive_request->points = $request->points - $active_request->points;
             $this->process_item($passive_request, $item->parent_node);
         }
     }
@@ -304,7 +309,7 @@ class Commission_Processor {
             , "date" => $request->date
             , "client" => $request->client
             , "meta" => [
-                "points" => $request->points
+                "points" => $item->points
                 // TODO: stephen agent_rate and agent_real_rate may not be needed anymore...?
                 , "agent_rate" => $item->agent->rate
                 , "agent_real_rate" => $item->rate
