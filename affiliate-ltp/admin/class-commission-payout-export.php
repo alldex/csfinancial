@@ -78,7 +78,8 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
                 ,"business_name" => "" // we don't know what goes here for now.
                 ,"email" => $row['email']
                 ,"amount" => $row['amount']
-                ,'currency' => $row['currency']
+//                ,'currency' => $row['currency'] // leaving this in for historical reasons.
+                ,"check_no" => "" // make the currency empty
                 ,'description' => $description
             );
         }
@@ -136,7 +137,7 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
                 'business_name'    => __('Business Name', 'affiliate-ltp' ),
                 'email'         => __( 'Email', 'affiliate-wp' ),
                 'amount'        => __( 'Amount', 'affiliate-wp' ),
-                'currency'      => __( 'Currency', 'affiliate-wp' ),
+                'check_no'      => __( 'Check No', 'affiliate-ltp' ),
                 'description'    => __('Description', 'affiliate-ltp' ),
         );
         return $cols;
