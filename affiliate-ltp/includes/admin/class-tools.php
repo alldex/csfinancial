@@ -7,8 +7,6 @@
 
 namespace AffiliateLTP\admin;
 
-require_once 'csv/class-commissions-importer.php';
-
 use AffiliateLTP\admin\csv\Commissions_Importer;
 use AffiliateLTP\Sugar_CRM_DAL;
 use AffiliateLTP\admin\Commission_DAL;

@@ -8,8 +8,7 @@
 namespace AffiliateLTP;
 use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\admin\Settings_DAL;
-
-require_once 'class-agent-tree-node-filterer.php';
+use AffiliateLTP\Agent_Tree_Node_Filterer;
 
 /**
  * Filters out any agents who have the rank of partner.

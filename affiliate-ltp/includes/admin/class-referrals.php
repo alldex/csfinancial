@@ -2,22 +2,20 @@
 
 namespace AffiliateLTP\admin;
 
-require_once 'class-referrals-new-request-builder.php';
-require_once 'class-commissions-table.php';
-require_once 'class-commission-dal.php';
-require_once 'class-commission-dal-affiliate-wp-adapter.php';
-require_once 'class-agent-dal.php';
-require_once 'class-agent-dal-affiliate-wp-adapter.php';
-require_once 'class-commission-processor.php';
-require_once 'class-settings-dal.php';
-require_once 'class-settings-dal-affiliate-wp-adapter.php';
-
 use AffiliateLTP\Plugin;
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Commission_Payout_Export;
 use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
 use \AffWP_Referrals_Table;
 use AffiliateLTP\admin\Referrals_New_Request_Builder;
+use AffiliateLTP\admin\Commissions_Table;
+use AffiliateLTP\admin\Commission_DAL;
+use AffiliateLTP\admin\Commission_Dal_Affiliate_WP_Adapter;
+use AffiliateLTP\admin\Agent_DAL;
+use AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter;
+use AffiliateLTP\admin\Commission_Processor;
+use AffiliateLTP\admin\Settings_DAL;
+use AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter;
 
 /**
  * Description of class-referrals
@@ -77,9 +75,6 @@ class Referrals {
     }
 
     public function generateCommissionPayoutFile( $data ) {
-        require_once 'class-commission-payout-export.php';
-
-        
         $export = new Commission_Payout_Export($this->referralMetaDb, $this->settings_dal);
         if (isset($data['is_life_commission'])) {
             $export->commissionType = Commission_Type::TYPE_LIFE;

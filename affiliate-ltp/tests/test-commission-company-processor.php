@@ -1,9 +1,8 @@
 <?php
 
 namespace AffiliateLTP\admin;
-require_once dirname( dirname( __FILE__ ) ) . '/admin/class-commission-company-processor.php';
-require_once dirname( dirname( __FILE__ ) ) . '/admin/class-referrals-agent-request.php';
-require_once dirname( dirname( __FILE__ ) ) . '/admin/class-referrals-new-request.php';
+use AffiliateLTP\admin\Commission_Company_Processor;
+use AffiliateLTP\admin\Referrals_New_Request;
 
 use AffiliateLTP\Commission_Type;
 

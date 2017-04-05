@@ -7,7 +7,7 @@
 
 namespace AffiliateLTP;
 
-require_once 'class-agent-tree-node.php';
+use AffiliateLTP\Agent_Tree_Node;
 
 /**
  * Description of class-agent-coleadership-tree-node

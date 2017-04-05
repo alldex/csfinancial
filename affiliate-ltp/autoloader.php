@@ -75,7 +75,6 @@ class Psr4AutoloaderClass
     {
         // the current namespace prefix
         $prefix = $class;
-        error_log("loading file $class");
 
         // work backwards through the namespace names of the fully-qualified
         // class name to find a mapped file name
@@ -88,8 +87,6 @@ class Psr4AutoloaderClass
             // the rest is the relative class name
             $relative_class = $this->get_wordpress_relative_class(substr($class, $pos + 1));
             // now convert the relative class into the wordpress naming style
-            error_log("prefix is $prefix");
-            error_log("relative_class is $relative_class");
 
             // try to load a mapped file for the prefix and relative class
             $mapped_file = $this->loadMappedFile($prefix, $relative_class);
@@ -130,7 +127,6 @@ class Psr4AutoloaderClass
     {
         // are there any base directories for this namespace prefix?
         if (isset($this->prefixes[$prefix]) === false) {
-            error_log("prefix not found for $prefix");
             return false;
         }
 
@@ -143,7 +139,6 @@ class Psr4AutoloaderClass
             $file = $base_dir
                   . str_replace('\\', '/', $relative_class)
                   . '.php';
-            error_log("attempting to include $file");
 
             // if the mapped file exists, require it
             if ($this->requireFile($file)) {

@@ -1,7 +1,7 @@
 <?php
 namespace AffiliateLTP\admin;
 
-require_once 'class-referrals-agent-request.php';
+use AffiliateLTP\admin\Referrals_Agent_Request;
 
 use AffiliateLTP\Commission_Type;
 

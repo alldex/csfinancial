@@ -5,7 +5,7 @@ namespace AffiliateLTP\admin;
 // of convention
 // TODO: stephen is there a way to centralize some of this junk?
 if (!class_exists('AffWP\Admin\List_Table')) {
-    require_once dirname(dirname(dirname(plugin_dir_path(__FILE__)))) 
+    require_once dirname(AFFILIATEWP_PLUGIN_DIR) 
     . "/affiliate-wp/includes/abstracts/class-affwp-list-table.php";
 }
 

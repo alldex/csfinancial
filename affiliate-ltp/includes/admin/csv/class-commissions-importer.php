@@ -6,7 +6,7 @@
 
 namespace AffiliateLTP\admin\csv;
 
-require_once 'class-commission-parser.php';
+use AffiliateLTP\admin\csv\Commission_Parser;
 
 use League\Csv\Reader;
 use AffiliateLTP\admin\Agent_DAL;

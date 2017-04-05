@@ -7,10 +7,7 @@
 
 namespace AffiliateLTP\admin;
 
-//use AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter;
-
-require_once dirname( dirname( dirname( __FILE__ ) ) ) . '/admin/class-agent-dal.php';
-require_once dirname( dirname( dirname( __FILE__ ) ) ) . '/admin/class-agent-dal-affiliate-wp-adapter.php';
+use AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter;
 
 /**
  * Test the Agent DAL Affiliate WP Adapter

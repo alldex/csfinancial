@@ -6,7 +6,6 @@
  */
 
 namespace AffiliateLTP\admin\csv;
-require_once "class-commission-csv-request.php";
 
 use AffiliateLTP\admin\csv\Commission_CSV_Request;
 use League\Csv\Reader;

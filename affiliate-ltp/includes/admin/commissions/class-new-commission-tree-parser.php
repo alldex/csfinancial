@@ -9,9 +9,8 @@ namespace AffiliateLTP\admin\commissions;
 use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\admin\Settings_DAL;
-
-require_once 'class-commission-node.php';
-require_once 'class-agent-data.php';
+use AffiliateLTP\admin\commissions\Commission_Node;
+use AffiliateLTP\admin\commissions\Agent_Data;
 
 /**
  * For new commissions it creates the processing tree that mimics the agent

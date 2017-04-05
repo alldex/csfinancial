@@ -6,9 +6,11 @@
 
 namespace AffiliateLTP\admin\GravityForms;
 
-use GFForms;
-use GFAddOn;
-use GF_Fields;
+use \GFForms;
+use \GFAddOn;
+use \GF_Fields;
+use AffiliateLTP\admin\GravityForms\Agent_Slug_Field;
+use AffiliateLTP\admin\GravityForms\Agent_Register;
 
 GFForms::include_addon_framework();
 
@@ -49,11 +51,9 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
 
         if ($this->is_gravityforms_supported()) {
             if (class_exists('GF_Field')) {
-                require_once( 'class-agent-slug-field.php' );
                 GF_Fields::register(new Agent_Slug_Field());
             }
             
-            require_once( 'class-agent-register.php');
             new Agent_Register(); // instantiate it once.
         }
     }

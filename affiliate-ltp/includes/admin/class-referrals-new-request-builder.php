@@ -2,8 +2,8 @@
 
 namespace AffiliateLTP\admin;
 
-require_once "class-referrals-new-request.php";
-
+use AffiliateLTP\admin\Referrals_New_Request;
+use AffiliateLTP\admin\Referrals_Agent_Request;
 use AffiliateLTP\Commission_Type;
 use \Exception;
 

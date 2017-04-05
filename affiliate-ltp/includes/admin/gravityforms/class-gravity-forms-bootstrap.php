@@ -7,6 +7,7 @@
 
 namespace AffiliateLTP\admin\GravityForms;
 use GFAddOn;
+use AffiliateLTP\admin\GravityForms\AffiliateLTP_Gravity_Forms_Add_On;
 
 // sets the version number for the gravity forms piece.
 define( 'GF_LIFETESTPREP_ADDON_VERSION', '1.0' );
@@ -36,8 +37,6 @@ class Gravity_Forms_Bootstrap {
              error_log("addon framework not found");
             return;
         }
-
-        require_once( 'class-affiliateltp-gravity-forms-add-on.php' );
 
         GFAddOn::register( AffiliateLTP_Gravity_Forms_Add_On::class );
     }

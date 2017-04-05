@@ -6,8 +6,7 @@
  */
 
 namespace AffiliateLTP\admin\csv;
-require_once dirname( dirname( dirname( dirname( __FILE__ ) ) ) ). '/admin/csv/class-commission-parser.php';
-require_once dirname( dirname( dirname( dirname( __FILE__ ) ) ) ). '/admin/class-referrals-new-request.php';
+use AffiliateLTP\admin\csv\Commission_Parser;
 
 use League\Csv\Reader;
 
