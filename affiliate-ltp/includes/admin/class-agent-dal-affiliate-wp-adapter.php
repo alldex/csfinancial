@@ -3,11 +3,10 @@ namespace AffiliateLTP\admin;
 
  use AffiliateLTP\Plugin;
  use AffiliateLTP\admin\Affiliates;
-require_once dirname( dirname(__FILE__) ) . '/class-agent-tree-node.php';
-require_once dirname( dirname(__FILE__) ) . '/class-agent-coleadership-tree-node.php';
-require_once dirname( dirname(__FILE__) ) . '/admin/class-life-license-status.php';
-require_once dirname( dirname(__FILE__) ) . '/admin/class-affiliates.php';
-
+ use AffiliateLTP\Agent_Tree_Node;
+ use AffiliateLTP\Agent_Coleadership_Tree_Node;
+ use AffiliateLTP\admin\Life_License_Status;
+ 
 /**
  * Description of class-agent-dal-affiliate-wp-adapter
  *
@@ -48,7 +47,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     /**
      * Returns the life insurance license status for the agent.
      * @param string $agent_id
-     * @return \AffiliateLTP\admin\Life_License_Status
+     * @return Life_License_Status
      */
     public function get_life_license_status($agent_id) {
         $license_date = affwp_get_affiliate_meta( $agent_id, 'life_expiration_date', true);
@@ -227,7 +226,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
                 $agent_id = $relationship['agent_id'];
                 $coleadership_id = $relationship[self::AFFILIATE_META_KEY_COLEADERSHIP_AGENT_ID];
                 if (isset($nodesById[$coleadership_id])) {
-                    $child_agent = new \AffiliateLTP\Agent_Coleadership_Tree_Node($nodesById[$agent_id]);
+                    $child_agent = new Agent_Coleadership_Tree_Node($nodesById[$agent_id]);
                     $child_agent->type = 'coleadership';
                     $child_agent->coleadership_agent_id = $coleadership_id;
                     $nodesById[$coleadership_id]->children[] = $child_agent;
@@ -350,7 +349,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     }
     
     private function get_new_agent_tree_node($type, $id) {
-        $obj = new \AffiliateLTP\Agent_Tree_Node();
+        $obj = new Agent_Tree_Node();
         $obj->type = $type;
         $obj->id = $id;
         $obj->children = [];

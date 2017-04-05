@@ -238,9 +238,6 @@ class Plugin {
     }
     
     public function setup_dependent_objects() {
-        require_once "class-progress-item-db.php";
-        require_once "class-commission-request-db.php";
-        
         $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
         $this->progress_items = new Progress_Item_DB();
         $this->commission_request_db = new Commission_Request_DB();
@@ -255,13 +252,6 @@ class Plugin {
             $tools = new Tools($this->get_agent_dal(), $this->getSugarCRM(),
                     $this->get_commission_dal(), $settings_dal);
         }
-        
-        // require the points graph since it's dependent on other plugins.
-        require_once "class-points-record.php";
-        require_once "class-points-retriever.php";
-        require_once "class-points-graph.php";
-        
-        require_once "class-agents-tree-display.php";
     }
 
     /**

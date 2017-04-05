@@ -2,7 +2,7 @@
 namespace AffiliateLTP\admin;
 
 use \Affiliate_WP_Referral_Payout_Export;
-use \Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
 use AffiliateLTP\Commission_Type;
 
 //require_once '../affiliate-wp/includes/admin/tools/export/class-export-referrals-payout.php';

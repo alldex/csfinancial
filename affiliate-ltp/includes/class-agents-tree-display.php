@@ -201,7 +201,7 @@ class Agents_Tree_Display {
     
     private function get_avatar_for_node( array $node ) {
         if ( $node['checklist_complete'] ) {
-            return "<img class='avatar avatar-96 photo' src='" . plugin_dir_url(__FILE__) . 'assets/images/person.png' . "' />";
+            return "<img class='avatar avatar-96 photo' src='" . AFFILIATE_LTP_PLUGIN_URL . 'assets/images/person.png' . "' />";
         }
         else {
             return get_avatar($node['user_id']);
