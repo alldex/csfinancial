@@ -106,6 +106,23 @@ class Commission_Request_DB extends Affiliate_WP_DB {
             return null;
         }
         
+        public function get_commission_request( $commission_request_id ) {
+            $clauses = [
+                "fields" => "*"
+                ,"join" => ""
+                ,"where" => "WHERE " . sprintf("`commission_request_id` = '%d'", $commission_request_id)
+                ,"orderby" => "date_created"
+                ,"order" => "DESC"
+                ,"count" => false
+            ];
+            // there should only be one.
+            $args = ["number" => 1, "offset" => 0];
+            $results = $this->get_results( $clauses, $args, function ($item) { return $this->hydrate_commission_request($item); } );
+            if (!empty($results)) {
+                return $results[0];
+            }
+            return null;
+        }
         
         
         public function hydrate_commission_request( $record ) {

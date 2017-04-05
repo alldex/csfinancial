@@ -2,26 +2,29 @@
 namespace AffiliateLTP\admin;
 
 use AffiliateLTP\CommissionType;
-use \Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\admin\Commission_DAL;
 
 class Commissions_Table {
 
     /**
-     * @var Affiliate_WP_Referral_Meta_DB
+     *
+     * @var Commission_DAL
      */
-    private $referralMetaDb;
+    private $commission_dal;
 
     /**
-	 * @param  Affiliate_WP_Referral_Meta_DB $referralMetaDb The meta database for commissions
+	 * @param  Commission_DAL $commission_dal The database for commissions
 	 */
-	public function __construct(  Affiliate_WP_Referral_Meta_DB $referralMetaDb ) {
-		$this->referralMetaDb = $referralMetaDb;
-		add_filter( 'affwp_referral_table_columns', array($this, 'addTableColumns' ) );
-		add_filter( 'affwp_referral_table_points', array($this, 'columnPoints'), 10, 2);
-		add_filter( 'affwp_referral_table_type', array($this, 'columnType'), 10, 2);
+	public function __construct(Commission_DAL $commission_dal) {
+            $this->commission_dal = $commission_dal;
+		add_filter( 'affwp_referral_table_columns', array($this, 'add_table_columns' ) );
+		add_filter( 'affwp_referral_table_points', array($this, 'column_points'), 10, 2);
+		add_filter( 'affwp_referral_table_type', array($this, 'column_type'), 10, 2);
+                
+                add_filter( 'affwp_referral_row_actions', array($this, 'update_commission_actions'), 10, 2);
 	}
 
-	public function addTableColumns($columns) {
+	public function add_table_columns($columns) {
 		$new = array(
 			'cb' => $columns['cb']
 			,'amount' => $columns['amount']
@@ -36,9 +39,28 @@ class Commissions_Table {
 		);
 		return $new;
 	}
+        
+        public function update_commission_actions($row_actions, $commission) {
+            $request = $this->get_commission_request_for_referral($commission);
+            if (!empty($request) && $commission->affiliate_id == $request['writing_agent_id']) {
+                return $row_actions;
+            }
+            
+            return [];
+        }
+        
+        public function get_commission_request_for_referral($commission) {
+            
+            // need to cache out the commission meta
+            $request_id = $this->commission_dal->get_commission_request_id_from_commission($commission->referral_id);
+            if (!empty($request_id)) {
+                return $this->commission_dal->get_commission_request($request_id);
+            }
+            return null;
+        }
 
-	public function columnType($value, $referral) {
-		$value = $referral->context;
+	public function column_type($value, $commission) {
+		$value = $commission->context;
 		if ($value == CommissionType::TYPE_LIFE) {
 			return __('Life Insurance', 'affiliate-ltp');
 		}
@@ -47,10 +69,8 @@ class Commissions_Table {
 		}
 	}
 
-	public function columnPoints($value, $referral) {
-		$referralId = $referral->referral_id;
-
-		$value = $this->referralMetaDb->get_meta($referralId, 'points', true);
+	public function column_points($value, $commission) {
+                $value = $this->commission_dal->get_commission_agent_points($commission->referral_id);
         if (empty($value)) {
 			return '';
 		}

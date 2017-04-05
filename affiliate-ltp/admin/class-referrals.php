@@ -49,7 +49,7 @@ class Referrals {
      */
     private $referralMetaDb;
 
-    private $referralsTable;
+    private $referrals_table;
 
     public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
         remove_action('affwp_add_referral', 'affwp_process_add_referral');
@@ -68,8 +68,10 @@ class Referrals {
         //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
 
         $this->referralMetaDb = $referralMetaDb;
-        $this->referralsTable = new Commissions_Table($this->referralMetaDb);
+        // see the commissions table for the hooks that alter the affiliate_referrals_list table.
+        
         $this->commission_dal = new Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
+        $this->referrals_table = new Commissions_Table($this->commission_dal);
         $this->agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
         $this->settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
     }

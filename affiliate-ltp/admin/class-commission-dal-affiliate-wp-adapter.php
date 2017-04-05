@@ -27,9 +27,17 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
      */
     private $commission_request_db;
     
+    /**
+     * Cache of the commission request during the php request lifecycle
+     * Requests are cached by their commission_request_id
+     * @var array
+     */
+    private $commission_request_cache_by_id;
+    
     public function __construct(Affiliate_WP_Referral_Meta_DB $meta_db) {
         $this->referral_meta_db = $meta_db;
         $this->commission_request_db = new Commission_Request_DB();
+        $this->commission_request_cache_by_id = [];
     }
     
     public function add_commission_request( $commission_request ) {
@@ -146,5 +154,23 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
             return null;
         }
         return $commission_request;
+    }
+    
+    public function get_commission_request_id_from_commission($commission_id) {
+        $id = $this->referral_meta_db->get_meta($commission_id, 'commission_request_id', true);
+        error_log("for commission $commission_id request id is $id");
+        if (empty($id)) {
+            return null;
+        }
+        return absint($id);
+    }
+    
+    public function get_commission_request($commission_request_id) {
+        if (empty($this->commission_request_cache_by_id[$commission_request_id])) {
+            $this->commission_request_cache_by_id[$commission_request_id] =
+                    $this->commission_request_db->get_commission_request($commission_request_id);
+        }
+        
+        return $this->commission_request_cache_by_id[$commission_request_id];
     }
 }

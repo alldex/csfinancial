@@ -93,4 +93,17 @@ interface Commission_DAL {
      * @param array $commission_request
      */
     function add_commission_request( $commission_request );
+    
+    /**
+     * Returns the commission request id connected with the commission id
+     * @param int $commission_id
+     */
+    function get_commission_request_id_from_commission( $commission_id );
+    
+    /**
+     * Returns the entire commission request including the deserialized 
+     * request and agent trees using the commission_request_id
+     * @param int $commission_request_id
+     */
+    function get_commission_request( $commission_request_id );
 }
