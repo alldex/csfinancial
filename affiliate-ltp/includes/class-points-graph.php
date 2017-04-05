@@ -3,7 +3,7 @@
 namespace AffiliateLTP;
 
 use \Affiliate_WP_Graph;
-use \Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
 
 
 /**

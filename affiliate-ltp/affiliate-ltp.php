@@ -14,12 +14,19 @@
 require_once 'vendor/autoload.php';
 require_once 'autoloader.php';
 
-$plugin_dir_path = plugin_dir_path( __FILE__ );
-$parent_plugin_dir_path = dirname($plugin_dir_path);
+if (!defined("AFFILIATE_LTP_PLUGIN_DIR")) {
+    define("AFFILIATE_LTP_PLUGIN_DIR", plugin_dir_path( __FILE__ ));
+}
+
+if (!defined("AFFILIATE_LTP_PLUGIN_URL")) {
+    define("AFFILIATE_LTP_PLUGIN_URL", plugin_dir_url( __FILE__ ));
+}
+
+$parent_plugin_dir_path = dirname(AFFILIATE_LTP_PLUGIN_DIR);
 $loader = new \AffiliateLTP\Psr4AutoloaderClass();
 $loader->register();
-$loader->addNamespace("AffiliateLTP\\",  $plugin_dir_path . "includes/");
-$loader->addNamespace("AffiliateLTP\\", $plugin_dir_path . "tests/");
+$loader->addNamespace("AffiliateLTP\\",  AFFILIATE_LTP_PLUGIN_DIR . "includes/");
+$loader->addNamespace("AffiliateLTP\\", AFFILIATE_LTP_PLUGIN_DIR . "tests/");
 
 //$loader->addNamespace("AffWP\\", $parent_plugin_dir_path 
 //        . DIRECTORY_SEPARATOR . "affiliate-wp" . DIRECTORY_SEPARATOR . "includes");

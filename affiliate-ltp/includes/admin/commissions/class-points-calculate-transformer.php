@@ -8,7 +8,7 @@
 namespace AffiliateLTP\admin\commissions;
 
 use AffiliateLTP\admin\Referrals_New_Request;
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 
 
 /**
@@ -41,7 +41,7 @@ class Points_Calculate_Transformer {
     
     private function update_node_points(Commission_Node $tree, $points) {
         $copy = clone $tree;
-        if ($this->request_type != CommissionType::TYPE_LIFE
+        if ($this->request_type != Commission_Type::TYPE_LIFE
                 && $copy->is_direct_sale) {
             $points = round($copy->rate * $points);
         }

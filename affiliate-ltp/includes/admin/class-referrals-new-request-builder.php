@@ -4,7 +4,7 @@ namespace AffiliateLTP\admin;
 
 require_once "class-referrals-new-request.php";
 
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 use \Exception;
 
 /**
@@ -105,7 +105,7 @@ class Referrals_New_Request_Builder {
         $request->points = $request->amount;
         
         if (isset($requestData['is_life_commission']) && $requestData['is_life_commission']) {
-            $request->type = CommissionType::TYPE_LIFE;
+            $request->type = Commission_Type::TYPE_LIFE;
             // set the points to be whatever was entered for a life commission
             if ($request->new_business) {
                 $request->points = !empty( $requestData['points'] ) ? sanitize_text_field( $requestData['points'] ) : $request->amount;
@@ -116,7 +116,7 @@ class Referrals_New_Request_Builder {
             }
         }
         else {
-            $request->type = CommissionType::TYPE_NON_LIFE;
+            $request->type = Commission_Type::TYPE_NON_LIFE;
         }
         
         if (isset($requestData['skip_life_licensed_check']) && $requestData['skip_life_licensed_check'] === true) {

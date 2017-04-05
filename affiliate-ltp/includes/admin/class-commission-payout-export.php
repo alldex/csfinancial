@@ -3,7 +3,7 @@ namespace AffiliateLTP\admin;
 
 use \Affiliate_WP_Referral_Payout_Export;
 use \Affiliate_WP_Referral_Meta_DB;
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 
 //require_once '../affiliate-wp/includes/admin/tools/export/class-export-referrals-payout.php';
 require_once AFFILIATEWP_PLUGIN_DIR . '/includes/admin/add-ons.php';
@@ -24,12 +24,18 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
     
     /**
      *
+     * @var Affiliate_WP_Referral_Meta_DB
+     */
+    private $referralMetaDb;
+    
+    /**
+     *
      * @var Settings_DAL
      */
     private $settings_dal;
     
     public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb, Settings_DAL $settings_dal) {
-       $this->commissionType = CommissionType::TYPE_LIFE;
+       $this->commissionType = Commission_Type::TYPE_LIFE;
        $this->referralMetaDb = $referralMetaDb;
        $this->settings_dal = $settings_dal;
         parent::__construct();

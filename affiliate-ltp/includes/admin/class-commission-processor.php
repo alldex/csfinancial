@@ -4,7 +4,7 @@ namespace AffiliateLTP\admin;
 
 use AffiliateLTP\Plugin;
 use AffiliateLTP\admin\Referrals_New_Request;
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\commissions\Real_Rate_Calculate_Transformer;
 use AffiliateLTP\admin\commissions\Commission_Node;
 use AffiliateLTP\admin\commissions\Points_Calculate_Transformer;
@@ -98,7 +98,7 @@ class Commission_Processor {
     }
 
     private function is_repeat_business(Referrals_New_Request $request) {
-        if ($request->type == CommissionType::TYPE_LIFE) {
+        if ($request->type == Commission_Type::TYPE_LIFE) {
             return !$request->new_business;
         }
         else {
@@ -186,7 +186,7 @@ class Commission_Processor {
         echo "Skip Life License Check is: " . ($request->skip_life_licensed_check ? "YES" : "NO") . "\n";
         echo "Amount: {$request->amount}\n";
         echo "Points: {$request->point}\n";
-        echo "Type: " . ($request->type == CommissionType::TYPE_LIFE ? "LIFE" :"NON-LIFE") ."\n";
+        echo "Type: " . ($request->type == Commission_Type::TYPE_LIFE ? "LIFE" :"NON-LIFE") ."\n";
         echo "Agent Trees\n";
         foreach ($agent_trees as $tree) {
             $this->print_tree($tree, '>');

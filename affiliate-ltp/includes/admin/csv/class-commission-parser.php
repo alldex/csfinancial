@@ -12,8 +12,8 @@ use AffiliateLTP\admin\csv\Commission_CSV_Request;
 use League\Csv\Reader;
 use AffiliateLTP\admin\Referrals_Agent_Request;
 use AffiliateLTP\admin\Agent_DAL;
-use AffiliateLTP\SugarCRMDAL;
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Sugar_CRM_DAL;
+use AffiliateLTP\Commission_Type;
 
 
 
@@ -36,7 +36,7 @@ class Commission_Parser {
     
     /**
      *
-     * @var SugarCRMDAL
+     * @var Sugar_CRM_DAL
      */
     private $crm_dal;
     
@@ -66,7 +66,7 @@ class Commission_Parser {
     
     // TODO: stephen need to have a situation of how to handle errors while we go through the import
     
-    public function __construct(Reader $reader, Agent_DAL $agent_dal, SugarCRMDAL $crm_dal) {
+    public function __construct(Reader $reader, Agent_DAL $agent_dal, Sugar_CRM_DAL $crm_dal) {
         $keys = $this->csv_keys;
         
         $this->readerIterator = $reader->setOffset(1)->fetchAssoc($keys, array($this, 'format_rows'));
@@ -135,10 +135,10 @@ class Commission_Parser {
         $request->companyHaircutAll = $row['give_all_company_haircut'];
         $request->skipCompanyHaircut = $row['skip_company_haircut'];
         if ($row['is_life_insurance']) {
-            $request->type = CommissionType::TYPE_LIFE;
+            $request->type = Commission_Type::TYPE_LIFE;
         }
         else {
-            $request->type = CommissionType::TYPE_NON_LIFE;
+            $request->type = Commission_Type::TYPE_NON_LIFE;
         }
         $request->date = $row['date'];
         $request->line_number = $row['line_number'];

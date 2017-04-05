@@ -2,8 +2,8 @@
 
 namespace AffiliateLTP\admin;
 
-use \Affiliate_WP_Referral_Meta_DB;
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\Commission_Type;
 use AffiliateLTP\Commission_Request_DB;
 
 /**

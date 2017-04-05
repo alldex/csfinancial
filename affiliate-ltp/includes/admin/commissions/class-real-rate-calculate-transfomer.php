@@ -8,7 +8,7 @@
 namespace AffiliateLTP\admin\commissions;
 use AffiliateLTP\admin\commissions\Commission_Node;
 use AffiliateLTP\admin\Referrals_New_Request;
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\commissions\Agent_Data;
 use AffiliateLTP\admin\Settings_DAL;
 
@@ -112,6 +112,6 @@ class Real_Rate_Calculate_Transformer {
     }
     
     private function check_life_licensing() {
-        return $this->request->type == CommissionType::TYPE_LIFE;
+        return $this->request->type == Commission_Type::TYPE_LIFE;
     }
 }

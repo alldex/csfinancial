@@ -8,7 +8,7 @@
 namespace AffiliateLTP\admin\commissions;
 
 use AffiliateLTP\admin\Referrals_New_Request;
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 
 /**
  * Description of class-commission-tree-validator
@@ -36,7 +36,7 @@ class Commission_Tree_Validator {
                 throw new \LogicException("passed in parameters are not of type Commission_Processor_Item");
             }
 
-            if ($request->type == CommissionType::TYPE_LIFE 
+            if ($request->type == Commission_Type::TYPE_LIFE 
                     && !$request->skip_life_licensed_check) {
                 // need to check if anyone has life insurance problems.
                 $this->validate_tree_for_valid_life_insurance($tree, $errors);

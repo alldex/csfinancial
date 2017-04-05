@@ -13,9 +13,9 @@ require_once 'class-settings-dal.php';
 require_once 'class-settings-dal-affiliate-wp-adapter.php';
 
 use AffiliateLTP\Plugin;
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Commission_Payout_Export;
-use \Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
 use \AffWP_Referrals_Table;
 use AffiliateLTP\admin\Referrals_New_Request_Builder;
 
@@ -82,10 +82,10 @@ class Referrals {
         
         $export = new Commission_Payout_Export($this->referralMetaDb, $this->settings_dal);
         if (isset($data['is_life_commission'])) {
-            $export->commissionType = CommissionType::TYPE_LIFE;
+            $export->commissionType = Commission_Type::TYPE_LIFE;
         }
         else {
-            $export->commissionType = CommissionType::TYPE_NON_LIFE;
+            $export->commissionType = Commission_Type::TYPE_NON_LIFE;
         }
         
         $export->date = array(
@@ -157,7 +157,7 @@ class Referrals {
                 "writing_agent" => array_shift($agents)
                 ,"agents" => $agents
                 ,"contract_number" => $contract_number
-                ,"is_life_commission" => absint($commission_data->type) == CommissionType::TYPE_LIFE
+                ,"is_life_commission" => absint($commission_data->type) == Commission_Type::TYPE_LIFE
                 ,"split_commission" => count($agents) > 0
                 ,'commission_request_id' => $commission_data->commission_request_id
             ];

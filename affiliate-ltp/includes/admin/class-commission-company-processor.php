@@ -8,7 +8,7 @@
 
 namespace AffiliateLTP\admin;
 
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Referrals_New_Request;
 
 require_once 'class-commission-status.php';
@@ -98,7 +98,7 @@ class Commission_Company_Processor {
         $this->company_cut['amount'] = $company_amount;
         $this->company_cut['meta']['agent_real_rate'] = round( ($company_amount / $orig_amount), 4);
         
-        if ($this->orig_request->type != CommissionType::TYPE_LIFE) {
+        if ($this->orig_request->type != Commission_Type::TYPE_LIFE) {
             $this->company_cut['meta']['points'] = round($company_amount);
         }
         else {
@@ -164,7 +164,7 @@ class Commission_Company_Processor {
         
         // if we are not a life we will use the points after the company
         // 'haircut' or percentage they took out.
-        if ($new_request->type != CommissionType::TYPE_LIFE) {
+        if ($new_request->type != Commission_Type::TYPE_LIFE) {
             $new_request->points = $amount_remaining;
         }
 

@@ -6,17 +6,17 @@ namespace AffiliateLTP;
  *
  * @author snielson
  */
-class SugarCRMDALLocalhost extends SugarCRMDAL {
+class Sugar_CRM_DAL_Localhost extends Sugar_CRM_DAL {
 
     private static $instance = null;
     
     /**
      * Returns the singleton instance.
-     * @return SugarCRMDAL
+     * @return Sugar_CRM_DAL
      */
     public static function instance() {
         if (self::$instance == null) {
-            self::$instance = new SugarCRMDALLocalhost();
+            self::$instance = new Sugar_CRM_DAL_Localhost();
         }
         return self::$instance;
     }

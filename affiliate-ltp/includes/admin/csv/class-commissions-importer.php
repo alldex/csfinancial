@@ -10,7 +10,7 @@ require_once 'class-commission-parser.php';
 
 use League\Csv\Reader;
 use AffiliateLTP\admin\Agent_DAL;
-use AffiliateLTP\SugarCRMDAL;
+use AffiliateLTP\Sugar_CRM_DAL;
 use AffiliateLTP\admin\Commission_DAL;
 use AffiliateLTP\admin\Settings_DAL;
 use AffiliateLTP\admin\Referrals_Agent_Request;
@@ -30,7 +30,7 @@ class Commissions_Importer {
     
     /**
      *
-     * @var SugarCRMDAL
+     * @var Sugar_CRM_DAL
      */
     private $sugar_crm_dal;
     
@@ -40,7 +40,7 @@ class Commissions_Importer {
      */
     private $commission_dal;
     
-    public function __construct(Agent_dal $agent_dal, SugarCRMDAL $sugar_crm_dal,
+    public function __construct(Agent_dal $agent_dal, Sugar_CRM_DAL $sugar_crm_dal,
      Commission_DAL $commission_dal, Settings_DAL $settings_dal) {
         $this->sugar_crm_dal = $sugar_crm_dal;
         $this->agent_dal = $agent_dal;

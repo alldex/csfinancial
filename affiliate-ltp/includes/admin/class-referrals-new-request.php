@@ -3,7 +3,7 @@ namespace AffiliateLTP\admin;
 
 require_once 'class-referrals-agent-request.php';
 
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 
 /**
  * Holds all of the settings for a new referral.
@@ -49,7 +49,7 @@ class Referrals_New_Request {
         $this->agents = array();
         $this->client = null;
         $this->amount = 0;
-        $this->type = CommissionType::TYPE_NON_LIFE;
+        $this->type = Commission_Type::TYPE_NON_LIFE;
         $this->skipCompanyHaircut = false;
         $this->companyHaircutAll = false;
         $this->skip_life_licensed_check = false;

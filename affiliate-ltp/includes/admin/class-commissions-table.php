@@ -9,7 +9,7 @@ if (!class_exists('AffWP\Admin\List_Table')) {
     . "/affiliate-wp/includes/abstracts/class-affwp-list-table.php";
 }
 
-use AffiliateLTP\CommissionType;
+use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Commission_DAL;
 use AffWP\Admin\List_Table;
 
@@ -81,7 +81,7 @@ class Commissions_Table extends List_Table {
 
 	public function column_type($value, $commission) {
 		$value = $commission->context;
-		if ($value == CommissionType::TYPE_LIFE) {
+		if ($value == Commission_Type::TYPE_LIFE) {
 			return __('Life Insurance', 'affiliate-ltp');
 		}
 		else {

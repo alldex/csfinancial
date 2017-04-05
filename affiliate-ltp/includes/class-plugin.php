@@ -2,12 +2,22 @@
 namespace AffiliateLTP;
 
 use \AffiliateWP_Multi_Level_Marketing;
-use \Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
 use AffiliateLTP\admin\Menu;
 use AffiliateLTP\admin\Referrals;
 use AffiliateLTP\admin\Settings;
 use AffiliateLTP\admin\Tools;
 use AffiliateLTP\Progress_Item_DB;
+use AffiliateLTP\admin\Agent_DAL;
+use AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter;
+use AffiliateLTP\admin\Settings_DAL;
+use AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter;
+
+use AffiliateLTP\Sugar_CRM_DAL;
+use AffiliateLTP\Sugar_CRM_DAL_Localhost;
+
+use AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap;
+use AffiliateLTP\Agent_Checklist_AJAX;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -42,27 +52,8 @@ class Plugin {
     
     public function __construct() {
         
-        $includePath = plugin_dir_path( __FILE__ );
-        
-        require_once "class-sugarcrm-dal.php";
-        require_once "class-commission-type.php";
-        require_once $includePath . '/admin/class-agent-dal.php';
-        require_once $includePath . '/admin/class-agent-dal-affiliate-wp-adapter.php';
-        require_once $includePath . '/admin/class-settings-dal.php';
-        require_once $includePath . '/admin/class-settings-dal-affiliate-wp-adapter.php';
-        
-        if (self::LOCALHOST_RESTRICTED) {
-            require_once "class-sugarcrm-dal-localhost.php";
-        }
-        
         if( is_admin() ) {
             
-            require_once $includePath . '/admin/class-referrals.php';
-            require_once $includePath . '/admin/class-affiliates.php';
-            require_once $includePath . '/admin/class-menu.php';
-            require_once $includePath . "/admin/class-settings.php";
-            require_once $includePath . "/admin/class-upgrades.php";
-            require_once $includePath . "/admin/class-tools.php";
             
             // setup the settings.
             $this->settings = new Settings();
@@ -70,17 +61,11 @@ class Plugin {
             // setup our admin scripts.
             add_action( 'admin_enqueue_scripts', array($this, 'admin_scripts' ) );
         }
-        require_once $includePath . "/admin/class-agent-custom-slug.php";
-        require_once $includePath . "/admin/gravityforms/class-gravity-forms-bootstrap.php";
-        require_once $includePath . "/class-shortcodes.php";
-        require_once $includePath . "/class-agent-tree-partner-filterer.php";
-        require_once $includePath . "/class-agent-checklist-filterer.php";
-        require_once $includePath . "/class-agent-checklist-ajax.php";
         new Shortcodes(); //setup the shortcodes.
         // setup the gravity forms
         // TODO: stephen we should probably take this out of admin since it
         // also controls non-admin functionality.
-        new admin\GravityForms\Gravity_Forms_Bootstrap();
+        new Gravity_Forms_Bootstrap();
         new Agent_Checklist_AJAX();
         
         
@@ -120,7 +105,7 @@ class Plugin {
     }
     
     private function add_plugin_scripts_and_styles() {
-        $includePath = plugin_dir_url( __FILE__ );
+        $includePath = AFFILIATE_LTP_PLUGIN_URL;
         
         wp_enqueue_style('fancy-box', $includePath . 'assets/fancybox/source/jquery.fancybox.css');
         wp_enqueue_script('fancy-box', $includePath . 'assets/fancybox/source/jquery.fancybox.js', array('jquery'));
@@ -145,24 +130,24 @@ class Plugin {
     
     /**
      * 
-     * @return \AffiliateLTP\admin\Agent_DAL
+     * @return Agent_DAL
      */
     public function get_agent_dal() {
-        return new admin\Agent_DAL_Affiliate_WP_Adapter();
+        return new Agent_DAL_Affiliate_WP_Adapter();
     }
     
     /**
      * 
-     * @return \AffiliateLTP\admin\Settings_DAL
+     * @return Settings_DAL
      */
     public function get_settings_dal() {
-        return new admin\Settings_DAL_Affiliate_WP_Adapter();
+        return new Settings_DAL_Affiliate_WP_Adapter();
     }
     
     // TODO: stephen is there a better place for this than the core plugin??
     public function render_organization_tree($agent_id) {
-        $agent_dal = new admin\Agent_DAL_Affiliate_WP_Adapter();
-        $settings_dal = new admin\Settings_DAL_Affiliate_WP_Adapter();
+        $agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
+        $settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
         $filterer = null;
         $checklist_filterer = new Agent_Checklist_Filterer($agent_dal, $settings_dal);
         $show_controls = false;
@@ -221,14 +206,14 @@ class Plugin {
     
     /**
      * 
-     * @return SugarCRMDAL
+     * @return Sugar_CRM_DAL
      */
     public function getSugarCRM() {
         if (self::LOCALHOST_RESTRICTED) {
-            return SugarCRMDALLocalhost::instance();
+            return Sugar_CRM_DAL_Localhost::instance();
         }
         else {
-            return SugarCRMDAL::instance();
+            return Sugar_CRM_DAL::instance();
         }
     }
     
@@ -253,7 +238,6 @@ class Plugin {
     }
     
     public function setup_dependent_objects() {
-        require_once "class-referral-meta-db.php";
         require_once "class-progress-item-db.php";
         require_once "class-commission-request-db.php";
         
@@ -266,7 +250,7 @@ class Plugin {
             // TODO: stephen look at renaming the AdminMenu to keep with our naming convention
             $adminMenu = new Menu($this->adminReferrals);
             
-            $settings_dal = new admin\Settings_DAL_Affiliate_WP_Adapter();
+            $settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
             
             $tools = new Tools($this->get_agent_dal(), $this->getSugarCRM(),
                     $this->get_commission_dal(), $settings_dal);
@@ -300,7 +284,7 @@ class Plugin {
 
         $suffix = "";
 //	$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-        $plugin_url = plugin_dir_url( __FILE__ );
+        $plugin_url = AFFILIATE_LTP_PLUGIN_URL;
         $url = $plugin_url . 'assets/js/admin/ltp-admin' . $suffix . '.js';
         wp_enqueue_script( 'angular', $plugin_url . 'assets/js/bower_components/angular/angular.min.js');
 	wp_enqueue_script( 'affiliate-ltp-admin', $url, array( 'jquery', 'jquery-ui-autocomplete', 'angular' ));
@@ -321,8 +305,7 @@ class Plugin {
         // directories.
         $safe_domain = str_replace('/', '_', $domain);
         
-        $include_path = plugin_dir_path( __FILE__ );
-        $include_file = $include_path . "/languages/" . $safe_domain . "-en.mo";
+        $include_file = AFFILIATE_LTP_PLUGIN_DIR . "/languages/" . $safe_domain . "-en.mo";
         if (file_exists($include_file)) {
             return $include_file;
         }
@@ -396,11 +379,11 @@ class Plugin {
     * @return void
     */
    public function get_theme_template_paths( $file_paths ) {
-           $file_paths[80] = plugin_dir_path( __FILE__ ) . '/templates';
+           $file_paths[80] = AFFILIATE_LTP_PLUGIN_DIR . '/templates';
 
            return $file_paths;
    }
-
+   
    /**
     * 
     * @return Plugin

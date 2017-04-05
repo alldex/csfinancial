@@ -6,7 +6,7 @@ namespace AffiliateLTP;
  *
  * @author snielson
  */
-class SugarCRMDAL {
+class Sugar_CRM_DAL {
     
     const USER_NAME = "admin";
     const PASSWORD = 'ae67ecae664590bdb190c45823030c16';
@@ -20,11 +20,11 @@ class SugarCRMDAL {
     
     /**
      * Returns the singleton instance.
-     * @return SugarCRMDAL
+     * @return Sugar_CRM_DAL
      */
     public static function instance() {
         if (self::$instance == null) {
-            self::$instance = new SugarCRMDAL();
+            self::$instance = new Sugar_CRM_DAL();
         }
         return self::$instance;
     }

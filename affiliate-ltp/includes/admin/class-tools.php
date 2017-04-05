@@ -10,7 +10,7 @@ namespace AffiliateLTP\admin;
 require_once 'csv/class-commissions-importer.php';
 
 use AffiliateLTP\admin\csv\Commissions_Importer;
-use AffiliateLTP\SugarCRMDAL;
+use AffiliateLTP\Sugar_CRM_DAL;
 use AffiliateLTP\admin\Commission_DAL;
 use AffiliateLTP\admin\Settings_DAL;
 
@@ -27,7 +27,7 @@ class Tools {
      */
     private $importer;
     
-    public function __construct(Agent_DAL $agent_dal, SugarCRMDAL $sugar_dal
+    public function __construct(Agent_DAL $agent_dal, Sugar_CRM_DAL $sugar_dal
             , Commission_DAL $commission_dal, Settings_DAL $settings_dal ) {
         add_action( 'affwp_tools_tab_export_import', array($this, 'add_import_commissions_tool' ), 20);
         

@@ -7,6 +7,11 @@
 
 namespace AffiliateLTP;
 
+/**
+ * Example taken from PSR-4 fig standards example and adapted to be used
+ * with wordpress class name convention
+ * @see https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader-examples.md#class-example
+ */
 class Psr4AutoloaderClass
 {
     /**
@@ -102,8 +107,15 @@ class Psr4AutoloaderClass
     }
     
     private function get_wordpress_relative_class($class) {
-        $hyphen_class = strtolower(str_replace("_","-", $class));
-        return "class-" . $hyphen_class;
+        $namespace_prefix = "";
+        $hyphen_class = str_replace("_","-", strtolower($class));
+        $namespace_class_pos = strrpos($class, "\\");
+        if (false !== $namespace_class_pos) {
+            $namespace_prefix = substr($hyphen_class, 0, $namespace_class_pos+1);
+            $hyphen_class = substr($hyphen_class, $namespace_class_pos + 1);
+        }
+        
+        return $namespace_prefix . "class-" . $hyphen_class;
     }
     
     /**

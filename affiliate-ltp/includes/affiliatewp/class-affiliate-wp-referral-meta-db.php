@@ -1,4 +1,12 @@
 <?php
+namespace AffiliateLTP\AffiliateWP;
+
+if (!class_exists("\Affiliate_WP_DB")) {
+    require_once dirname(AFFILIATE_LTP_PLUGIN_DIR) . "includes/abstracts/class-db.php";
+}
+
+use Affiliate_WP_DB;
+
 /**
  * Core class used to implement referral meta.
  * Implemented here until Affiliate_WP plugin implements this piece.
