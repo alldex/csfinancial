@@ -1,10 +1,19 @@
 <?php 
 namespace AffiliateLTP\admin;
 
+// we'd use our autoloader but the affiliate-wp doesn't follow any kind
+// of convention
+// TODO: stephen is there a way to centralize some of this junk?
+if (!class_exists('AffWP\Admin\List_Table')) {
+    require_once dirname(dirname(dirname(plugin_dir_path(__FILE__)))) 
+    . "/affiliate-wp/includes/abstracts/class-affwp-list-table.php";
+}
+
 use AffiliateLTP\CommissionType;
 use AffiliateLTP\admin\Commission_DAL;
+use AffWP\Admin\List_Table;
 
-class Commissions_Table {
+class Commissions_Table extends List_Table {
 
     /**
      *
@@ -41,8 +50,19 @@ class Commissions_Table {
 	}
         
         public function update_commission_actions($row_actions, $commission) {
+            
             $request = $this->get_commission_request_for_referral($commission);
             if (!empty($request) && $commission->affiliate_id == $request['writing_agent_id']) {
+                $row['chargeback'] = $this->get_row_action_link(
+			__( 'Chargeback', 'affiliate-ltp' ),
+			array_merge( $base_query_args, array(
+				'affwp_action' => 'process_chargeback_commission'
+			) ),
+			array(
+				'nonce' => 'affwp_chargeback_commission_nonce',
+				'class' => 'chargeback'
+			))
+                ;
                 return $row_actions;
             }
             
