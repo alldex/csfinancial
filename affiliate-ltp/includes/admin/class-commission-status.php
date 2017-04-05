@@ -2,11 +2,11 @@
 namespace AffiliateLTP\admin;
 
 /**
- * Description of CommissionStatus
+ * Represents the payment status of a commission.
  *
  * @author snielson
  */
-class CommissionStatus {
+class Commission_Status {
     const UNPAID = 'unpaid';
     const PAID = 'paid';
 }

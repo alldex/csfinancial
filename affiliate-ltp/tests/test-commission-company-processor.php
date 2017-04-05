@@ -101,7 +101,7 @@ class Test_Commission_Company_Processor extends \WP_UnitTestCase {
             , "amount" => (float)$company_amount
             , "custom" => "indirect"
             , "context" => $type
-            , "status" => CommissionStatus::PAID
+            , "status" => Commission_Status::PAID
             , "date" => $date
             , "points" => (float)$points
             , "agent_rate" => $company_commission_rate

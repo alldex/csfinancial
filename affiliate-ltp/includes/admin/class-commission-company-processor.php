@@ -11,8 +11,6 @@ namespace AffiliateLTP\admin;
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Referrals_New_Request;
 
-require_once 'class-commission-status.php';
-
 /**
  * Prepares and creates a company commission record.  Since other agent
  * commissions are based upon the initial cut of the company 
@@ -176,7 +174,7 @@ class Commission_Company_Processor {
             , "amount" => $company_amount
             , "custom" => "indirect"
             , "context" => $new_request->type
-            , "status" => CommissionStatus::PAID
+            , "status" => Commission_Status::PAID
             , "date" => $new_request->date
             , "meta" => [
                 "points" => $company_amount

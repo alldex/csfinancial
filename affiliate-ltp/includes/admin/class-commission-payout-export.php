@@ -5,9 +5,6 @@ use \Affiliate_WP_Referral_Payout_Export;
 use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
 use AffiliateLTP\Commission_Type;
 
-//require_once '../affiliate-wp/includes/admin/tools/export/class-export-referrals-payout.php';
-require_once AFFILIATEWP_PLUGIN_DIR . '/includes/admin/add-ons.php';
-
 class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
 
     /**

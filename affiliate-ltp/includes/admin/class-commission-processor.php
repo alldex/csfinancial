@@ -5,20 +5,13 @@ namespace AffiliateLTP\admin;
 use AffiliateLTP\Plugin;
 use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\Commission_Type;
-use AffiliateLTP\admin\commissions\Real_Rate_Calculate_Transformer;
 use AffiliateLTP\admin\commissions\Commission_Node;
 use AffiliateLTP\admin\commissions\Points_Calculate_Transformer;
-
-require_once dirname(dirname(__FILE__)) . '/admin/class-life-license-status.php';
-require_once 'commissions/class-new-commission-tree-parser.php';
-require_once 'commissions/class-repeat-commission-tree-parser.php';
-require_once 'commissions/class-real-rate-calculate-transfomer.php';
-require_once 'commissions/class-points-calculate-transformer.php';
-require_once 'commissions/class-commission-tree-validator.php';
-
-// TODO: stephen need to save the agent_parent_id piece... 
-// how to do this I'm not sure.
-require_once 'class-commission-company-processor.php';
+use AffiliateLTP\admin\commissions\New_Commission_Tree_Parser;
+use AffiliateLTP\admin\commissions\Repeat_Commission_Tree_Parser;
+use AffiliateLTP\admin\commissions\Commission_Tree_Validator;
+use AffiliateLTP\admin\commissions\Real_Rate_Calculate_Transformer;
+use Exception;
 
 class Commission_Validation_Exception extends \RuntimeException {
     private $validation_errors;
@@ -89,10 +82,9 @@ class Commission_Processor {
         // or create the tree ourselves
         if ($this->is_repeat_business($request)) {
             // handle the population this way
-             $tree_parser = new commissions\Repeat_Commission_Tree_Parser($this->agent_dal, $this->commission_dal);
+             $tree_parser = new Repeat_Commission_Tree_Parser($this->agent_dal, $this->commission_dal);
         } else {
-            $tree_parser = new commissions\New_Commission_Tree_Parser($this->settings_dal, $this->agent_dal);
-//            $tree_parser->add_transformer(new Real_Rate_Calculate_Transformer());
+            $tree_parser = new New_Commission_Tree_Parser($this->settings_dal, $this->agent_dal);
         }
         return $tree_parser->parse($request);
     }
@@ -109,7 +101,7 @@ class Commission_Processor {
 
     public function validate_agent_trees_with_request(Referrals_New_Request $request, array $trees) {
         
-        $validator = new commissions\Commission_Tree_Validator();
+        $validator = new Commission_Tree_Validator();
         return $validator->validate($request, $trees);
     }
 
@@ -352,8 +344,7 @@ class Commission_Processor {
             do_action('affwp_ltp_commission_created', $commission);
             return $commission_id;
         } else {
-            // TODO: stephen add more details here.
-            throw new \Exception("Failed to create commission id for commission data: " . var_export($commission, true));
+            throw new Exception("Failed to create commission id for commission data: " . var_export($commission, true));
         }
     }
 
