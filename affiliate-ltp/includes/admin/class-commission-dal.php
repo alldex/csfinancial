@@ -106,4 +106,11 @@ interface Commission_DAL {
      * @param int $commission_request_id
      */
     function get_commission_request( $commission_request_id );
+    
+    /**
+     * Deletes all of the commissions associated with the passed in commission
+     * request
+     * @param int $commission_request_id
+     */
+    function delete_commissions_for_request( $commission_request_id );
 }

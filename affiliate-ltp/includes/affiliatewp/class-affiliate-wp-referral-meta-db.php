@@ -139,6 +139,21 @@ class Affiliate_WP_Referral_Meta_DB extends Affiliate_WP_DB {
 	function delete_meta( $referral_id = 0, $meta_key = '', $meta_value = '' ) {
 		return delete_metadata( 'referral', $referral_id, $meta_key, $meta_value );
 	}
+        
+        function get_commission_ids_by_commission_request_id( $commission_request_id ) {
+            global $wpdb;
+            
+            $sql = "SELECT DISTINCT referral_id FROM " .$this->table_name . " "
+                    . "WHERE meta_key = 'commission_request_id' AND "
+                    . "meta_value = %d";
+            $prepared = $wpdb->prepare($sql, $commission_request_id);
+            $results = $wpdb->get_col( $prepared  );
+            if (!empty($results)) {
+                return $results;
+            }
+            return null;
+            
+        }
 
 	/**
 	 * Creates the table.

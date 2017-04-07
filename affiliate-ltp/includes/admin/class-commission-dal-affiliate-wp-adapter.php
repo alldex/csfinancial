@@ -100,10 +100,19 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
     
     public function delete_commission_meta_all( $commission_id ) {
         $this->delete_commission_meta( $commission_id, 'client_id' );
-        $this->delete_commission_meta( $commission_id, 'client_id' );
         $this->delete_commission_meta( $commission_id, 'client_contract_number' );
+        $this->delete_commission_meta( $commission_id, 'company_commission' );
+        $this->delete_commission_meta( $commission_id, 'company_commission' );
         $this->delete_commission_meta( $commission_id, 'points' );
         $this->delete_commission_meta( $commission_id, 'agent_rate' );
+        $this->delete_commission_meta( $commission_id, 'commission_request_id' );
+        $this->delete_commission_meta( $commission_id, 'agent_parent_id' );
+        $this->delete_commission_meta( $commission_id, 'generation_count' );
+        $this->delete_commission_meta( $commission_id, 'new_business' );
+        $this->delete_commission_meta( $commission_id, 'original_amount' );
+        $this->delete_commission_meta( $commission_id, 'rank_id' );
+        $this->delete_commission_meta( $commission_id, 'split_rate' );
+        $this->delete_commission_meta( $commission_id, 'agent_real_rate' );
     }
 
     public function connect_commission_to_client( $commission_id, $client_data ) {
@@ -172,5 +181,33 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         }
         
         return $this->commission_request_cache_by_id[$commission_request_id];
+    }
+    
+    public function delete_commissions_for_request( $commission_request_id ) {
+        // first clear out the cache
+        if (!empty($this->commission_request_cache_by_id[$commission_request_id])) {
+            unset($this->commission_request_cache_by_id[$commission_request_id]);
+        }
+        
+        $commission_ids = $this->referral_meta_db->get_commission_ids_by_commission_request_id( $commission_request_id );
+        if (empty($commission_ids)) {
+            return $this->delete_commission_request( $commission_request_id );
+        }
+        
+        foreach ($commission_ids as $commission_id) {
+            // TODO
+            if (! affwp_delete_referral($commission_id) ) {
+                error_log("Failed to delete referral with id $commission_id");
+                return false;
+            }
+        }
+        return $this->delete_commission_request( $commission_request_id );
+    }
+    
+    public function delete_commission_request( $commission_request_id ) {
+        if ($this->commission_request_db->delete($commission_request_id)) {
+            return true;
+        }
+        return false;
     }
 }

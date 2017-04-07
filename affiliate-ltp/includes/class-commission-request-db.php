@@ -129,7 +129,8 @@ class Commission_Request_DB extends Affiliate_WP_DB {
             // do any formatting or other special work we need with the record.
            
             return [
-                "contract_number" => $record->contract_number
+                "commission_request_id" => $record->commission_request_id
+                ,"contract_number" => $record->contract_number
                 ,"creator_user_id" => $record->creator_user_id
                 ,"writing_agent_id" => $record->writing_agent_id
                 ,"amount" => $record->amount

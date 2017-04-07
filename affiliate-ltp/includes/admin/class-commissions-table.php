@@ -53,20 +53,63 @@ class Commissions_Table extends List_Table {
             
             $request = $this->get_commission_request_for_referral($commission);
             if (!empty($request) && $commission->affiliate_id == $request['writing_agent_id']) {
-                $row['chargeback'] = $this->get_row_action_link(
-			__( 'Chargeback', 'affiliate-ltp' ),
-			array_merge( $base_query_args, array(
-				'affwp_action' => 'process_chargeback_commission'
-			) ),
-			array(
-				'nonce' => 'affwp_chargeback_commission_nonce',
-				'class' => 'chargeback'
-			))
-                ;
-                return $row_actions;
+                error_log($commission->amount);
+                if ($commission->amount >= 0) {
+                    $row_actions['chargeback'] = 
+                        $this->get_chargeback_link($request['commission_request_id'],
+                            $commission->ID);
+                }
+                else {
+//                    $row_actions = $this->retain_actions($row_actions, 
+//                        ['mark-as-paid', 'mark-as-unpaid']);
+                }
+                $row_actions['delete'] = $this->get_delete_link($request['commission_request_id']);
+            }
+            else {
+                $row_actions = $this->retain_actions($row_actions, 
+                        ['mark-as-paid', 'mark-as-unpaid']);
             }
             
-            return [];
+            return $row_actions;
+        }
+        
+        private function get_delete_link($commission_request_id) {
+            return $this->get_row_action_link(
+                    __( 'Delete', 'affiliate-wp' )
+                    ,[
+                        'commission_request_id' => $commission_request_id
+                        ,'affwp_action' => 'process_delete_commission'
+                    ]
+                    ,[
+                        'nonce' => 'affwp_delete_commission_nonce',
+                        'class' => 'delete'
+                    ]
+		);
+        }
+        
+        private function get_chargeback_link($commission_request_id, $commission_id) {
+            return $this->get_row_action_link(
+                            __( 'Chargeback', 'affiliate-ltp' ),
+                            array(
+                                    'referral_id' => $commission_id
+                                    ,'commission_request_id' => $commission_request_id
+                                    ,'affwp_action' => 'process_chargeback_commission'
+                            )
+                            ,array(
+                                    'nonce' => 'affwp_chargeback_commission_nonce',
+                                    'class' => 'chargeback'
+                            ))
+                    ;
+        }
+        
+        private function retain_actions(array $actions, array $actions_to_retain) {
+            $new_actions = [];
+            foreach ($actions_to_retain as $retain) {
+                if (isset($actions[$retain])) {
+                    $new_actions[$retain] = $actions[$retain];
+                }
+            }
+            return $new_actions;
         }
         
         public function get_commission_request_for_referral($commission) {

@@ -57,10 +57,14 @@ class Referrals {
         add_action('wp_ajax_affwp_add_referral', array($this, 'processAddReferralRequest'));
         
         add_action('wp_ajax_affwp_search_commission', array($this, 'ajaxSearchCommission'));
+        
+        add_action('affwp_process_chargeback_commission', array($this, 'process_chargeback_commission'));
 
-        add_action('affwp_delete_referral', array($this, 'cleanupReferralMetadata'), 10, 1);
+        add_action('affwp_delete_referral', array($this, 'cleanup_referral_metadata'), 10, 1);
 
         add_action('affwp_generate_commission_payout', array($this, 'generateCommissionPayoutFile') );
+        
+        add_action('affwp_process_delete_commission', array($this, 'process_delete_commission'));
 
         // TODO: stephen when dealing with rejecting / overridding commissions uncomment this piece.
         //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
@@ -254,6 +258,63 @@ class Referrals {
 
         include_once $templatePath;
     }
+    
+    public function process_delete_commission() {
+        
+        if ( ! is_admin() ) {
+		return false;
+	}
+
+	if ( ! current_user_can( 'manage_referrals' ) ) {
+		wp_die( __( 'You do not have permission to manage referrals', 'affiliate-wp' ), array( 'response' => 403 ) );
+	}
+        
+        $nonce = filter_input(INPUT_GET, '_wpnonce');
+
+	if ( ! wp_verify_nonce( $nonce, 'affwp_delete_commission_nonce' ) ) {
+		wp_die( __( 'Security check failed', 'affiliate-wp' ), array( 'response' => 403 ) );
+	}
+        
+        $commission_request_id = absint(filter_input(INPUT_GET, 'commission_request_id'));
+        
+        $delete_success = $this->commission_dal->delete_commissions_for_request($commission_request_id);
+
+	if ( $delete_success  ) {
+		wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=referral_deleted' ) );
+		exit;
+	} else {
+		wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=referral_delete_failed' ) );
+		exit;
+	}
+    }
+    
+    public function process_chargeback_commission() {
+        $commission_request_id = absint(filter_input(INPUT_GET, 'commission_request_id'));
+        
+        $commission_request_record = $this->commission_dal->get_commission_request($commission_request_id);
+        
+        // TODO: stephen how do I determine if this is already a charge back or not?
+        // perhaps by the type of request???
+        $request_json = $commission_request_record['request'];
+        try {
+            $request_hydrated = json_decode($request_json, true);
+            if ($request_hydrated['amount'] > 0) {
+                $request_hydrated['amount'] = $request_hydrated['amount'] * -1;
+            }
+            $request = Referrals_New_Request_Builder::build($request_hydrated);
+            $commissionProcessor = new Commission_Processor($this->commission_dal, 
+                    $this->agent_dal, $this->settings_dal);
+            $commissionProcessor->process_commission_request($request);
+            wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=commission_chargeback_success&affwp_message=Chargeback%20Succeeded' ) );
+            exit;
+        } catch (Exception $ex) {
+             $message = $ex->getMessage() . "\nTrace: " . $ex->getTraceAsString(); 
+            error_log($message);
+        }
+        
+        wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=commission_chargeback_failed&affwp_message=Chargeback%20Failed' ) );
+        exit;
+    }
 
     public function processAddReferralRequest() {
         // since the data is received using application/json we read it from
@@ -304,7 +365,7 @@ class Referrals {
         exit;
     }
 
-    public function cleanupReferralMetadata( $referralId ) {
+    public function cleanup_referral_metadata( $referralId ) {
         // delete all the meta information.
         $this->commission_dal->delete_commission_meta_all( $referralId );
     }
