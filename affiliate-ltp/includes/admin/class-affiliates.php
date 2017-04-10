@@ -125,4 +125,3 @@ class Affiliates {
         ];
     }
 }
-new Affiliates();

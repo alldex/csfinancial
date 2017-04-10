@@ -18,6 +18,7 @@ use AffiliateLTP\Sugar_CRM_DAL_Localhost;
 
 use AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap;
 use AffiliateLTP\Agent_Checklist_AJAX;
+use AffiliateLTP\admin\Affiliates;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -67,6 +68,7 @@ class Plugin {
         // also controls non-admin functionality.
         new Gravity_Forms_Bootstrap();
         new Agent_Checklist_AJAX();
+        new Affiliates(); // setup the affiliate actions.
         
         
         // come in last here.

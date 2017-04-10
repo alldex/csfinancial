@@ -305,6 +305,8 @@ class Referrals {
             // unfortunately the affiliate-wp code sends user ids instead of agent_ids
             $request_hydrated['agents'] = $this->fill_agent_user_ids($request_hydrated['agents']);
             $request_hydrated['split_commission'] = count($request_hydrated['agents']) > 0;
+            $request_hydrated['is_life_commission'] = $request_hydrated['type'] == Commission_Type::TYPE_LIFE;
+            
             $request = Referrals_New_Request_Builder::build($request_hydrated);
             $commissionProcessor = new Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
