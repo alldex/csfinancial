@@ -12,6 +12,7 @@ use AffiliateLTP\admin\commissions\Repeat_Commission_Tree_Parser;
 use AffiliateLTP\admin\commissions\Commission_Tree_Validator;
 use AffiliateLTP\admin\commissions\Real_Rate_Calculate_Transformer;
 use Exception;
+use AffiliateLTP\admin\Commission_Status;
 
 class Commission_Validation_Exception extends \RuntimeException {
     private $validation_errors;
@@ -65,6 +66,12 @@ class Commission_Processor {
     private $processed_items;
     
     private $commission_request_id = null;
+    
+    /**
+     * The id of the agent representing the company.
+     * @var int
+     */
+    private $company_agent_id;
     
     const STATUS_DEFAULT = 'unpaid';
 
@@ -297,7 +304,7 @@ class Commission_Processor {
             , "reference" => $request->client['contract_number']
             , "custom" => $custom
             , "context" => $request->type
-            , "status" => self::STATUS_DEFAULT
+            , "status" => $this->get_status_for_save($item)
             , "date" => $request->date
             , "client" => $request->client
             , "meta" => [
@@ -368,6 +375,24 @@ class Commission_Processor {
         if (self::DEBUG_ENABLED) {
             error_log($message);
         }
+    }
+    
+    private function get_status_for_save(Commission_Node $item) {
+        
+        $company_agent_id = $this->settings_dal->get_company_agent_id(); 
+        // company status items are always paid.
+        if ($item->agent->id == $company_agent_id) {
+            return Commission_Status::PAID;
+        }
+        
+        return self::STATUS_DEFAULT;
+    }
+    
+    private function get_company_agent_id() {
+        if (empty($this->company_agent_id)) {
+            $this->company_agent_id = $this->settings_dal->get_company_agent_id();
+        }
+        return $this->company_agent_id;
     }
 
 }

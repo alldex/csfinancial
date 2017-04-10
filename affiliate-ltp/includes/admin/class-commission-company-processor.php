@@ -87,12 +87,7 @@ class Commission_Company_Processor {
         
         // grab the original amount
         $orig_amount = $this->orig_request->amount;
-        if ($total_agent_commisions > $orig_amount) {
-            // total agent commissions can't be greater... so we set it to be the amount
-            // TODO: stephen log this logic error as we shouldn't be hitting this...
-            $total_agent_commisions = $orig_amount;
-        }
-        $company_amount = round($orig_amount - $total_agent_commisions, 2);
+        $company_amount = $this->get_company_amount($total_agent_commisions, $orig_amount);
         $this->company_cut['amount'] = $company_amount;
         $this->company_cut['meta']['agent_real_rate'] = round( ($company_amount / $orig_amount), 4);
         
@@ -190,5 +185,23 @@ class Commission_Company_Processor {
         $this->company_cut = $company_commission;
 
         return $new_request;
+    }
+    
+    private function get_company_amount($total_agent_commisions, $orig_amount) {
+        $orig_amount - $total_agent_commisions;
+        if ($orig_amount < 0) {
+            // if this is a refund we need to reverse the logic to make sure
+            // we don't go over the total refund amount.
+            if ($total_agent_commisions < $orig_amount) {
+                $total_agent_commisions = $orig_amount;
+            }
+        }
+        else if ($total_agent_commisions > $orig_amount) {
+            // total agent commissions can't be greater... so we set it to be the amount
+            // TODO: stephen log this logic error as we shouldn't be hitting this...
+            $total_agent_commisions = $orig_amount;
+        }
+        $company_amount = round($orig_amount - $total_agent_commisions, 2);
+        return $company_amount;
     }
 }

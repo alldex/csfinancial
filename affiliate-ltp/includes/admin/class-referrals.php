@@ -301,6 +301,10 @@ class Referrals {
             if ($request_hydrated['amount'] > 0) {
                 $request_hydrated['amount'] = $request_hydrated['amount'] * -1;
             }
+            // we need to map agent_ids -> user_ids as that's what request builder expects
+            // unfortunately the affiliate-wp code sends user ids instead of agent_ids
+            $request_hydrated['agents'] = $this->fill_agent_user_ids($request_hydrated['agents']);
+            $request_hydrated['split_commission'] = count($request_hydrated['agents']) > 0;
             $request = Referrals_New_Request_Builder::build($request_hydrated);
             $commissionProcessor = new Commission_Processor($this->commission_dal, 
                     $this->agent_dal, $this->settings_dal);
@@ -373,5 +377,19 @@ class Referrals {
     private function debugLog($message) {
         // TODO: stephen need to put in the logger here.
         error_log($message);
+    }
+    
+    private function fill_agent_user_ids($agents) {
+        if (empty($agents)) {
+            return [];
+        }
+        
+        $new_agents = [];
+        foreach ($agents as $agent) {
+            $agent_id = $agent['id'];
+            $agent['id'] = $this->agent_dal->get_agent_user_id($agent_id);
+            $new_agents[] = $agent;
+        }
+        return $new_agents;
     }
 }
