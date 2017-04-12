@@ -4,7 +4,7 @@
 
 	<form method="post" id="affwp_edit_referral">
 
-		<?php do_action( 'affwp_edit_referral_top', $referral ); ?>
+		<?php do_action( 'affwp_edit_referral_top', $commission ); ?>
 
 		<table class="form-table">
 
@@ -16,7 +16,7 @@
 				</th>
 
 				<td>
-					<input class="small-text" type="text" name="affiliate_id" id="affiliate_id" value="<?php echo esc_attr( $referral->affiliate_id ); ?>" disabled="disabled"/>
+					<input class="small-text" type="text" name="affiliate_id" id="affiliate_id" value="<?php echo esc_attr( $commission->agent_id ); ?>" disabled="disabled"/>
 					<p class="description"><?php _e( 'The affiliate&#8217;s ID this referral belongs to. This value cannot be changed.', 'affiliate-wp' ); ?></p>
 				</td>
 
@@ -53,7 +53,7 @@
 				</th>
 
 				<td>
-					<input type="text" name="amount" id="amount" value="<?php echo esc_attr( $referral->amount ); ?>" disabled="disabled"/>
+					<input type="text" name="amount" id="amount" value="<?php echo esc_attr( $commission->amount ); ?>" disabled="disabled"/>
 					<?php if ( $payout ) : ?>
 						<p class="description"><?php esc_html_e( 'The referral amount cannot be changed once it has been included in a payout.', 'affiliate-wp' ); ?></p>
 					<?php else : ?>
@@ -70,7 +70,7 @@
 				</th>
 
 				<td>
-					<input type="text" name="date" id="date" value="<?php echo esc_attr( date_i18n( get_option( 'date_format' ), strtotime( $referral->date ) ) ); ?>" disabled="disabled" />
+					<input type="text" name="date" id="date" value="<?php echo esc_attr( date_i18n( get_option( 'date_format' ), strtotime( $commission->date ) ) ); ?>" disabled="disabled" />
 				</td>
 
 			</tr>
@@ -82,7 +82,7 @@
 				</th>
 
 				<td>
-					<textarea name="description" id="description" rows="5" cols="60" disabled="disabled"><?php echo esc_html( $referral->description ); ?></textarea>
+					<textarea name="description" id="description" rows="5" cols="60" disabled="disabled"><?php echo esc_html( $commission->description ); ?></textarea>
 					<p class="description"><?php _e( 'Enter a description for this referral.', 'affiliate-wp' ); ?></p>
 				</td>
 
@@ -95,20 +95,20 @@
 				</th>
 
 				<td>
-					<input type="text" name="reference" id="reference" value="<?php echo esc_attr( $referral->reference ); ?>" disabled="disabled"/>
+					<input type="text" name="reference" id="reference" value="<?php echo esc_attr( $commission->reference ); ?>" disabled="disabled"/>
 					<p class="description"><?php _e( 'Enter a reference for this referral (optional). Usually this would be the transaction ID of the associated purchase.', 'affiliate-wp' ); ?></p>
 				</td>
 
 			</tr>
 
 			<tr class="form-row form-required">
-				<?php $readonly = __checked_selected_helper( true, ! empty( $referral->context ), false, 'readonly' ); ?>
+				<?php $readonly = __checked_selected_helper( true, ! empty( $commission->context ), false, 'readonly' ); ?>
 				<th scope="row">
 					<label for="context"><?php _e( 'Context', 'affiliate-wp' ); ?></label>
 				</th>
 
 				<td>
-					<input type="text" name="context" id="context" value="<?php echo esc_attr( $referral->context ); ?>" <?php echo $readonly; ?> />
+					<input type="text" name="context" id="context" value="<?php echo esc_attr( $commission->context ); ?>" <?php echo $readonly; ?> />
 					<p class="description"><?php _e( 'Context for this referral (optional). Usually this is used to help identify the payment system that was used for the transaction.', 'affiliate-wp' ); ?></p>
 				</td>
 
@@ -122,10 +122,10 @@
 
 				<td>
 					<select name="status" id="status" disabled="disabled">
-						<option value="unpaid"<?php selected( 'unpaid', $referral->status ); ?>><?php _e( 'Unpaid', 'affiliate-wp' ); ?></option>
-						<option value="paid"<?php selected( 'paid', $referral->status ); ?>><?php _e( 'Paid', 'affiliate-wp' ); ?></option>
-						<option value="pending"<?php selected( 'pending', $referral->status ); ?>><?php _e( 'Pending', 'affiliate-wp' ); ?></option>
-						<option value="rejected"<?php selected( 'rejected', $referral->status ); ?>><?php _e( 'Rejected', 'affiliate-wp' ); ?></option>
+						<option value="unpaid"<?php selected( 'unpaid', $commission->status ); ?>><?php _e( 'Unpaid', 'affiliate-wp' ); ?></option>
+						<option value="paid"<?php selected( 'paid', $commission->status ); ?>><?php _e( 'Paid', 'affiliate-wp' ); ?></option>
+						<option value="pending"<?php selected( 'pending', $commission->status ); ?>><?php _e( 'Pending', 'affiliate-wp' ); ?></option>
+						<option value="rejected"<?php selected( 'rejected', $commission->status ); ?>><?php _e( 'Rejected', 'affiliate-wp' ); ?></option>
 					</select>
 					<?php if ( $payout ) : ?>
 						<p class="description"><?php esc_html_e( 'The referral status cannot be changed once it has been included in a payout.', 'affiliate-wp' ); ?></p>
@@ -222,10 +222,10 @@
                         </td>
                     </tr>
                 </table>
-		<?php do_action( 'affwp_edit_referral_bottom', $referral ); ?>
+		<?php do_action( 'affwp_edit_referral_bottom', $commission ); ?>
 
 		<?php echo wp_nonce_field( 'affwp_edit_referral_nonce', 'affwp_edit_referral_nonce' ); ?>
-		<input type="hidden" name="referral_id" value="<?php echo absint( $referral->referral_id ); ?>" />
+		<input type="hidden" name="referral_id" value="<?php echo absint( $commission->commission_id ); ?>" />
 		<input type="hidden" name="affwp_action" value="process_update_referral" />
 
 		<?php submit_button( __( 'Update Referral', 'affiliate-wp' ) ); ?>

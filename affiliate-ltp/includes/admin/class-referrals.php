@@ -217,7 +217,7 @@ class Referrals {
         $referral_id = filter_input(INPUT_GET, 'referral_id');
         $commission = $this->commission_dal->get_commission( absint( $referral_id ) );
 
-        $payout = $this->commission_dal->get_commission_payout( $referral->payout_id );
+        $payout = $this->commission_dal->get_commission_payout( $commission->payout_id );
 
         $disabled = disabled((bool) $payout, true, false);
         $payout_link = add_query_arg(array(

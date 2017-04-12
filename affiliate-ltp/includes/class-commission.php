@@ -23,6 +23,7 @@ class Commission {
     public $client;
     public $meta;
     public $description;
+    public $payout_id;
     
     public function __construct() {
         $this->status = admin\Commission_Status::UNPAID;
