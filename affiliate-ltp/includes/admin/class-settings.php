@@ -57,18 +57,12 @@ public function __construct() {
 						'size' => 'small',
 						'std' => ''
 					),
-                                        'affwp_ltp_company_rate' => array(
-						'name' => __( 'Default Affiliate', 'affiliatewp-multi-level-marketing' ),
-						'desc' => '<p class="description">' . __( 'Enter an Affiliate ID to assign sub affiliates to a particular affiliate when no referral is found.' ) . '</p>',
-						'type' => 'number',
-						'size' => 'small',
-						'std' => ''
-					),
 					'affwp_ltp_company_rate' => array(
 						'name' => '<strong>' . __( 'Company Percentage Rate', 'affiliate-ltp' ) . '</strong>',
 						'desc' => '<p class="description">' . __( 'Enter the Company Percentage Rate that will be taken off every commission ie 5, 10, 20.' ) . '</p>',
                                                 'type' => 'number',
 						'size' => 'small',
+                                                'step' => '0.01',
 						'std' => ''
 					),
                                     'affwp_ltp_generational_override_1_rate' => array(
@@ -76,6 +70,7 @@ public function __construct() {
 						'desc' => '<p class="description">' . __( 'Enter the 1st Generation Override Percentage Rate ie 4, 9, 17.' ) . '</p>',
                                                 'type' => 'number',
 						'size' => 'small',
+                                                'step' => '0.01',
 						'std' => ''
 					),
                                     'affwp_ltp_generational_override_2_rate' => array(
@@ -83,6 +78,7 @@ public function __construct() {
 						'desc' => '<p class="description">' . __( 'Enter the 2nd Generation Override Percentage Rate ie 4, 9, 17.' ) . '</p>',
                                                 'type' => 'number',
 						'size' => 'small',
+                                                'step' => '0.01',
 						'std' => ''
 					),
                                     'affwp_ltp_generational_override_3_rate' => array(
@@ -90,6 +86,7 @@ public function __construct() {
 						'desc' => '<p class="description">' . __( 'Enter the 3rd Generation Override Percentage Rate ie 4, 9, 17.' ) . '</p>',
                                                 'type' => 'number',
 						'size' => 'small',
+                                                'step' => '0.01',
 						'std' => ''
 					),
                                     'affwp_ltp_partner_rank_id' => array(
@@ -113,6 +110,7 @@ public function __construct() {
 						'desc' => '<p class="description">' . __( 'Enter the default value for the minimum payout amount an agent must earn before they can receive their commissions.' ) . '</p>',
                                                 'type' => 'number',
 						'size' => 'small',
+                                                'step' => '0.01',
 						'std' => ''
 					),
                                     
