@@ -73,9 +73,9 @@ class Referrals {
         // see the commissions table for the hooks that alter the affiliate_referrals_list table.
         
         $this->commission_dal = new Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
-        $this->referrals_table = new Commissions_Table($this->commission_dal);
         $this->agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
         $this->settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
+        $this->referrals_table = new Commissions_Table($this->commission_dal, $this->settings_dal->get_company_agent_id());
     }
 
     public function generateCommissionPayoutFile( $data ) {
@@ -215,7 +215,7 @@ class Referrals {
         // if no one else has overridden it.
 
         $referral_id = filter_input(INPUT_GET, 'referral_id');
-        $referral = $this->commission_dal->get_commission( absint( $referral_id ) );
+        $commission = $this->commission_dal->get_commission( absint( $referral_id ) );
 
         $payout = $this->commission_dal->get_commission_payout( $referral->payout_id );
 
@@ -226,7 +226,7 @@ class Referrals {
             'payout_id' => $payout ? $payout->ID : 0
                 ), admin_url('admin.php'));
 
-        $referralId = $referral->referral_id;
+        $referralId = $commission->commission_id;
         $agentRate = $this->commission_dal->get_commission_agent_rate($referralId);
         $points = $this->commission_dal->get_commission_agent_points($referralId);
         $clientId = $this->commission_dal->get_commission_client_id($referralId);
@@ -291,33 +291,17 @@ class Referrals {
     public function process_chargeback_commission() {
         $commission_request_id = absint(filter_input(INPUT_GET, 'commission_request_id'));
         
-        $commission_request_record = $this->commission_dal->get_commission_request($commission_request_id);
-        
-        // TODO: stephen how do I determine if this is already a charge back or not?
-        // perhaps by the type of request???
-        $request_json = $commission_request_record['request'];
         try {
-            $request_hydrated = json_decode($request_json, true);
-            if ($request_hydrated['amount'] > 0) {
-                $request_hydrated['amount'] = $request_hydrated['amount'] * -1;
-            }
-            // we need to map agent_ids -> user_ids as that's what request builder expects
-            // unfortunately the affiliate-wp code sends user ids instead of agent_ids
-            $request_hydrated['agents'] = $this->fill_agent_user_ids($request_hydrated['agents']);
-            $request_hydrated['split_commission'] = count($request_hydrated['agents']) > 0;
-            $request_hydrated['is_life_commission'] = $request_hydrated['type'] == Commission_Type::TYPE_LIFE;
-            
-            $request = Referrals_New_Request_Builder::build($request_hydrated);
-            $commissionProcessor = new Commission_Processor($this->commission_dal, 
-                    $this->agent_dal, $this->settings_dal);
-            $commissionProcessor->process_commission_request($request);
+            $company_agent_id = $this->settings_dal->get_company_agent_id();
+            $chargeback_processor = new Commission_Chargeback_Processor($this->commission_dal, 
+                    $this->agent_dal, $company_agent_id);
+            $chargeback_processor->process_request($commission_request_id);
             wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=commission_chargeback_success&affwp_message=Chargeback%20Succeeded' ) );
             exit;
         } catch (Exception $ex) {
-             $message = $ex->getMessage() . "\nTrace: " . $ex->getTraceAsString(); 
+            $message = $ex->getMessage() . "\nTrace: " . $ex->getTraceAsString(); 
             error_log($message);
         }
-        
         wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=commission_chargeback_failed&affwp_message=Chargeback%20Failed' ) );
         exit;
     }

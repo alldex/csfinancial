@@ -11,8 +11,10 @@ use AffiliateLTP\admin\commissions\New_Commission_Tree_Parser;
 use AffiliateLTP\admin\commissions\Repeat_Commission_Tree_Parser;
 use AffiliateLTP\admin\commissions\Commission_Tree_Validator;
 use AffiliateLTP\admin\commissions\Real_Rate_Calculate_Transformer;
+use AffiliateLTP\admin\Commission_Request_Persister;
 use Exception;
 use AffiliateLTP\admin\Commission_Status;
+use AffiliateLTP\Commission;
 
 class Commission_Validation_Exception extends \RuntimeException {
     private $validation_errors;
@@ -135,7 +137,7 @@ class Commission_Processor {
         // record the original request, not the updated request.
         // even if it's a company only request we still grab all the trees and
         // save it off for future processing.
-        $this->save_commission_request($request, $agent_trees);
+        $this->commission_request_id = $this->save_commission_request($request, $agent_trees);
         
         // transform the trees now
         $transformed_trees = $this->perform_tree_transformations($updatedRequest, $agent_trees);
@@ -241,17 +243,8 @@ class Commission_Processor {
     }
     
     private function save_commission_request(Referrals_New_Request $request, $agent_trees) {
-        $commission_request = [
-            "writing_agent_id" => $request->agents[0]->id
-           ,"contract_number" => $request->client['contract_number']
-           ,"amount" => $request->amount
-                ,"points" => $request->points
-                ,"request_type" => $request->type
-                ,"new_business" => $request->new_business ? "Y" : "N"
-                ,"request" => json_encode($request)
-                ,"agent_tree" => json_encode($agent_trees)
-        ];
-        $this->commission_request_id = $this->commission_dal->add_commission_request($commission_request);
+        $persistor = new Commission_Request_Persister($this->commission_dal);
+        return $persistor->persist($request, $agent_trees);
     }
 
     private function process_item(Referrals_New_Request $request, Commission_Node $item) {
@@ -297,47 +290,45 @@ class Commission_Processor {
         
         // TODO: stephen I think most the metadata stuff is redundant now with the commission_request
         // records... look at cleaning this up.
-        $commission = array(
-            "agent_id" => $item->agent->id
-            , "description" => $description
-            , "amount" => $adjusted_amount
-            , "reference" => $request->client['contract_number']
-            , "custom" => $custom
-            , "context" => $request->type
-            , "status" => $this->get_status_for_save($item)
-            , "date" => $request->date
-            , "client" => $request->client
-            , "meta" => [
-                "points" => $item->points
-                // TODO: stephen agent_rate and agent_real_rate may not be needed anymore...?
-                , "agent_rate" => $item->agent->rate
-                , "agent_real_rate" => $item->rate
-                // TODO: stephen should this be bundled into the referrals_new_request piece??
-                , "commission_request_id" => $this->commission_request_id
-            ]
-        );
+        $commission = new Commission();
+        $commission->agent_id = $item->agent->id;
+        $commission->description = $description;
+        $commission->amount = $adjusted_amount;
+        $commission->reference = $request->client['contract_number'];
+        $commission->custom = $custom;
+        $commission->context = $request->type;
+        $commission->status = $this->get_status_for_save($item);
+        $commission->date = $request->date;
+        $commission->client = $request->client;
+        $commission->meta = [
+            "points" => $item->points
+            // TODO: stephen agent_rate and agent_real_rate may not be needed anymore...?
+            , "agent_rate" => $item->agent->rate
+            , "agent_real_rate" => $item->rate
+            // TODO: stephen should this be bundled into the referrals_new_request piece??
+            , "commission_request_id" => $this->commission_request_id
+        ];
         if (!empty($item->split_rate)) {
-            $commission['meta']["split_rate"] = $item->split_rate;
+            $commission->meta["split_rate"] = $item->split_rate;
         }
         if (isset($item->parent_node)) {
-            $commission['meta']['agent_parent_id'] = $item->parent_node->agent->id;
+            $commission->meta['agent_parent_id'] = $item->parent_node->agent->id;
         }
         
         if (isset($item->coleadership_node)) {
-            $commission['meta']['coleadership_id'] = $item->coleadership_node->agent->id;
-            $commission['meta']['coleadership_rate'] = $item->coleadership_rate;
+            $commission->meta['coleadership_id'] = $item->coleadership_node->agent->id;
+            $commission->meta['coleadership_rate'] = $item->coleadership_rate;
         }
         
 //        $this->debugLog("create_commission_for_item() gen count: {$item->generational_count}");
         if ($item->generational_count > 0) {
-            $commission['description'] .= "- {$item->generational_count} Generation ";
-            $commission['meta']['generation_count'] = $item->generational_count;
+            $commission->description .= "- {$item->generational_count} Generation ";
+            $commission->meta['generation_count'] = $item->generational_count;
         }
 
         // add the rank of the individual
-        $rank_id = $this->agent_dal->get_agent_rank($item->agent_id);
         if (!empty($item->agent->rank)) {
-            $commission['meta']['rank_id'] = $rank_id;
+            $commission->meta['rank_id'] = $item->agent->rank;
         }
 
         // create referral
@@ -346,7 +337,7 @@ class Commission_Processor {
 
         if ($commission_id) {
             $this->debugLog("create_commission_for_item() created commission for '{$item->agent->id}'");
-            $commission['id'] = $commission;
+            $commission->commission_id = $commission;
             $this->processed_items[] = $commission;
             do_action('affwp_ltp_commission_created', $commission);
             return $commission_id;

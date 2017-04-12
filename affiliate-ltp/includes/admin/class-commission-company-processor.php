@@ -10,6 +10,7 @@ namespace AffiliateLTP\admin;
 
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Referrals_New_Request;
+use AffiliateLTP\Commission;
 
 /**
  * Prepares and creates a company commission record.  Since other agent
@@ -75,8 +76,8 @@ class Commission_Company_Processor {
         $total_agent_commisions = 0;
         if (!empty($agent_commissions)) {
             foreach ($agent_commissions as $commission) {
-                if (is_numeric($commission['amount'])) {
-                    $total_agent_commisions += $commission['amount'];
+                if (is_numeric($commission->amount)) {
+                    $total_agent_commisions += $commission->amount;
                 }
                 else {
                     throw new \Exception("commission found with non-numeric amount: " . var_export($commission, true));
@@ -88,17 +89,17 @@ class Commission_Company_Processor {
         // grab the original amount
         $orig_amount = $this->orig_request->amount;
         $company_amount = $this->get_company_amount($total_agent_commisions, $orig_amount);
-        $this->company_cut['amount'] = $company_amount;
-        $this->company_cut['meta']['agent_real_rate'] = round( ($company_amount / $orig_amount), 4);
+        $this->company_cut->amount = $company_amount;
+        $this->company_cut->meta['agent_real_rate'] = round( ($company_amount / $orig_amount), 4);
         
         if ($this->orig_request->type != Commission_Type::TYPE_LIFE) {
-            $this->company_cut['meta']['points'] = round($company_amount);
+            $this->company_cut->meta['points'] = round($company_amount);
         }
         else {
-            $this->company_cut['meta']['points'] = $this->company_cut['agent_rate'] * $this->orig_request->points;
+            $this->company_cut->meta['points'] = $this->company_cut['agent_rate'] * $this->orig_request->points;
         }
         
-        $this->company_cut['meta']['commission_request_id'] = $commission_request_id;
+        $this->company_cut->meta['commission_request_id'] = $commission_request_id;
         
         // create commission
         $commission_id = $this->commission_dal->add_commission( $this->company_cut );
@@ -162,24 +163,24 @@ class Commission_Company_Processor {
         }
 
         // Process cart and get amount
-        $company_commission = array(
-            "agent_id" => absint($company_agent_id)
-            , "description" => __("Override", "affiliate-ltp")
-            , "reference" => $new_request->client['contract_number']
-            , "amount" => $company_amount
-            , "custom" => "indirect"
-            , "context" => $new_request->type
-            , "status" => Commission_Status::PAID
-            , "date" => $new_request->date
-            , "meta" => [
-                "points" => $company_amount
-                , "agent_rate" => $company_commission_rate
-                , "original_amount" => $orig_request->amount
-                , "new_business" => "Y"
-                , "company_commission" => "Y"
-            ]
-            , "client" => $new_request->client
-        );
+        $company_commission = new Commission();
+        $company_commission->agent_id = absint($company_agent_id);
+        $company_commission->description =  __("Override", "affiliate-ltp");
+        $company_commission->amount = $company_amount;
+        $company_commission->reference = $new_request->client['contract_number'];
+        $company_commission->custom = "indirect";
+        $company_commission->context = $new_request->type;
+        $company_commission->status = Commission_Status::PAID;
+        $company_commission->date = $new_request->date;
+        $company_commission->client = $new_request->client;
+        $company_commission->meta = [
+            "points" => $company_amount
+            // TODO: stephen agent_rate and agent_real_rate may not be needed anymore...?
+            , "agent_rate" => $company_commission_rate
+            , "original_amount" => $orig_request->amount
+            , "new_business" => $orig_request->new_business ? "Y" : "N"
+            , "company_commission" => "Y"
+        ];
         
         // save it off so we can use it in the finalize process.
         $this->company_cut = $company_commission;

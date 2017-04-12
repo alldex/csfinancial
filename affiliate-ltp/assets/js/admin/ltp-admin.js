@@ -163,7 +163,6 @@
                 , 'affwp_add_referral_nonce': commissionsAdd.nonce
                 , skip_life_licensed_check: commissionsAdd.skip_life_licensed_check
             };
-            console.log("saving data", data);
 
             CommissionService.save(data).then(function (data) {
                 console.log(data);
@@ -365,9 +364,26 @@
             }
         });
     }
+    
+    function setupCommissionListActions() {
+        $(".referrals .row-actions a.chargeback").click(function(event) {
+           if (!confirm("Are you sure that you want to issue this chargeback?")) {
+               event.preventDefault();
+               event.stopPropagation();
+           } 
+        });
+        
+        $(".referrals .row-actions a.delete").click(function(event) {
+           if (!confirm("Are you sure that you wish to delete this commission?")) {
+               event.preventDefault();
+               event.stopPropagation();
+           } 
+        });
+    }
 
     function setupAgentScreen() {
         setupAgentSearch("#affwp_edit_affiliate .affwp-agent-search");
+        setupCommissionListActions();
     }
 
     $(document).ready(function () {

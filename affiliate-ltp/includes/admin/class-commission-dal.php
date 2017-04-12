@@ -113,4 +113,11 @@ interface Commission_DAL {
      * @param int $commission_request_id
      */
     function delete_commissions_for_request( $commission_request_id );
+    
+    /**
+     * Returns all of the ids of the commissions that are connected to 
+     * this commission request id.
+     * @param int $commission_request_id
+     */
+    function get_commission_ids_for_request( $commission_request_id );
 }
