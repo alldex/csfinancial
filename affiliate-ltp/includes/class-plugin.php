@@ -27,7 +27,7 @@ use AffiliateLTP\admin\Affiliates;
  */
 class Plugin {
         
-    const AFFILIATEWP_LTP_VERSION = "0.3.0";
+    const AFFILIATEWP_LTP_VERSION = "0.3.1";
     
     const LOCALHOST_RESTRICTED = true;
     
