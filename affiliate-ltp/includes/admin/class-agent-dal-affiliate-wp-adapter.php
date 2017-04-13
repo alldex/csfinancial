@@ -363,4 +363,13 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         
         return affwp_get_affiliate_user_id($agent_id);
     }
+    
+    public function create_agent($user_id, $payment_email, $agent_status = 'active') {
+        $affiliate_args = array(
+            'status' => $agent_status,
+            'user_id' => $user_id,
+            'payment_email' => $payment_email
+        );
+        return affwp_add_affiliate($affiliate_args);
+    }
 }

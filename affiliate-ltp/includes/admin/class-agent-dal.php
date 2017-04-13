@@ -152,4 +152,12 @@ interface Agent_DAL {
      * @param int $agent_id
      */
     function get_agent_user_id( $agent_id );
+    
+    /**
+     * Creates an agent for the passed in user id.
+     * @param int $user_id
+     * @param string $payment_email
+     * @param string $status either 'active' or 'inactive'
+     */
+    function create_agent( $user_id, $payment_email, $status);
 }

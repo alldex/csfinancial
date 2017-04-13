@@ -20,6 +20,8 @@ use AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap;
 use AffiliateLTP\Agent_Checklist_AJAX;
 use AffiliateLTP\admin\Affiliates;
 
+use Agent_Commands;
+
 /**
  * Main starting point for the plugin.  Registers all the classes.
  *
@@ -104,6 +106,15 @@ class Plugin {
         add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsToGraphTab' ), 10, 1);
         
         $this->add_plugin_scripts_and_styles();
+        
+        $this->register_cli_commands();
+    }
+    
+    private function register_cli_commands() {
+        if (class_exists('WP_CLI')) {
+            $command_registration = new commands\Command_Registration($this->get_agent_dal());
+            $command_registration->register();
+        }
     }
     
     private function add_plugin_scripts_and_styles() {
@@ -243,6 +254,8 @@ class Plugin {
         $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
         $this->progress_items = new Progress_Item_DB();
         $this->commission_request_db = new Commission_Request_DB();
+        // construct it so we can have the right hooks and everything.
+        $agent_emails = new Agent_Emails($this->get_agent_dal(), $this->get_settings_dal());
         
         if (is_admin()) {
             $this->adminReferrals = new Referrals($this->referralMeta);
