@@ -40,8 +40,20 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         return affwp_get_affiliate_rate( $agent_id );
     }
     
+    /**
+     * Returns the tree of the agent upline (the bottom node includes the current
+     * agent).
+     * @param int $agent_id The id of the agent you want to retrieve it's upline from
+     * @return \AffiliateLTP\admin\Agent_Node
+     */
     public function get_agent_upline( $agent_id ) {
-        return affwp_mlm_get_upline( $agent_id );
+        
+        $matrix_depth = affiliate_wp()->settings->get( 'affwp_mlm_matrix_depth' );
+        $upline = [];
+        $max = !empty( $matrix_depth ) ? $matrix_depth : apply_filters( 'affwp_mlm_upline_level_max', 15, $agent_id, $upline );
+	$max--; // Offset the max value to return the correct amount of levels
+        
+        return $this->get_agent_upline_tree($agent_id, 0, $max);
     }
     
     /**
@@ -306,7 +318,6 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
             return $item_id !== false;
         }
         else {
-            var_dump("updating item");
             return Plugin::instance()->get_progress_items_db()->update($progress_item['progress_item_id'], $progress_item);
         }
     }
@@ -372,4 +383,32 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         );
         return affwp_add_affiliate($affiliate_args);
     }
+    
+    /**
+     * Returns all of the tree heirarchy for the agents.
+     * @param int $agent_id
+     * @param int $count Current level count of the tree
+     * @param int $max Maximum level count the tree can go
+     * @return \AffiliateLTP\admin\Agent_Node
+     */
+    private function get_agent_upline_tree( $agent_id, $count, $max ) {
+        if ($count >= $max) {
+            return null;
+        }
+        
+        $agent = new Agent_Node();
+        $agent->id = $agent_id;
+        
+        $parent_id = affwp_mlm_get_parent_affiliate( $agent_id );
+        if (!empty($parent_id)) {
+            $agent->parent = $this->get_agent_upline_tree($parent_id, $count + 1, $max);
+        }
+        
+        $coleadership_id = $this->get_agent_coleadership_agent_id( $agent_id );
+        if ( !empty($coleadership_id) ) {
+            $agent->coleadership = $this->get_agent_upline_tree( $coleadership_id, $count + 1, $max );
+        }
+        return $agent;
+    }
+    
 }

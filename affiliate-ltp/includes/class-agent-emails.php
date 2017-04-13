@@ -57,14 +57,14 @@ class Agent_Emails {
         }
     }
     public function send_base_shop_agent_registration_email($shop_agent_id, $agent_id, $agent_user_data) {
-        $agent_email = $agent_user_data['user_email'];
+        $agent_display_name = $agent_user_data['display_name'];
         $agent_username = $agent_user_data['user_login'];
         $email = $this->agent_dal->get_agent_email($shop_agent_id);
         $shop_agent_name = $this->agent_dal->get_agent_name($agent_id);
         $subject = __("Base Shop Agent Registration", 'affiliate-ltp');
         $message  = sprintf( __( 'Hi %s!', 'affiliatewp-afgf' ), $shop_agent_name ) . "\n\n";
 	$message  .= sprintf( __( '%s has registered as an agent in your base shop.  Their  username is: %s'
-                , 'affiliate-ltp' ), $agent_email, $agent_username ) . "\n\n";
+                , 'affiliate-ltp' ), $agent_display_name, $agent_username ) . "\n\n";
         $emails  = new Affiliate_WP_Emails;
         $emails->send($email, $subject, $message);
     }
@@ -75,21 +75,32 @@ class Agent_Emails {
      * @param int $agent_id
      */
     private function get_agent_baseshop_upline( $agent_id ) {
-        $partner_rank_id = $this->get_partner_rank_id();
         $base_shop = [];
-        $upline = $this->agent_dal->get_agent_upline($agent_id);
-        if ( !empty( $upline ) ) {
-            foreach ( $upline as $upline_agent_id ) {
-                $base_shop[] = $upline_agent_id;
-                // if the upline agent is a partner we stop, as we've reached
-                // the end of the shop
-                if ( $this->agent_dal->get_agent_rank($upline_agent_id) == $partner_rank_id ) {
-                    break;
-                }
-            }
+        $upline_tree = $this->agent_dal->get_agent_upline($agent_id);
+        
+        if ( !empty( $upline_tree ) ) {
+            $this->aggregate_base_shop_ids($upline_tree, $base_shop);
         }
         
+        // remove duplicate users
+        $base_shop = array_unique($base_shop);
+        
         return $base_shop;
+    }
+    private function aggregate_base_shop_ids($node, &$base_shop) {
+        if (empty($node)) {
+            return;
+        } else if (!$node instanceof admin\Agent_Node) {
+            throw new \BadMethodCallException("$node was not an instance of Agent_Node");
+        }
+        
+        $base_shop[] = $node->id;
+        
+        if ($this->agent_dal->get_agent_rank($node->id) == $this->get_partner_rank_id() ) {
+            return;
+        }
+        $this->aggregate_base_shop_ids($node->parent, $base_shop);
+        $this->aggregate_base_shop_ids($node->coleadership, $base_shop);
     }
     
     private function get_partner_rank_id() {
