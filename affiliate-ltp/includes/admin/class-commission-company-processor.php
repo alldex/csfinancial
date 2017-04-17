@@ -85,7 +85,6 @@ class Commission_Company_Processor {
             }
         }
         
-        
         // grab the original amount
         $orig_amount = $this->orig_request->amount;
         $company_amount = $this->get_company_amount($total_agent_commisions, $orig_amount);
@@ -96,7 +95,7 @@ class Commission_Company_Processor {
             $this->company_cut->meta['points'] = round($company_amount);
         }
         else {
-            $this->company_cut->meta['points'] = $this->company_cut['agent_rate'] * $this->orig_request->points;
+            $this->company_cut->meta['points'] = $this->company_cut->agent_rate * $this->orig_request->points;
         }
         
         $this->company_cut->meta['commission_request_id'] = $commission_request_id;

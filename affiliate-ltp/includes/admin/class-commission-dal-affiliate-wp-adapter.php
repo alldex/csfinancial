@@ -62,6 +62,9 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         unset($insert_referral['agent_id']);
         unset($insert_referral['meta']);
         unset($insert_referral['client']);
+        if (empty($insert_referral['payout_id'])) {
+            unset($insert_referral['payout_id']);
+        }
 
         $commission_id = affiliate_wp()->referrals->add($insert_referral);
 
