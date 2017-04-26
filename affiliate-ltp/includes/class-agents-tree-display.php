@@ -230,6 +230,7 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
 
 	// Affiliate info
 	$affiliate = affwp_get_affiliate( $agent_id );
+        $phone = affwp_get_affiliate_meta($agent_id, 'cell_phone', true);
 	$join_date = esc_attr( date_i18n( 'm-d-Y', strtotime( $affiliate->date_registered ) ) );
 	$status    = affwp_get_affiliate_status( $agent_id );
 	$contact   = $agent_user->user_email;
@@ -254,6 +255,7 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
                             'icon'     => 'fa-info',
                             'content'  => array(						
                                     'joined'  => $join_date,
+                                    'phone' => $phone,
                                     'status'  => $status,
                                     'contact' => $contact,
                             )

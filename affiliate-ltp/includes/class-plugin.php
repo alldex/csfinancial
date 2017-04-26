@@ -29,7 +29,7 @@ use Agent_Commands;
  */
 class Plugin {
         
-    const AFFILIATEWP_LTP_VERSION = "0.3.1";
+    const AFFILIATEWP_LTP_VERSION = "0.3.2";
     
     const LOCALHOST_RESTRICTED = false;
     
