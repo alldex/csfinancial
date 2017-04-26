@@ -200,7 +200,7 @@ class Agent_Register {
         if ($website_url) {
             wp_update_user(array('ID' => $user_id, 'user_url' => $website_url));
         }
-
+        
         // add affiliate
         $affiliate_args = array(
             'status' => $status,
@@ -228,6 +228,11 @@ class Agent_Register {
 
         // store entry ID in affiliate meta so we can retrieve it later
         affwp_update_affiliate_meta($affiliate_id, 'gravity_forms_entry_id', $entry['id']);
+        
+        $phone = $this->get_form_field_value($form, $entry, "phone");
+        if ($phone) {
+            affwp_update_affiliate_meta($affiliate_id, 'cell_phone', $phone);
+        }
 
         do_action('affwp_register_user', $affiliate_id, $status, $args);
     }
@@ -309,69 +314,11 @@ class Agent_Register {
      * @since 1.0
      */
     function get_form_field_value($form, $entry, $field_type = '') {
-
-        if (!( $form || $entry || $field_type )) {
-            error_log("get_form_field_value called without providing form, entry_id, or field_type");
-            return;
-        }
-
-        switch ($field_type) {
-
-            case 'product':
-                $ids = affwp_afgf_get_product_field_ids();
-                $product = array();
-
-                if ($ids) {
-                    foreach ($ids as $id) {
-                        $product[] = $entry[$id];
-                    }
-                }
-
-                $value = implode(', ', array_filter($product));
-
-                break;
-
-            default:
-                $value = isset($entry[$this->get_form_field_id($form, $field_type)]) ? $entry[$this->get_form_field_id($form, $field_type)] : '';
-                break;
-        }
-
-
-        if ($value) {
-            return $value;
-        }
-
-        return false;
+        return Gravity_Forms_Utilities::get_form_field_value($form, $entry, $field_type);
     }
 
     function get_form_field_id($form, $field_type = '') {
-
-        if (!($form || $field_type )) {
-            return;
-        }
-
-        // get form fields
-        $fields = $form['fields'];
-
-        if ($fields) {
-
-            foreach ($fields as $field) {
-
-
-                if (isset($field['type']) && $field_type == $field['type']) {
-
-                    $field_id = $field['id'];
-
-                    break;
-                }
-            }
-        }
-
-        if (!empty($field_id)) {
-            return $field_id;
-        }
-
-        return false;
+        return Gravity_Forms_Utilities::get_form_field_id($form, $field_type);
     }
 
     /**
@@ -380,31 +327,7 @@ class Agent_Register {
      * @since 1.0
      */
     function form_get_name_field_ids($form) {
-        // get form fields
-        $fields = $form['fields'];
-
-        $name = array();
-
-        if ($fields) {
-            foreach ($fields as $field) {
-
-                if (isset($field['type']) && $field['type'] == 'name') {
-
-                    $name[] = isset($field['inputs'][0]['id']) ? $field['inputs'][0]['id'] : '';
-                    $name[] = isset($field['inputs'][1]['id']) ? $field['inputs'][1]['id'] : '';
-                    $name[] = isset($field['inputs'][2]['id']) ? $field['inputs'][2]['id'] : '';
-                    $name[] = isset($field['inputs'][3]['id']) ? $field['inputs'][3]['id'] : '';
-
-                    break;
-                }
-            }
-        }
-
-        if (!empty($name)) {
-            return $name;
-        }
-
-        return false;
+        return Gravity_Forms_Utilities::form_get_name_field_ids($form);
     }
 
     /**

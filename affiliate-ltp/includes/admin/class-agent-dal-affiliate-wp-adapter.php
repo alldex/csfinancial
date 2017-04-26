@@ -384,6 +384,22 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         return affwp_add_affiliate($affiliate_args);
     }
     
+    public function set_agent_phone($agent_id, $phone) {
+        // remove the key if it exists
+        affwp_delete_affiliate_meta($agent_id, "cell_phone");
+        
+        // then add it.
+        affwp_update_affiliate_meta($agent_id, 'cell_phone', $phone);
+    }
+    
+    public function get_agent_registration_entry_id($agent_id) {
+        if (empty($agent_id)) {
+            return null;
+        }
+        
+        return affwp_get_affiliate_meta($agent_id, 'gravity_forms_entry_id');
+    }
+    
     /**
      * Returns all of the tree heirarchy for the agents.
      * @param int $agent_id

@@ -154,10 +154,23 @@ interface Agent_DAL {
     function get_agent_user_id( $agent_id );
     
     /**
+     * Updates the agent phone number
+     * @param int $agent_id
+     * @param string $phone
+     */
+    function set_agent_phone( $agent_id, $phone );
+    
+    /**
      * Creates an agent for the passed in user id.
      * @param int $user_id
      * @param string $payment_email
      * @param string $status either 'active' or 'inactive'
      */
     function create_agent( $user_id, $payment_email, $status);
+    
+    /**
+     * Retrieves the Gravity Forms Entry ID used to register this agent.
+     * @param int $agent_id
+     */
+    function get_agent_registration_entry_id( $agent_id );
 }

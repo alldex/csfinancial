@@ -53,6 +53,9 @@ class Agent_Emails {
         
         // now loop through the base shop ids and we will setup some emails
         foreach ($base_shop_agent_ids as $shop_agent_id) {
+	    if ($shop_agent_id == $agent_id) {
+		continue;
+	    }
             $this->send_base_shop_agent_registration_email($shop_agent_id, $agent_id, $agent_user_data);
         }
     }
@@ -60,10 +63,8 @@ class Agent_Emails {
         $agent_display_name = $agent_user_data['display_name'];
         $agent_username = $agent_user_data['user_login'];
         $email = $this->agent_dal->get_agent_email($shop_agent_id);
-        $shop_agent_name = $this->agent_dal->get_agent_name($agent_id);
         $subject = __("Base Shop Agent Registration", 'affiliate-ltp');
-        $message  = sprintf( __( 'Hi %s!', 'affiliatewp-afgf' ), $shop_agent_name ) . "\n\n";
-	$message  .= sprintf( __( '%s has registered as an agent in your base shop.  Their  username is: %s'
+	$message  = sprintf( __( '%s has registered as an agent in your base shop.  Their  username is: %s'
                 , 'affiliate-ltp' ), $agent_display_name, $agent_username ) . "\n\n";
         $emails  = new Affiliate_WP_Emails;
         $emails->send($email, $subject, $message);

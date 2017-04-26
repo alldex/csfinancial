@@ -47,4 +47,16 @@
             </select>
         </td>
 </tr>
+<tr class="form-row">
+        <th scope="row">
+                <?php _e( 'Phone', 'affiliate-ltp' ); ?>
+        </th>
+        <td>
+                <label for="phone">
+                <input type="text" name="phone" id="phone" value="" />
+                <?php _e( 'The agent contact phone number.' ); ?>
+                </label>
+
+        </td>
+</tr>
 <?php
