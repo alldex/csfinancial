@@ -110,7 +110,7 @@ class Commissions_Table extends List_Table {
             if ($commission->affiliate_id == $request['writing_agent_id']) {
                 return true;
             }
-            if ($this->is_company_commission($commission->affiliate_id)
+            if ($this->is_company_commission($commission)
                     && !empty($request['request'])) {
                 $json_request = json_decode($request['request'], true);
                 if ($json_request["companyHaircutAll"] == true) {
