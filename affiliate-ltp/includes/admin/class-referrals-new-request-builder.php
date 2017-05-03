@@ -85,10 +85,16 @@ class Referrals_New_Request_Builder {
         
         if (isset($requestData['skip_company_haircut']) && $requestData['skip_company_haircut'] === true) {
             $request->skipCompanyHaircut = true;
+            $request->companyHaircutPercent = 0;
         }
         
         if (isset($requestData['company_haircut_all']) && $requestData['company_haircut_all'] === true) {
             $request->companyHaircutAll = true;
+            $request->companyHaircutPercent = 100;
+        }
+        else if (isset($requestData['company_haircut_percent'])) {
+            // could be a percentage amount.
+            $request->companyHaircutPercent = floatval($requestData['company_haircut_percent']);
         }
         
         foreach ( $requestData['agents'] as $rowNumber => $agent) {

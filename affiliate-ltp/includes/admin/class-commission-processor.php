@@ -185,6 +185,7 @@ class Commission_Processor {
         echo "New Business: " . ($request->new_business ? "YES" : "NO") . "\n";
         echo "Company Haircut Skip is: " . ($request->skipCompanyHaircut ? "YES" : "NO") . "\n";
         echo "Skip Life License Check is: " . ($request->skip_life_licensed_check ? "YES" : "NO") . "\n";
+        echo "Company Haircut Percent is: " . $request->companyHaircutPercent . "\n";
         echo "Amount: {$request->amount}\n";
         echo "Points: {$request->point}\n";
         echo "Type: " . ($request->type == Commission_Type::TYPE_LIFE ? "LIFE" :"NON-LIFE") ."\n";

@@ -28,6 +28,7 @@
         this.points = 0;
         this.amount = 0;
         this.new_business = true;
+        this.haircut_percent = 15; // default company haircut percent
         
         this.getSplitTotal = function () {
             var total = !isNaN(+this.writing_agent.split) ? +this.writing_agent.split : 0;
@@ -47,6 +48,9 @@
         commissionsAdd.nonce = null;
         commissionsAdd.skip_life_licensed_check = false;
         commissionsAdd.client = new Client();
+        commissionsAdd.haircut_percent_list = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+        commissionsAdd.life_policy_default_haircut = 10;
+        commissionsAdd.non_life_policy_default_haircut = 15;
         
         
 
@@ -95,6 +99,7 @@
              commissionsAdd.commission.split_commission = popCommission.split_commission;
              commissionsAdd.commission.writing_agent = popCommission.writing_agent;
              commissionsAdd.commission.split_agents = popCommission.agents ? popCommission.agents : [];
+             commissionsAdd.updateHaircutPercent();
         };
 
         commissionsAdd.resetClient = function () {
@@ -115,6 +120,16 @@
         };
         commissionsAdd.toggleLifePolicy = function () {
             commissionsAdd.commission.is_life_commission = !commissionsAdd.commission.is_life_commission;
+            commissionsAdd.updateHaircutPercent();
+        };
+        
+        commissionsAdd.updateHaircutPercent = function() {
+            if (commissionsAdd.commission.is_life_commission) {
+                commissionsAdd.commission.haircut_percent = commissionsAdd.life_policy_default_haircut;
+            }
+            else {
+                commissionsAdd.commission.haircut_percent = commissionsAdd.non_life_policy_default_haircut;
+            }
         };
 
         commissionsAdd.addSplit = function () {
@@ -162,8 +177,9 @@
                 , action: "add_referral"
                 , 'affwp_add_referral_nonce': commissionsAdd.nonce
                 , skip_life_licensed_check: commissionsAdd.skip_life_licensed_check
+                , company_haircut_percent: commission.company_haircut_all ? 100 : commission.haircut_percent
             };
-
+            
             CommissionService.save(data).then(function (data) {
                 console.log(data);
                 if (data.type === 'success') {

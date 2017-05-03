@@ -121,8 +121,14 @@ class Commission_Company_Processor {
         
         $new_request = clone $orig_request;
         
-        // TODO: stephen need to move these to our own class so we can abstract it.
-        $company_commission_rate = $this->settings_dal->get_company_rate();
+        
+        if (is_numeric($orig_request->companyHaircutPercent)) {
+            $company_commission_rate = $orig_request->companyHaircutPercent;
+        }
+        else {
+            // TODO: stephen need to move these to our own class so we can abstract it.
+            $company_commission_rate = $this->settings_dal->get_company_rate();
+        }
         $company_agent_id = $this->settings_dal->get_company_agent_id();
         
         // if the company is taking everything we set the commission to be 100%

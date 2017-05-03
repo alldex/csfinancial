@@ -1,4 +1,5 @@
-<div class="wrap" ng-app="commissionsApp" ng-controller="CommissionAddController as commissionAdd">
+<div class="wrap" ng-app="commissionsApp" ng-controller="CommissionAddController as commissionAdd"
+     ng-init="">
 
 	<h2><?php _e( 'New Commission', 'affiliate-ltp' ); ?></h2>
 	
@@ -245,6 +246,28 @@
                                                name="date" id="date" placeholder="<?php echo esc_attr( date_i18n( 'm/d/y', strtotime( 'today' ) ) ); ?>"/>
 				</td>
 
+			</tr>
+                        <tr class="form-row form-required" ng-show="commissionAdd.isLifePolicy()">
+				<th scope="row">
+					<label for="haircut_percent"><?php _e( 'Company haircut percent', 'affiliate-ltp' ); ?></label>
+				</th>
+
+				<td>
+                                    <select ng-model="commissionAdd.commission.haircut_percent" id="haircut_percent"
+                                            ng-options="haircut for haircut in commissionAdd.haircut_percent_list">
+                                    </select>
+                                    <p class="description"><?php _e( 'The amount of the haircut.', 'affiliate-ltp' ); ?></p>
+				</td>
+			</tr>
+                        <tr class="form-row form-required" ng-hide="commissionAdd.isLifePolicy()">
+				<th scope="row">
+					<label for="haircut_percent"><?php _e( 'Company haircut percent', 'affiliate-ltp' ); ?></label>
+				</th>
+
+				<td>
+                                    {{commissionAdd.commission.haircut_percent}}
+                                    <p class="description"><?php _e( 'The amount of the haircut.', 'affiliate-ltp' ); ?></p>
+				</td>
 			</tr>
                         
                         <tr class="form-row form-required">
