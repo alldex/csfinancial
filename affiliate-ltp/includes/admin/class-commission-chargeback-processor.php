@@ -75,6 +75,7 @@ class Commission_Chargeback_Processor {
         $request->skipCompanyHaircut = $request_hydrated['skipCompanyHaircut'];
         $request->companyHaircutAll = $request_hydrated['companyHaircutAll'];
         $request->agents = [];
+        $request->new_business = false; // we do not let chargebacks be new business.
         foreach ($request_hydrated['agents'] as $json_agent) {
             $agent = new Referrals_Agent_Request();
             $agent->id = $json_agent['id'];
