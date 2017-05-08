@@ -49,6 +49,11 @@ class Agent_Life_Insurance_State_DAL {
         $data = json_encode($state_licenses);
         
         $result = affwp_add_affiliate_meta( $agent_id, 'life_license_states', $data);
+        if (empty($result)) {
+            error_log("failed to save life_license_states for agent $agent_id");
+            return false;
+        }
+        return true;
     }
     
     public function get_default_state_list() {

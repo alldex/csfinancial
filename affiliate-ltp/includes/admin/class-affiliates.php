@@ -154,22 +154,23 @@ class Affiliates {
         
     }
     
-    public function insert_agent_data( $affiliate ) {
+    public function insert_agent_data( $affiliate_id ) {
+        error_log("affiliate is: " . var_export($affiliate_id, true));
         $licenseNumber = filter_input(INPUT_POST, 'life_license_number');
         $expirationDate = filter_input(INPUT_POST, 'life_expiration_date');
         $coleadership_user_id = filter_input(INPUT_POST, 'coleadership_user_id');
         $coleadership_agent_rate = absint(filter_input(INPUT_POST, 'coleadership_agent_rate'));
         
         if (!empty($licenseNumber)) {
-            affwp_add_affiliate_meta($affiliate->affiliate_id, 'life_license_number', $licenseNumber, true);
-            affwp_add_affiliate_meta($affiliate->affiliate_id, 'life_expiration_date', $expirationDate, true);
+            affwp_add_affiliate_meta($affiliate_id, 'life_license_number', $licenseNumber, true);
+            affwp_add_affiliate_meta($affiliate_id, 'life_expiration_date', $expirationDate, true);
         }
         
         if (!empty($coleadership_user_id)) {
             $agent_id = affwp_get_affiliate_id($coleadership_user_id);
             if (!empty($agent_id) && $coleadership_agent_rate > 0) {
-                affwp_add_affiliate_meta($affiliate->affiliate_id, 'coleadership_agent_id', $agent_id, true);
-                affwp_add_affiliate_meta($affiliate->affiliate_id, 'coleadership_agent_rate', $coleadership_agent_rate, true);
+                affwp_add_affiliate_meta($affiliate_id, 'coleadership_agent_id', $agent_id, true);
+                affwp_add_affiliate_meta($affiliate_id, 'coleadership_agent_rate', $coleadership_agent_rate, true);
             }
             else {
                 error_log("agent_id not found for $coleadership_user_id or rate invalid with $coleadership_agent_rate");
@@ -177,7 +178,26 @@ class Affiliates {
         }
         
         $phone = filter_input(INPUT_POST, 'phone');
-        affwp_add_affiliate_meta($affiliate->affiliate_id, 'cell_phone', $phone, true);
+        affwp_add_affiliate_meta($affiliate_id, 'cell_phone', $phone, true);
+        
+         $args = array(
+            'life_license_state'    => array(
+                'name' => 'life_license_state',
+                'filter' => FILTER_SANITIZE_STRING,
+                'flags'  => FILTER_REQUIRE_ARRAY)
+          );
+        $filtered_states = filter_input_array(INPUT_POST, $args);
+        if (!empty($filtered_states)) {
+            $states= $filtered_states['life_license_state'];
+            $state_licenses = [];
+            foreach ($states as $state) {
+                // allows us to eventually track licensing on a state by state basis which will happen eventually.
+                $state_licenses[$state] = ["abbr" => $state, "license_updated" => date("Y-m-d H:i:s")];
+            }
+            $life_insurance_dal = new Agent_Life_Insurance_State_DAL();
+            error_log("adding in licenses for {$affiliate_id}");
+            $life_insurance_dal->save_state_licensing_for_agent($affiliate_id, $state_licenses);
+        }
     }
     
     public static function isAffiliateCurrentlyLifeLicensed( $affiliateId ) {
