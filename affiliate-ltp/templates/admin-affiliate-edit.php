@@ -24,6 +24,25 @@
 </tr
 <tr class="form-row">
         <th scope="row">
+                <?php _e( 'Life License States', 'affiliate-ltp' ); ?>
+        </th>
+        <td>
+            <?php foreach ($state_licenses as $item) : ?>
+            <div>
+                <label>
+                        <input type="checkbox" name="life_license_state[]" value="<?= $item['abbr']; ?>" 
+                               <?= ($item['licensed'] === true) ? "checked" : ""; ?>
+                        />
+                        <?= $item['name']; ?>
+                </label>
+            </div>
+            <?php endforeach; ?>
+            <?php _e( 'The states in which the agent is licensed to sell life insurance policies.', 'affiliate-ltp' ); ?>
+
+        </td>
+</tr
+<tr class="form-row">
+        <th scope="row">
                 <?php _e( 'Co-Leadership Agent', 'affiliate-ltp' ); ?>
         </th>
         <td>

@@ -79,12 +79,20 @@ class Affiliates {
         $licenseNumber = esc_attr( affwp_get_affiliate_meta( $affiliate->affiliate_id, 'life_license_number', true ) );
         $expirationDate = esc_attr( affwp_get_affiliate_meta( $affiliate->affiliate_id, 'life_expiration_date', true ) );
         $templatePath = affiliate_wp()->templates->get_template_part('admin-affiliate', 'edit', false);
+        
+        $state_insurance_dal = new Agent_Life_Insurance_State_DAL();
+        $state_licenses = $state_insurance_dal->get_state_licensing_for_agent( $affiliate->affiliate_id );
+        
         include_once $templatePath;
     }
     
     public function add_agent_fields_to_new_screen() {
         $templatePath = affiliate_wp()->templates->get_template_part('admin-affiliate', 'new', false);
         $coleadership_agent_rates = $this->get_coleadership_agent_rate_options();
+                
+        $state_insurance_dal = new Agent_Life_Insurance_State_DAL();
+        $state_licenses = $state_insurance_dal->get_default_agent_license_list();
+        
         include_once $templatePath;
     }
     
@@ -125,6 +133,25 @@ class Affiliates {
             affwp_update_affiliate_meta($affiliateId, 'coleadership_agent_id', $coleadership_agent_id);
             affwp_update_affiliate_meta($affiliateId, 'coleadership_agent_rate', $coleadership_agent_rate);
         }
+        
+        $args = array(
+            'life_license_state'    => array(
+                'name' => 'life_license_state',
+                'filter' => FILTER_SANITIZE_STRING,
+                'flags'  => FILTER_REQUIRE_ARRAY)
+          );
+        $filtered_states = filter_input_array(INPUT_POST, $args);
+        if (!empty($filtered_states)) {
+            $states= $filtered_states['life_license_state'];
+            $state_licenses = [];
+            foreach ($states as $state) {
+                // allows us to eventually track licensing on a state by state basis which will happen eventually.
+                $state_licenses[$state] = ["abbr" => $state, "license_updated" => date("Y-m-d H:i:s")];
+            }
+            $life_insurance_dal = new Agent_Life_Insurance_State_DAL();
+            $life_insurance_dal->save_state_licensing_for_agent($affiliateId, $state_licenses);
+        }
+        
     }
     
     public function insert_agent_data( $affiliate ) {
