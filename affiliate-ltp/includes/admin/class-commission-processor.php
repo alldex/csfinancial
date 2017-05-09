@@ -181,6 +181,7 @@ class Commission_Processor {
         echo "Date: {$request->date}\n";
         echo "Commission Request id: {$this->commission_request_id}\n";
         echo "Contract Number is: {$request->client['contract_number']}\n";
+        echo "State of Sale (for life licensing): {$request->client['state_of_sale']}\n";
         echo "Company Haircut All is: " . ($request->companyHaircutAll ? "YES" : "NO") . "\n";
         echo "New Business: " . ($request->new_business ? "YES" : "NO") . "\n";
         echo "Company Haircut Skip is: " . ($request->skipCompanyHaircut ? "YES" : "NO") . "\n";
@@ -191,14 +192,14 @@ class Commission_Processor {
         echo "Type: " . ($request->type == Commission_Type::TYPE_LIFE ? "LIFE" :"NON-LIFE") ."\n";
         echo "Agent Trees\n";
         foreach ($agent_trees as $tree) {
-            $this->print_tree($tree, '>');
+            $this->print_tree($request, $tree, '>');
         }
         echo "------------------------\n\n";
     }
     
-    private function print_tree(Commission_Node $tree, $prefix) {
+    private function print_tree(Referrals_New_Request $request, Commission_Node $tree, $prefix) {
         $life_license_message = "NO";
-        if ($tree->agent->life_license_status->has_active_licensed()) {
+        if ($tree->agent->life_license_status->has_active_licensed($request->client['state_of_sale'])) {
             $life_license_message = "YES";
         }
         $active_message = "NO";

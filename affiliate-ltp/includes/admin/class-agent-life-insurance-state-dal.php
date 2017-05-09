@@ -23,23 +23,17 @@ class Agent_Life_Insurance_State_DAL {
     public function get_state_licensing_for_agent( $agent_id ) {
         $life_license_states = affwp_get_affiliate_meta( $agent_id, 'life_license_states', true );
         if (empty($life_license_states)) {
-            return $this->get_default_agent_license_list();
+            return [];
         }
         
-        $default_list = $this->get_default_state_list();
-        $agent_licenses = json_decode($life_license_states, true);
-        
-        $updated_licenses = [];
-        foreach ($default_list as $state) {
-            if (!empty($agent_licenses[$state['abbr']])) {
-                $state['licensed'] = true;
-            }
-            else {
-                $state['licensed'] = false;
-            }
-            $updated_licenses[] = $state;
+        try {
+            $agent_licenses = json_decode($life_license_states, true);
+            return $agent_licenses;
         }
-        return $updated_licenses;
+        catch (Exception $ex) {
+            error_log($ex->getMessage());
+            return [];
+        }
     }
     
     public function save_state_licensing_for_agent( $agent_id, $state_licenses) {

@@ -80,8 +80,7 @@ class Affiliates {
         $expirationDate = esc_attr( affwp_get_affiliate_meta( $affiliate->affiliate_id, 'life_expiration_date', true ) );
         $templatePath = affiliate_wp()->templates->get_template_part('admin-affiliate', 'edit', false);
         
-        $state_insurance_dal = new Agent_Life_Insurance_State_DAL();
-        $state_licenses = $state_insurance_dal->get_state_licensing_for_agent( $affiliate->affiliate_id );
+        $state_licenses = $this->get_state_licensing_for_agent( $affiliate->affiliate_id );
         
         include_once $templatePath;
     }
@@ -223,5 +222,20 @@ class Affiliates {
             "75" => "75% / 25%"
             ,"50" => "50% / 50%"
         ];
+    }
+    
+    private function get_state_licensing_for_agent( $agent_id ) {
+        $state_insurance_dal = new Agent_Life_Insurance_State_DAL();
+        $default_licenses = $state_insurance_dal->get_default_agent_license_list();
+        $agent_licenses = $state_insurance_dal->get_state_licensing_for_agent($agent_id);
+        
+        $updated_licenses = [];
+        foreach ($default_licenses as $state) {
+            if (!empty($agent_licenses[$state['abbr']])) {
+                $state['licensed'] = true;
+            }
+            $updated_licenses[] = $state;
+        }
+        return $updated_licenses;
     }
 }

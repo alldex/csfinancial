@@ -65,7 +65,10 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         $license_date = affwp_get_affiliate_meta( $agent_id, 'life_expiration_date', true);
         $license_number = affwp_get_affiliate_meta( $agent_id, 'life_license_number', true);
         
-        return new Life_License_Status($license_number, $license_date);
+        $life_insurance_dal = new Agent_Life_Insurance_State_DAL();
+        $licensed_states = $life_insurance_dal->get_state_licensing_for_agent($agent_id);
+        
+        return new Life_License_Status($license_number, $license_date, $licensed_states);
     }
     
     public function is_life_licensed($agent_id) {

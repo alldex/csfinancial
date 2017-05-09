@@ -325,8 +325,6 @@ class Referrals {
             wp_die(__('Security check failed', 'affiliate-wp'), array('response' => 403));
         }
         
-//        var_dump($data);
-        
         $response = ["type" => "error", "message" => __("Server Error occurred", 'affiliate-ltp')];
 //        $response = ["type" => "success", "redirect" => admin_url('admin.php?page=affiliate-wp-referrals&affwp_notice=referral_added')];
         

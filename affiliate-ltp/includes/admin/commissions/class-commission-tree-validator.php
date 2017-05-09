@@ -38,23 +38,25 @@ class Commission_Tree_Validator {
 
             if ($request->type == Commission_Type::TYPE_LIFE 
                     && !$request->skip_life_licensed_check) {
-                // need to check if anyone has life insurance problems.
-                $this->validate_tree_for_valid_life_insurance($tree, $errors);
+                // need to check if anyone has life insurance problems
+                // in the state that the commission took place.
+                $commission_state = $request->client['state_of_sale'];
+                $this->validate_tree_for_valid_life_insurance($commission_state, $tree, $errors);
             }
         }
 
         return $errors;
     }
     
-    private function validate_tree_for_valid_life_insurance(Commission_Node $tree, &$errors) {
-        if (!$tree->agent->life_license_status->has_active_licensed()) {
+    private function validate_tree_for_valid_life_insurance($commission_state, Commission_Node $tree, &$errors) {
+        if (!$tree->agent->life_license_status->has_active_licensed($commission_state)) {
             // TODO: stephen need to add in the agent username
-            if ($tree->agent->life_license_status->has_license()) { 
-                $message = "Agent with id " . $tree->agent->id . " life insurance license has expired";
+            if ($tree->agent->life_license_status->has_license($commission_state)) { 
+                $message = "Agent with id " . $tree->agent->id . " life insurance license has expired in state $commission_state";
                 $type = 'life_expired';
             }
             else {
-                $message = "Agent with id " . $tree->agent->id . " is not licensed to sell life insurance policies";
+                $message = "Agent with id " . $tree->agent->id . " is not licensed to sell life insurance policies in the state $commission_state";
                 $type = 'life_missing';
             }
            

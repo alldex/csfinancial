@@ -108,7 +108,7 @@ class Real_Rate_Calculate_Transformer {
     }
     
     private function has_invalid_license(Agent_Data $agent) {
-        return !$agent->life_license_status->has_active_licensed();
+        return !$agent->life_license_status->has_active_licensed($this->request->client['state_of_sale']);
     }
     
     private function check_life_licensing() {

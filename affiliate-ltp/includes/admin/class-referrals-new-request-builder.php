@@ -29,6 +29,12 @@ class Referrals_New_Request_Builder {
             'phone'   => ! empty( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '',
             'email'   => ! empty( $data['email'] ) ? sanitize_text_field( $data['email'] ) : '',
         );
+        if (!empty($data['state_of_sale'])) {
+            $clientArgs['state_of_sale'] = sanitize_text_field($data['state_of_sale']);
+        }
+        else {
+            $clientArgs['state'] = $clientArgs['state'];
+        }
         return $clientArgs;
     }
     private static function parseAgent($rowNumber, $agentData) {
