@@ -50,6 +50,8 @@ class Sugar_CRM_DAL_Localhost extends Sugar_CRM_DAL {
             ,"description" => "Some description"
             ,"street_address" => "105 S 3rd E"
             ,"city" => "Rexburg"
+            ,"state" => "ID"
+            ,"state_of_sale" => "ID"
             ,"zip" => "84663"
             ,"country" => "USA"
             ,"phone" => "801 610-9014"

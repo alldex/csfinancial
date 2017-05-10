@@ -75,6 +75,55 @@
                 </td>
 
             </tr>
+            <tr class="form-row form-required">
+
+                <th scope="row">
+                    <label for="client_state_address"><?php _e('State', 'affiliate-ltp'); ?></label>
+                </th>
+
+                <td>
+                    <select name="client_state_address" id="client_state_address"
+                           ng-disabled="commissionAdd.readonlyClient" ng-model="commissionAdd.client.state"/>
+                        <?php foreach ($state_list as $state) : ?>
+                        <option value="<?= $state['abbr']; ?>"><?= $state['name']; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="description"><?php _e('The state of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                </td>
+
+            </tr>
+            
+            <tr class="form-row form-required">
+
+                <th scope="row">
+                    <label for="client_state_check"><?php _e('Sale originated in a different state?', 'affiliate-ltp'); ?></label>
+                </th>
+
+                <td>
+                    <input type="checkbox" name="sale_origination" id="client_state_check"
+                           ng-disabled="commissionAdd.readonlyClient" ng-model="commissionAdd.saleOriginatedOutOfState"/>
+                    <p class="description"><?php _e('Did the sale originate in another state than the one the client resides in.', 'affiliate-ltp'); ?></p>
+                </td>
+
+            </tr>
+            
+            <tr class="form-row form-required" ng-show="commissionAdd.saleOriginatedOutOfState">
+
+                <th scope="row">
+                    <label for="client_state_of_sale"><?php _e('Contract Origination State', 'affiliate-ltp'); ?></label>
+                </th>
+
+                <td>
+                    <select name="client_state_of_sale" id="client_state_of_sale"
+                           ng-disabled="commissionAdd.readonlyClient" ng-model="commissionAdd.client.state_of_sale"/>
+                        <?php foreach ($state_list as $state) : ?>
+                        <option value="<?= $state['abbr']; ?>"><?= $state['name']; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="description"><?php _e('The state where the contract originated.', 'affiliate-ltp'); ?></p>
+                </td>
+
+            </tr>
 
             <tr class="form-row form-required">
 

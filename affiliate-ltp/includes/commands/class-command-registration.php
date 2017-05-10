@@ -28,6 +28,8 @@ class Command_Registration {
     
     public function register() {
         $agent_commands = new Agent_Command($this->agent_dal);
+        $sugarcrm_commands = new SugarCRM_Command();
         WP_CLI::add_command('agent', $agent_commands);
+        WP_CLI::add_command('sugarcrm', $sugarcrm_commands);
     }
 }

@@ -23,9 +23,10 @@ class Referrals_New_Request_Builder {
             'contract_number' => ! empty( $data['contract_number'] ) ? sanitize_text_field( $data['contract_number'] ) : null,
             'name'    => ! empty( $data['name'] ) ? sanitize_text_field( $data['name'] ) : '',
             'street_address' => ! empty( $data['street_address'] ) ? sanitize_text_field( $data['street_address'] ) : '',
-            'city' => ! empty( $data['city_address'] ) ? sanitize_text_field( $data['city_address'] ) : '',
+            'city' => ! empty( $data['city'] ) ? sanitize_text_field( $data['city'] ) : '',
+            'state' => ! empty( $data['state'] ) ? sanitize_text_field( $data['state'] ) : '',
             'country' => 'USA', // TODO: stephen extract this to a setting or constant.
-            'zip' => ! empty( $data['zip_address'] ) ? sanitize_text_field( $data['zip_address'] ) : '',
+            'zip' => ! empty( $data['zip'] ) ? sanitize_text_field( $data['zip'] ) : '',
             'phone'   => ! empty( $data['phone'] ) ? sanitize_text_field( $data['phone'] ) : '',
             'email'   => ! empty( $data['email'] ) ? sanitize_text_field( $data['email'] ) : '',
         );
@@ -33,7 +34,7 @@ class Referrals_New_Request_Builder {
             $clientArgs['state_of_sale'] = sanitize_text_field($data['state_of_sale']);
         }
         else {
-            $clientArgs['state'] = $clientArgs['state'];
+            $clientArgs['state_of_sale'] = $clientArgs['state'];
         }
         return $clientArgs;
     }

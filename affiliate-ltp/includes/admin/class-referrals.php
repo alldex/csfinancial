@@ -254,8 +254,9 @@ class Referrals {
     public function handleDisplayNewReferralScreen() {
         // load up the template.. defaults to our templates/admin-referral-edit.php
         // if no one else has overridden it.
-        $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 'new', true);
-
+        $state_dal = new State_DAL();
+        $state_list = $state_dal->get_states();
+        $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 'new', false);
         include_once $templatePath;
     }
     

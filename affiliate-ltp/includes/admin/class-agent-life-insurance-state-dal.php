@@ -8,14 +8,15 @@
 namespace AffiliateLTP\admin;
 
 /**
- * Description of class-agent-life-insurance-state-dal
+ * Returns the life insurance state data needed for agents.
  *
  * @author snielson
  */
 class Agent_Life_Insurance_State_DAL {
     
     public function get_default_agent_license_list() {
-        $default_state_list = $this->get_default_state_list();
+        $state_dal = new State_DAL();
+        $default_state_list = $state_dal->get_license_required_states();
         $state_licenses = array_map(function ($x) { $x['licensed'] = false; return $x;}, $default_state_list);
         return $state_licenses;
     }
@@ -48,75 +49,5 @@ class Agent_Life_Insurance_State_DAL {
             return false;
         }
         return true;
-    }
-    
-    public function get_default_state_list() {
-        $state_licenses = [
-            [
-                "name" => "Alabama"
-                ,"abbr" => "AL"
-            ]
-            ,[
-                "name" => "California"
-                ,"abbr" => "CA"
-            ]
-            ,[
-                "name" => "Florida"
-                ,"abbr" => "FL"
-            ]
-            ,[
-                "name" => "Georgia"
-                ,"abbr" => "GA"
-            ]
-            ,[
-                "name" => "Kentucky"
-                ,"abbr" => "KY"
-            ]
-            ,[
-                "name" => "Louisiana"
-                ,"abbr" => "LA"
-            ]
-            ,[
-                "name" => "Massachussets"
-                ,"abbr" => "MA"
-            ]
-            ,[
-                "name" => "Mississippi"
-                ,"abbr" => "MS"
-            ]
-            ,[
-                "name" => "Montana"
-                ,"abbr" => "MT"
-            ]
-            ,[
-                "name" => "New Mexico"
-                ,"abbr" => "NM"
-            ]
-            ,[
-                "name" => "Pennsylvania"
-                ,"abbr" => "PA"
-            ]
-            ,[
-                "name" => "South Dakota"
-                ,"abbr" => "SD"
-            ]
-            ,[
-                "name" => "Utah"
-                ,"abbr" => "UT"
-            ]
-            ,[
-                "name" => "Virginia"
-                ,"abbr" => "VA"
-            ]
-            ,[
-                "name" => "West Virginia"
-                ,"abbr" => "WV"
-            ]
-            ,[
-                "name" => "Wisconsin"
-                ,"abbr" => "WI"
-            ]
-        ];
-        return $state_licenses;
     }
 }

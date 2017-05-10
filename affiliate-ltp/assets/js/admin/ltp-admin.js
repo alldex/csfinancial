@@ -5,6 +5,8 @@
         this.name = null;
         this.street_address = null; // client_street_address
         this.city = null; // client_city_address
+        this.state = null; // client_state_address
+        this.state_of_sale = null; // client_state_of_sale
         this.zip = null; // client_zip_address
         this.phone = null; // client_phone
         this.email = null; // client_email
@@ -45,6 +47,7 @@
         commissionsAdd.readonlyClient = false;
         commissionsAdd.commission = new Commission();
         commissionsAdd.splitTotalInvalid = false;
+        commissionsAdd.saleOriginatedOutOfState = false;
         commissionsAdd.nonce = null;
         commissionsAdd.skip_life_licensed_check = false;
         commissionsAdd.client = new Client();
@@ -61,6 +64,10 @@
             if (commissionsAdd.client.id) {
                 commissionsAdd.readonlyClient = true;
             }
+            if (commissionsAdd.client.state !== commissionsAdd.client.state_of_sale) {
+                commissionsAdd.saleOriginatedOutOfState = true;
+            }
+            
             CommissionService.findCommissionByContractNumber(client.contract_number)
                     .then(function(commissionResult) {
                         commissionsAdd.populateCommission(commissionResult.data);
@@ -160,6 +167,11 @@
             var commission = commissionsAdd.commission;
             // need to convert the data here.
             var agents = [].concat(commission.writing_agent, commission.split_agents);
+            
+            // if the state is the same, make the state_of_sale the same.
+            if (!commissionsAdd.saleOriginatedOutOfState) {
+                commissionsAdd.client.state_of_sale = commissionsAdd.client.state;
+            }
 
             var data = {
                 client: commissionsAdd.client

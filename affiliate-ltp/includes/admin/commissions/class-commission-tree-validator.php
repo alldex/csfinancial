@@ -63,10 +63,10 @@ class Commission_Tree_Validator {
             $errors[] = ['type' => $type, 'message' => $message];
         }
         if (!empty($tree->parent_node)) {
-            $this->validate_tree_for_valid_life_insurance($tree->parent_node, $errors);
+            $this->validate_tree_for_valid_life_insurance($commission_state, $tree->parent_node, $errors);
         }
         if (!empty($tree->coleadership_node)) {
-            $this->validate_tree_for_valid_life_insurance($tree->coleadership_node, $errors);
+            $this->validate_tree_for_valid_life_insurance($commission_state, $tree->coleadership_node, $errors);
         }
     }
 }

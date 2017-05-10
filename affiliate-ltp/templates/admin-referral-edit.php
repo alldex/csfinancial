@@ -190,6 +190,33 @@
                         </td>
 
                     </tr>
+                    
+                    <tr class="form-row form-required">
+
+                        <th scope="row">
+                            <label for="client_state_address"><?php _e('State', 'affiliate-ltp'); ?></label>
+                        </th>
+
+                        <td>
+                            <input class="medium-text" type="text" name="client_state_address" id="client_state_address" 
+                                   value="<?php echo esc_attr($client["state"]); ?>" disabled="disabled" />
+                            <p class="description"><?php _e('The state of the Client this commission belongs to.', 'affiliate-ltp'); ?></p>
+                        </td>
+
+                    </tr>
+                    <tr class="form-row form-required">
+
+                        <th scope="row">
+                            <label for="client_state_of_sale"><?php _e('State Of Sale', 'affiliate-ltp'); ?></label>
+                        </th>
+
+                        <td>
+                            <input class="medium-text" type="text" name="client_state_of_sale" id="client_state_of_sale" 
+                                   value="<?php echo esc_attr($client["state_of_sale"]); ?>" disabled="disabled" />
+                            <p class="description"><?php _e('The state where the sales contract for this client took place.', 'affiliate-ltp'); ?></p>
+                        </td>
+
+                    </tr>
 
                     <tr class="form-row form-required">
 

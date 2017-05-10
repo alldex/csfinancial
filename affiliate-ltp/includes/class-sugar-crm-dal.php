@@ -8,9 +8,11 @@ namespace AffiliateLTP;
  */
 class Sugar_CRM_DAL {
     
-    const USER_NAME = "admin";
+    const USER_NAME = "admin"; // not sure why one is lowercase and the other is uppercase
     const PASSWORD = 'ae67ecae664590bdb190c45823030c16';
     const URL = "https://cms.mycommonsensefinancial.com/service/v4_1/rest.php";
+    //const USER_NAME = "Admin";
+//    const URL = "http://localhost:8001/service/v4_1/rest.php";
     const APP_NAME = "Agents MyCommonSenseFinancial";
     const SESSION_TOKEN_LENGTH = 60; // 60 seconds.
     const SESSION_TRANSIENT_ID = 'affwp-ltp-sugarcrm-id';
@@ -192,7 +194,7 @@ class Sugar_CRM_DAL {
         curl_setopt($curl_request, CURLOPT_POSTFIELDS, $post);
         $result = curl_exec($curl_request);
         curl_close($curl_request);
-
+        
         $result = explode("\r\n\r\n", $result, 2); 
         $response = json_decode($result[1]);
         ob_end_flush();
@@ -234,6 +236,8 @@ class Sugar_CRM_DAL {
             ,"description" => "description"
             ,"street_address" => "billing_address_street"
             ,"city" => "billing_address_city"
+            ,"state" => "billing_address_state"
+            ,"state_of_sale" => "state_of_origination_c"
             ,"zip" => "billing_address_postalcode"
             ,"country" => "billing_address_country"
             ,"phone" => "phone_office"
@@ -261,6 +265,8 @@ class Sugar_CRM_DAL {
             //Record attributes
             "name_value_list" => $nameValues,
         );
+        
+        
         
         return $this->call("set_entry", $setEntryParameters, self::URL);
     }
