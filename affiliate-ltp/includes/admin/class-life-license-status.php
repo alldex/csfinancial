@@ -17,6 +17,8 @@ class Life_License_Status {
     private $active_license = false;
     private $license_number = null;
     private $state_licenses = [];
+    // TODO: stephen should this be a static property somewhere else as we are copying it now into every object??
+    private $required_state_licenses = [];
     
     public function __construct($license_number = null, $date_licensed = null, $state_licenses = []) {
         $this->license_number = $license_number;
@@ -28,12 +30,31 @@ class Life_License_Status {
         }
     }
     
+    public function set_required_licensing_states($required_states) {
+        if (!is_array($required_states)){
+            throw new \InvalidArgumentException("required_states must be a valid array");
+        }
+        $this->required_state_licenses = $required_states;
+    }
+    
     public function has_license($check_state) {
-        return $this->has_license_number() && $this->is_licensed_in_state($check_state);
+        if ( $this->has_license_number() ) {
+            if ($this->requires_state_license($check_state)) {
+                return $this->is_licensed_in_state($check_state);
+            }
+            return true;
+        }
+        return false;
     }
     
     public function has_active_licensed($check_state) {
-        return $this->active_license && $this->is_licensed_in_state($check_state);
+        if ($this->active_license) {
+            if ($this->requires_state_license($check_state)) {
+                return $this->is_licensed_in_state($check_state);
+            }
+            return true;
+        }
+        return false;
     }
     
     public function get_license_date() {
@@ -42,6 +63,10 @@ class Life_License_Status {
     
     private function has_license_number() {
         return !empty($this->license_number);
+    }
+    
+    private function requires_state_license($check_state) {
+        return !empty($this->required_state_licenses[$check_state]);
     }
     
     private function is_licensed_in_state($check_state) {

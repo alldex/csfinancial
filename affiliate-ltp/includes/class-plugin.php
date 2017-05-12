@@ -31,7 +31,7 @@ class Plugin {
         
     const AFFILIATEWP_LTP_VERSION = "0.3.2";
     
-    const LOCALHOST_RESTRICTED = false;
+    const LOCALHOST_RESTRICTED = true;
     
     private $settings;
     

@@ -14,6 +14,9 @@ namespace AffiliateLTP\admin;
  */
 class State_DAL {
     
+    // adding to this list will make the state show up on the agent checklist
+    // and make it so the agent has to have a license in this state in order
+    // to be able to receive commissions for this state.
     private static $required_states_abbr = ["AL","CA","FL","GA","KY", "LA", 
         "MA", "MS", "MT", "NM", "PA", "SD", "UT", "VA", "WV", "WI"];
     

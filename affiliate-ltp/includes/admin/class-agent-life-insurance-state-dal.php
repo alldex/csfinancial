@@ -21,6 +21,13 @@ class Agent_Life_Insurance_State_DAL {
         return $state_licenses;
     }
     
+    public function get_required_licensing_states() {
+        $state_dal = new State_DAL();
+        $default_state_list = $state_dal->get_license_required_states();
+        $abbrv = array_map(function ($x) { return $x['abbr']; }, $default_state_list);
+        return array_combine($abbrv, $abbrv);
+    }
+    
     public function get_state_licensing_for_agent( $agent_id ) {
         $life_license_states = affwp_get_affiliate_meta( $agent_id, 'life_license_states', true );
         if (empty($life_license_states)) {
