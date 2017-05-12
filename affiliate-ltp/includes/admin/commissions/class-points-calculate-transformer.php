@@ -36,7 +36,14 @@ class Points_Calculate_Transformer {
     }
     
     public function transform(Commission_Node $tree) {
-        return $this->update_node_points($tree, $this->request_points);
+        // if the initial tree has a split rate we want to update it.
+        if ($tree->split_rate < 100) {
+            $points = round($tree->split_rate * $this->request_points, PHP_ROUND_HALF_DOWN);
+        }
+        else {
+            $points = $this->request_points;
+        }
+        return $this->update_node_points($tree, $points);
     }
     
     private function update_node_points(Commission_Node $tree, $points) {
