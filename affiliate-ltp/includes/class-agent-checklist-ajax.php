@@ -8,7 +8,7 @@
 namespace AffiliateLTP;
 
 /**
- * Description of class-agent-checklist-ajax
+ * Ajax handler for saving the agent progress status.
  *
  * @author snielson
  */

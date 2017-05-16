@@ -5,10 +5,12 @@
  * All rights reserved.
  */
 
-namespace AffiliateLTP;
+namespace AffiliateLTP\charts;
+
+use AffiliateLTP\Agent_Tree_Node_Filterer;
+use AffiliateLTP\Agent_Tree_Node;
 use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\admin\Settings_DAL;
-use AffiliateLTP\Agent_Tree_Node_Filterer;
 
 /**
  * Filters out nodes that are not the current agent, or if the current agent is

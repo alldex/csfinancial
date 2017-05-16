@@ -40,7 +40,7 @@ class Affiliates {
         add_filter( 'affwp_affiliate_table_username', array($this, 'store_agent_id_from_username' ), 10, 2 );
         add_filter( 'affwp_affiliate_table_phone', array( $this, 'render_agent_phone' ), 10, 1 );
     }
-    
+   
     public function store_agent_id_from_username( $username, $agent ) {
         $this->table_row_agent_id = $agent->affiliate_id;
         return $username;

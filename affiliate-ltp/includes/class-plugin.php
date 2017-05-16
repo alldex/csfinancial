@@ -85,10 +85,6 @@ class Plugin {
         add_filter( 'affwp_affiliate_area_show_tab', array($this, 'remove_unused_tabs'), 10, 2 );
         
         add_action( 'affwp_affiliate_dashboard_tabs', array( $this, 'add_agent_tabs' ), 10, 2 );
-        
-        // this is actually called from the template file of dasbhoard-tab-organization.php since that's
-        // the way the affiliate-wp plugin works with tabs/tab-containers.
-        add_action('affwp_affiliate_dashboard_organization_show', array( $this, 'render_organization_tree' ), 10, 1);
 			
         // Add template folder to hold the sub affiliates tab content
         add_filter( 'affwp_template_paths', array( $this, 'get_theme_template_paths' ) );
@@ -155,31 +151,6 @@ class Plugin {
      */
     public function get_settings_dal() {
         return new Settings_DAL_Affiliate_WP_Adapter();
-    }
-    
-    // TODO: stephen is there a better place for this than the core plugin??
-    public function render_organization_tree($agent_id) {
-        $agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
-        $settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
-        $filterer = null;
-        $checklist_filterer = new Agent_Checklist_Filterer($agent_dal, $settings_dal);
-        $show_controls = false;
-        $exclude_partner = true;
-        
-        // if the user is a partner.
-        $partner_rank_id = $settings_dal->get_partner_rank_id();
-        if ($partner_rank_id === $agent_dal->get_agent_rank($agent_id)) {
-            $show_controls = true;
-            if (absint(filter_input(INPUT_POST, 'affiliate_ltp_show_partners')) === 1) {
-                $exclude_partner = false;
-            }
-        }
-        if ($exclude_partner) {
-            $filterer = new Agent_Tree_Partner_Filterer($agent_dal, $settings_dal);
-        }
-        
-        $agents_tree_display = new Agents_Tree_Display($agent_dal, $filterer, $checklist_filterer);
-        $agents_tree_display->show_tree($agent_id, $show_controls);
     }
     
     public function addPointsToGraphTab( $affiliate_id ) {
@@ -254,6 +225,9 @@ class Plugin {
         $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
         $this->progress_items = new Progress_Item_DB();
         $this->commission_request_db = new Commission_Request_DB();
+        
+        // setup chart hooks and handlers (mem references will be retained by the hooks).
+        $agent_org_chart_handler = new charts\Agent_Organization_Chart();
         // construct it so we can have the right hooks and everything.
         $agent_emails = new Agent_Emails($this->get_agent_dal(), $this->get_settings_dal());
         

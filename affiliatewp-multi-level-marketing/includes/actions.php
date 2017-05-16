@@ -188,3 +188,15 @@ function affwp_mlm_add_affiliate_connections( $data = array() ) {
 	$sql = $wpdb->insert( $affiliate_connection_table, $affiliate_data );
 	return $sql;
 }
+
+add_action('affwp_mlm_show_sub_affiliates', 'affwp_mlm_connect_affiliates', 10, 2);
+/**
+ * Displays the sub affiliates for the passed in affiliate using the display
+ * type passed in.  This makes it possible for people to add to or change the
+ * display of the sub-affiliates by hooking into or replacing the action.
+ * @param Affiliate $affiliate
+ * @param string $type Tyhe display type 'tree' or 'list' 
+ */
+function affwp_mlm_show_sub_affiliates($affiliate, $type) {
+    show_sub_affiliates( $affiliate->affiliate_id, $type );
+}

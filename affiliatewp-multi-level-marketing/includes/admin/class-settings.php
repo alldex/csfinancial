@@ -492,8 +492,7 @@ class AffiliateWP_MLM_Settings {
                 
 			</table>
     	<?php            
-		show_sub_affiliates( $affiliate->affiliate_id, 'tree' );
-
+                do_action('affwp_mlm_show_sub_affiliates', $affiliate, 'tree');
 	
 	}
 
@@ -553,5 +552,4 @@ class AffiliateWP_MLM_Settings {
 		echo $content;
     
 	}
-
 }

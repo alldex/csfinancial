@@ -5,9 +5,11 @@
  * All rights reserved.
  */
 
-namespace AffiliateLTP;
+namespace AffiliateLTP\charts;
 use AffiliateLTP\admin\Agent_DAL;
-
+use AffiliateLTP\Agent_Tree_Node_Filterer;
+use AffiliateLTP\admin\Agent_Custom_Slug;
+use AffiliateLTP\Agent_Tree_Node;
 
 
 /**
@@ -129,8 +131,8 @@ class Agents_Tree_Display {
         $parent_user = get_user_by('id', $parent_user_id);
 
         // Both names must match
-        $parent_slug = admin\Agent_Custom_Slug::get_slug_for_agent_id($parent_agent_id);
-        $sub_slug = admin\Agent_Custom_Slug::get_slug_for_agent_id($sub_id);
+        $parent_slug = Agent_Custom_Slug::get_slug_for_agent_id($parent_agent_id);
+        $sub_slug = Agent_Custom_Slug::get_slug_for_agent_id($sub_id);
         
         $sub_name = $sub_user->display_name;
         if (!empty($sub_slug)) {
