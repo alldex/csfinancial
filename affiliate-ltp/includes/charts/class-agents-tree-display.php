@@ -65,6 +65,7 @@ class Agents_Tree_Display {
         }
         
         $downline_tree = $this->agent_dal->get_agent_downline_with_coleaderships( $agent_id );
+        $downline_tree_with_counts = $this->get_tree_with_downline_counts($downline_tree);
         
         // you should always at least have yourself.
         $nodes = $this->get_tree_data_for_agents( $downline_tree );
@@ -78,6 +79,21 @@ class Agents_Tree_Display {
         $templatePath = affiliate_wp()->templates->get_template_part( 'dashboard-tab-organization-tree', null, false);
         include_once $templatePath;
         
+    }
+    
+    private function get_tree_with_downline_counts($downline_tree) {
+        $total_child_count = 0;
+        if ($downline_tree->children) {
+            foreach ($downline_tree->children as $child) {
+                if ($this->should_visit_node($child)) {
+                    $child = $this->get_tree_with_downline_counts($child, $count);
+                    // add the child's downline and one more to count the child.
+                    $total_child_count += $child->downline_count + 1;
+                }
+            }
+        }
+        $downline_tree->downline_count = $total_child_count;
+        return $downline_tree;
     }
     
     private function should_visit_node(Agent_Tree_Node $node) {
@@ -171,7 +187,7 @@ class Agents_Tree_Display {
             ,'parent_name' => $parent_name
             ,'status' => $affiliate_status
             ,'life_licensed' => $this->agent_dal->is_life_licensed($sub_id)
-            ,"statistics" => $this->get_agent_statistics($sub_user, $sub_id)
+            ,"statistics" => $this->get_agent_statistics($sub_user, $sub_id, $node)
             ,"is_current_agent" => $this->is_current_agent( $sub_id )
             ,"checklist_readonly" => false
             ,"checklist_complete" => true
@@ -228,7 +244,7 @@ class Agents_Tree_Display {
  *
  * @since  1.1
  */
-private function get_agent_statistics( $agent_user, $agent_id ) {
+private function get_agent_statistics( $agent_user, $agent_id, $node ) {
 
 	// Affiliate info
 	$affiliate = affwp_get_affiliate( $agent_id );
@@ -247,8 +263,11 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
 	$parent_id        = affwp_mlm_get_parent_affiliate( $agent_id );
 	$referrer         = affiliate_wp()->affiliates->get_affiliate_name( $direct_id );
 	$parent 		  = affiliate_wp()->affiliates->get_affiliate_name( $parent_id );
-	$sub_affiliates   = count( affwp_mlm_get_sub_affiliates( $agent_id ) );
-	$downline 		  = max(count( affwp_mlm_get_downline_array( $agent_id ) ) - 1, 0);
+        $downline = $node->downline_count;
+        
+//      we don't care about direct line affiliates at this point.
+//	$sub_affiliates   = count( affwp_mlm_get_sub_affiliates( $agent_id ) );
+//	$downline 		  = max(count( affwp_mlm_get_downline_array( $agent_id ) ) - 1, 0);
 	
 	$aff_data = apply_filters( 'affwp_mlm_aff_data', 
             array(
@@ -277,7 +296,7 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
                             'content'  => array(						
                                     'referrer' => $referrer,
                                     'parent'   => $parent,
-                                    'direct'   => $sub_affiliates,
+//                                    'direct'   => $sub_affiliates,
                                     'downline' => $downline,
                             )
                     )
@@ -289,3 +308,4 @@ private function get_agent_statistics( $agent_user, $agent_id ) {
 
 }
 }
+//
