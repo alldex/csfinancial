@@ -2,12 +2,30 @@
 // used as summative vars in the table iteration of the points record.
 $life_sum = 0;
 $non_life_sum = 0;
+$graph_title = __("Points Graph", 'affiliate-ltp'); 
+$table_title = __("Points Table", 'affiliate-ltp'); 
+if ($is_partner) {
+    if ($include_super_shop) {
+        $graph_title = __("Super Shop Points Graph", 'affiliate-ltp'); 
+        $table_title = __("Super Shop Points Table", 'affiliate-ltp'); 
+    }
+    else {
+        $graph_title = __("Base Shop Points Graph", 'affiliate-ltp'); 
+        $table_title = __("Base Shop Points Table", 'affiliate-ltp'); 
+    }
+}
 ?>
-
-<h4><?php _e( 'Point Graphs', 'affiliate-ltp' ); ?></h4>
+<h4><?= $graph_title ?></h4>
+<?php if ($is_partner) : ?>
+    <label><input type="checkbox" id="affwp_ltp_show_super_base_shop"
+            <?php if ($include_super_shop) : ?>
+                  CHECKED="CHECKED"
+            <?php endif; ?>
+                  /> Include Super Shop</label>
+<?php endif; ?>
 <?php $graph->display(); ?>
 
-<h4><?php _e('Points Table', 'affiliate-ltp'); ?></h4>
+<h4><?= $table_title ?></h4>
 <?php if ( !empty( $points_data ) ) : ?>
 <table>
     <thead>

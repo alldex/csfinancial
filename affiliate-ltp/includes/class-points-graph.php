@@ -44,7 +44,7 @@ class Points_Graph extends Affiliate_WP_Graph {
 	 * @since 1.0
 	 */
 	public function __construct( array $points_data, Affiliate_WP_Referral_Meta_DB $metaDb = null, $graph_options = array()) {
-
+                parent::__construct($points_data);
                 $this->points_data = $points_data;
                 $this->referralMetaDb = $metaDb;
                 
@@ -97,7 +97,7 @@ class Points_Graph extends Affiliate_WP_Graph {
 			'affiliate_id'    => false,
 			'show_controls'   => true,
 		);
-
+                
 	}
         
         public function get_data() {

@@ -22,7 +22,7 @@ class Points_Retriever {
         $this->referralMetaDb = $metaDb;
     }
     
-    public function get_points( $affiliate_id, $date_range ) {
+    public function get_points( $affiliate_id, $date_range, $include_super_shop = false ) {
         
         $date  = array(
                 'start' => $date_range['start_date'],
@@ -53,6 +53,11 @@ class Points_Retriever {
                     $date = date( 'Y-m-d', strtotime( $referral->date ) );
             }
             
+            if (!$include_super_shop
+                    && $this->is_referral_in_super_shop($referral)) {
+                continue;
+            }
+            
             $points = absint( $this->referralMetaDb->get_meta($referral->referral_id, 'points', true) );
             $context = absint( $referral->context );
 
@@ -71,5 +76,17 @@ class Points_Retriever {
         }
 
         return $pointsData;
+    }
+    
+    private function is_referral_in_super_shop($referral) {
+        $gen_count = $this->referralMetaDb->get_meta($referral->referral_id, 'generation_count', true);
+        if (empty($gen_count)) {
+            return false;
+        }
+        // make sure it's a number which it should be, but better to be safe.
+        if (absint($gen_count) > 0) {
+            return true;
+        }
+        return false;
     }
 }

@@ -3,6 +3,21 @@
  * All rights reserved.
  */
 jQuery(document).ready(function() {
+    // setup our base shop filter.
+    function update_super_base_shop_checkbox() {
+         if (jQuery("#affwp_ltp_show_super_base_shop").prop("checked")) {
+          jQuery("#affwp_ltp_include_super_base_shop").val('Y');
+       }
+       else {
+           jQuery("#affwp_ltp_include_super_base_shop").val('N');
+       }
+    }
+   jQuery("#affwp-graphs-filter").append("<input type='hidden' name='affwp_ltp_include_super_base_shop' id='affwp_ltp_include_super_base_shop'  value='N' />");
+   update_super_base_shop_checkbox();
+   jQuery("#affwp_ltp_show_super_base_shop").click(function() {
+       update_super_base_shop_checkbox();
+       jQuery("#affwp-graphs-filter").submit();
+   });
    jQuery(".statistics-row-category-items .progress-item").click(function() {
        var item = jQuery(this);
        

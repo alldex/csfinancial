@@ -121,7 +121,8 @@ class Plugin {
         
         wp_enqueue_style( 'affiliate-ltp', $includePath . 'assets/css/affiliate-ltp.css', array('fancy-box') );
         
-        wp_enqueue_script( 'affiliate-ltp-core', $includePath . 'assets/js/affiliate-ltp-core.js', array( 'jquery', 'jquery-ui-autocomplete', 'fancy-box'  ) );
+        error_log("including affiliate-ltp-core");
+        wp_enqueue_script( 'affiliate-ltp-core', $includePath . 'assets/js/affiliate-ltp-core.js', array( 'jquery', 'fancy-box'  ) );
         wp_localize_script( 'affiliate-ltp-core', 'wp_ajax_object',
             array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
         
@@ -162,13 +163,26 @@ class Plugin {
         $start = $date_range['year'] . '-' . $date_range['m_start'] . '-' . $date_range['day'] . ' 00:00:00';
         $end   = $date_range['year_end'] . '-' . $date_range['m_end'] . '-' . $date_range['day_end'] . ' 23:59:59';
         
+//        $is_partner = $this->get_agent_dal()->get_current_user_agent_id();
+        $is_partner = $this->get_partner_status_for_current_agent();
+        if ($is_partner) {
+            // this value is inserted via javascript since the current plugin
+            // does not give us a way to extend the search filters.
+            $include_super_shop = filter_input(INPUT_GET, 
+                'affwp_ltp_include_super_base_shop') == 'Y';
+        }
+        else {
+            $include_super_shop = false;
+        }
         $points_date_range = array(
             "start_date" => $start
             ,"end_date" => $end
             ,"range" => $date_range['range']
         );
         
-        $points_data = $points_retriever->get_points( $affiliate_id, $points_date_range );
+        $agent_downline = $this->get_agent_dal()->get_agent_downline_with_coleaderships($agent_id);
+        
+        $points_data = $points_retriever->get_points( $affiliate_id, $points_date_range, $include_super_shop );
         
         $graph = new \AffiliateLTP\Points_Graph($points_data, $this->referralMeta, $points_date_range);
 //        $graph = new \AffiliateLTP\Points_Graph;
@@ -188,6 +202,14 @@ class Plugin {
         include_once $template_path;
     }
     
+    private function get_partner_status_for_current_agent() {
+        
+        $agent_id = $this->get_agent_dal()->get_current_user_agent_id();
+        $partner_rank_id = $this->get_settings_dal()->get_partner_rank_id();
+        $agent_rank = $this->get_agent_dal()->get_agent_rank($agent_id);
+        
+        return $agent_rank == $partner_rank_id;
+    }
     /**
      * 
      * @return Sugar_CRM_DAL
