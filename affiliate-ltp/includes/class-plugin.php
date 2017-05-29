@@ -33,6 +33,12 @@ class Plugin {
     
     const LOCALHOST_RESTRICTED = true;
     
+    /**
+     * Whether the errors and ommissions stripe account handling
+     * is enabled or not.
+     */
+    const STRIPE_EO_HANDLING_ENABLED = true;
+    
     private $settings;
     
     /**

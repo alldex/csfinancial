@@ -69,5 +69,14 @@ class Settings_DAL_Affiliate_WP_Adapter implements Settings_DAL {
         }
         return 0;
     }
+    
+    public function get_errors_and_ommissions_current_secret_api_key() {
+        $mode = $this->get_setting('affwp_ltp_stripe_errors_and_ommissions_mode');
+        $mode = ($mode === 'test') ? 'test' : 'live';
+        if ($mode === 'test') {
+            return $this->get_setting('affwp_ltp_stripe_errors_and_ommissions_test_secret_key');
+        }
+        return $this->get_setting('affwp_ltp_stripe_errors_and_ommissions_live_secret_key');
+    }
 
 }
