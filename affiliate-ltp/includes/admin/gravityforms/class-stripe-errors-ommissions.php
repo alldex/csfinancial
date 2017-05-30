@@ -41,7 +41,7 @@ class Stripe_Errors_Ommissions {
         do_action( 'gform_stripe_post_include_api', array($this, 'override_stripe_api_keys'));
         
         add_filter( 'gform_form_post_get_meta', array($this, 'set_eo_account_flag'));
-        
+
         add_filter( 'parse_request', array($this, 'check_eo_form_callback'));
         
     }
@@ -66,6 +66,8 @@ class Stripe_Errors_Ommissions {
         if (!empty($form['affwp_ltp_stripe_errors_and_ommissions'])) {
             $this->should_use_eo_account = true;
         }
+        
+        return $form;
     }
     
     public function override_stripe_api_keys() {
