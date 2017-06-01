@@ -19,14 +19,6 @@ use GFStripe;
 class Stripe_Errors_Ommissions {
     
     const DEBUG = true;
-    const GRAVITY_FORMS_STRIPE_SLUG = 'gravityformsstripe';
-    /**
-     * Whether the current php request should use the errors and ommissions account,
-     * since we don't have access to the form while api keys are being set we have to
-     * watch for the form previous to the Stripe api keys and set this variable.
-     * @var boolean
-     */
-    private $should_use_eo_account;
     
     /**
      * Array of the Strip settings we are overriding when it's an error and ommissions form.
@@ -42,7 +34,6 @@ class Stripe_Errors_Ommissions {
     
     public function __construct(Settings_DAL $settings_dal) {
         $this->settings_dal = $settings_dal;
-        $this->should_use_eo_account = false;
         
         add_filter( 'gform_form_settings', array($this, 'add_eo_form_setting'), 10, 2 );
         add_filter( 'gform_pre_form_settings_save', array($this, 'save_eo_form_setting' ) );
@@ -51,6 +42,7 @@ class Stripe_Errors_Ommissions {
             add_action( 'gform_stripe_post_include_api', array($this, 'log_api_keys'));
         }
         
+        // anytime we retrieve a post we want to
         add_filter( 'gform_form_post_get_meta', array($this, 'set_eo_account_flag'));
 
         add_filter( 'parse_request', array($this, 'check_eo_form_callback'));
@@ -79,7 +71,6 @@ class Stripe_Errors_Ommissions {
             $this->log("stripe callback checking if eo form");
             if (strtolower(rgget('account-type')) === 'eo') {
                 $this->log("is valid eo form, overriding stripe keys");
-                $this->should_use_eo_account = true;
                 $this->override_stripe_api_keys();
             }
         }
@@ -91,7 +82,6 @@ class Stripe_Errors_Ommissions {
         // have some bad side effects...?
         if (!empty($form['affwp_ltp_stripe_errors_and_ommissions'])) {
             $this->log("gform_form_post_get_meta flag set, overriding account");
-            $this->should_use_eo_account = true;
             $this->override_stripe_api_keys();
         }
         
