@@ -105,7 +105,8 @@ interface Agent_DAL {
     
     /**
      * Retrieves the downline in a one 
-     * @param type $agent_id
+     * @param int $agent_id
+     * @return Agent_Tree_Node
      */
     function get_agent_downline_with_coleaderships( $agent_id );
     
@@ -136,6 +137,13 @@ interface Agent_DAL {
      * Retrieves the name of the passed in agent_id
      */
     function get_agent_name( $agent_id);
+    
+    /**
+     * Retrieves the agent display name as set in their wordpress Display Name 
+     * profile for the passed in agent.
+     * @param int $agent_id
+     */
+    function get_agent_displayname( $agent_id );
     
     /**
      * Retrieves the email of the passed in agent_id
@@ -173,4 +181,25 @@ interface Agent_DAL {
      * @param int $agent_id
      */
     function get_agent_registration_entry_id( $agent_id );
+    
+    
+    function get_partner_agent_leaderboard_points_data($limit, $date_filter, $company_agent_id);
+    
+    function get_agent_leaderboard_points_data($limit, $date_filter, $company_agent_id);
+    
+    function get_agent_leaderboard_direct_recruits( $limit, $date_filter, $company_agent_id);
+    
+    function get_partner_agent_leaderboard_base_shop_recruits($limit, $date_filter, $company_agent_id);
+    
+    /**
+     * Retrieves the agent's current registration date
+     * @param int $agent_id
+     */
+    function get_agent_registration_date( $agent_id );
+    
+    /**
+     * Retrieves all of the agent ids that currently have the specified rank
+     * @param int $rank_id
+     */
+    function get_agent_ids_by_rank( $rank_id );
 }

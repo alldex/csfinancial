@@ -349,6 +349,21 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         return affwp_get_affiliate_name( $agent_id);
     }
     
+    public function get_agent_displayname($agent_id) {
+        if (empty($agent_id)) {
+            return null;
+        }
+        
+        $user_id = $this->get_agent_user_id($agent_id);
+        
+        $user_info = get_userdata( $user_id );
+        if (empty($user_info)) {
+            return null;
+        }
+        
+        return $user_info->display_name;
+    }
+    
     public function get_agent_email($agent_id) {
         if (empty($agent_id)) {
             return null;
@@ -431,6 +446,129 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
             $agent->coleadership = $this->get_agent_upline_tree( $coleadership_id, $count + 1, $max );
         }
         return $agent;
+    }
+    
+    public function get_partner_agent_leaderboard_points_data($limit, $date_filter, $company_agent_id) {
+        return $this->get_agent_leaderboard_data($limit, $date_filter, $company_agent_id, true);
+    }
+    
+    public function get_agent_leaderboard_points_data($limit, $date_filter, $company_agent_id) {
+        return $this->get_agent_leaderboard_data($limit, $date_filter, $company_agent_id);
+    }
+    
+    private function get_agent_leaderboard_data($limit, $date_filter, $company_agent_id, $partners_only = false) {
+        global $wpdb;
+        $partner_rank_id = 4;
+        
+        // TODO: stephen should we pull the the table prefixes and everything from the various affiliate and meta tables?
+        
+        $params = [];
+        $sql = "SELECT 
+        r.affiliate_id AS 'agent_id', 
+        wu.display_name,
+        sum(rm.meta_value) as 'points' 
+FROM 
+        wp_affiliate_wp_referralmeta rm -- points reference
+INNER JOIN 
+        wp_affiliate_wp_referrals r USING(referral_id)  -- commissions table
+INNER JOIN 
+        wp_affiliate_wp_affiliates a USING (affiliate_id) -- agents table
+INNER JOIN 
+        wp_users wu ON a.user_id = wu.ID ";
+        if ($partners_only) {
+            $params[] = $partner_rank_id;
+            $sql .= "
+INNER JOIN (
+                SELECT 
+                        pam.affiliate_id 
+                FROM 
+                        wp_affiliate_wp_affiliatemeta pam 
+                WHERE 
+                        pam.meta_key='current_rank' 
+                        AND pam.meta_value = %d
+) partners 
+        ON a.affiliate_id = partners.affiliate_id";
+        }
+        $sql .= "
+WHERE 
+        rm.meta_key = 'points'  -- grab only the points
+        AND r.affiliate_id != %d  -- skip over the company user
+        AND r.status = 'paid'  -- we only want paid commissions
+        AND r.date BETWEEN %s AND %s ";
+        $params[] = $company_agent_id;
+        $params[] = $date_filter['start'];
+        $params[] = $date_filter['end'];
+        if ($partners_only) {
+        $sql .= "
+-- super shop is tracked by 
+        AND r.referral_id NOT IN ( -- skip over points earned outside the base shop
+                SELECT
+                        m2.referral_id
+                FROM
+                        wp_affiliate_wp_referralmeta m2
+                WHERE
+                        m2.meta_key = 'generation_count'
+                        AND m2.meta_value > 0
+        ) ";
+        }
+        
+        $sql .= "
+GROUP BY  
+        a.affiliate_id 
+ORDER BY  
+        points DESC
+        ,wu.display_name
+LIMIT %d; -- Limit is configurable
+";
+        $params[] = $limit;
+        
+        $results = $wpdb->get_results ( $wpdb->prepare($sql, $params), ARRAY_A );
+        return $results;
+        
+    }
+    
+    
+    function get_agent_leaderboard_direct_recruits( $limit, $date_filter, $company_agent_id){
+        global $wpdb;
+        $sql = "SELECT 
+        count(a.affiliate_id) as 'recruits'
+        ,u.display_name 
+        ,u.user_login -- we include this to group by as display_name could be duplicated
+FROM 
+        wp_affiliate_wp_mlm_connections m 
+JOIN 
+        wp_affiliate_wp_affiliates a ON (m.direct_affiliate_id = a.affiliate_id) 
+JOIN 
+        wp_affiliate_wp_affiliates suba ON (m.affiliate_id = suba.affiliate_id)
+JOIN 
+        wp_users u ON (a.user_id = u.ID) 
+WHERE
+        suba.date_registered BETWEEN %s AND %s
+        AND m.direct_affiliate_id != %d
+GROUP BY  
+        u.user_login
+ORDER BY recruits DESC, u.display_name  LIMIT %d";
+        
+        return $wpdb->get_results ( $wpdb->prepare( $sql, [$date_filter['start'], $date_filter['end'], $company_agent_id, $limit]), ARRAY_A );
+        
+    }
+    
+    function get_partner_agent_leaderboard_base_shop_recruits($limit, $date_filter, $company_agent_id) {
+        
+    }
+    
+    function get_agent_registration_date( $agent_id ) {
+        if (empty($agent_id)) {
+            return null;
+        }
+        $agent = affwp_get_affiliate( $agent_id );
+        return $agent->date_registered;
+    }
+    
+    function get_agent_ids_by_rank( $rank_id ) {
+        global $wpdb;
+        $sql = "SELECT am.affiliate_id FROM wp_affiliate_wp_affiliatemeta am WHERE am.meta_key = %s AND am.meta_value = %d ";
+        return $wpdb->get_col ( $wpdb->prepare($sql, ['current_rank', $rank_id] ) );
     }
     
 }

@@ -85,9 +85,6 @@ class Plugin {
         add_filter( 'affwp_affiliate_area_show_tab', array($this, 'remove_unused_tabs'), 10, 2 );
         
         add_action( 'affwp_affiliate_dashboard_tabs', array( $this, 'add_agent_tabs' ), 10, 2 );
-			
-        // Add template folder to hold the sub affiliates tab content
-        add_filter( 'affwp_template_paths', array( $this, 'get_theme_template_paths' ) );
         
         // so we can check to see if its active
         add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
@@ -243,10 +240,19 @@ class Plugin {
         return $this->commission_request_db;
     }
     
+    /**
+     * Returns the template loader for loading php template files.
+     * @return Template_Loader
+     */
+    public function get_template_loader() {
+        return $this->template_loader;
+    }
+    
     public function setup_dependent_objects() {
         $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
         $this->progress_items = new Progress_Item_DB();
         $this->commission_request_db = new Commission_Request_DB();
+        $this->template_loader = new Template_Loader();
         
         // setup chart hooks and handlers (mem references will be retained by the hooks).
         $agent_org_chart_handler = new charts\Agent_Organization_Chart();
@@ -263,6 +269,7 @@ class Plugin {
             $tools = new Tools($this->get_agent_dal(), $this->getSugarCRM(),
                     $this->get_commission_dal(), $settings_dal);
         }
+        $leaderboards = new leaderboards\Leaderboards($this->get_settings_dal(), $this->get_agent_dal());
     }
 
     /**
@@ -372,18 +379,6 @@ class Plugin {
                 <?php	
         }
     }
-    
-    /**
-    * Add template folder to hold the organization tab content
-    *
-    *
-    * @return void
-    */
-   public function get_theme_template_paths( $file_paths ) {
-           $file_paths[80] = AFFILIATE_LTP_PLUGIN_DIR . '/templates';
-
-           return $file_paths;
-   }
    
    /**
     * 
