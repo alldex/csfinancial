@@ -11,6 +11,8 @@ use \GFAddOn;
 use \GF_Fields;
 use AffiliateLTP\admin\GravityForms\Agent_Slug_Field;
 use AffiliateLTP\admin\GravityForms\Agent_Register;
+use AffiliateLTP\admin\GravityForms\Stripe_Errors_Ommissions;
+use AffiliateLTP\Plugin;
 
 GFForms::include_addon_framework();
 
@@ -55,6 +57,11 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
             }
             
             new Agent_Register(); // instantiate it once.
+            
+            // new feature flag... so we can turn this off if things go wrong.
+            if (Plugin::STRIPE_EO_HANDLING_ENABLED) {
+                new Stripe_Errors_Ommissions(Plugin::instance()->get_settings_dal());
+            }
         }
     }
 }

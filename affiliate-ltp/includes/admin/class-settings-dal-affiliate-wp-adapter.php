@@ -69,5 +69,20 @@ class Settings_DAL_Affiliate_WP_Adapter implements Settings_DAL {
         }
         return 0;
     }
+    
+    public function get_errors_and_ommissions_mode() {
+        $mode = $this->get_setting('affwp_ltp_stripe_errors_and_ommissions_mode');
+        $mode = ($mode === 'test') ? 'test' : 'live';
+        return $mode;
+    }
+    
+    public function get_errors_and_ommissions_keys() {
+        $keys = [];
+        $keys['test_secret_key'] = $this->get_setting('affwp_ltp_stripe_errors_and_ommissions_test_secret_key');
+        $keys['test_publishable_key'] = $this->get_setting('affwp_ltp_stripe_errors_and_ommissions_test_public_key');
+        $keys['live_secret_key'] = $this->get_setting('affwp_ltp_stripe_errors_and_ommissions_live_secret_key');
+        $keys['live_publishable_key'] = $this->get_setting('affwp_ltp_stripe_errors_and_ommissions_live_public_key');
+        return $keys;
+    }
 
 }

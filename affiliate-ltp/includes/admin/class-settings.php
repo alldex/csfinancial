@@ -26,6 +26,7 @@ public function __construct() {
 	 */
 	public function settings_tab( $tabs ) {
 		$tabs['ltp'] = __( 'Company', 'affiliate-ltp' );
+                $tabs['ltp-stripe'] = __( 'Stripe', 'affiliate-ltp' );
 		return $tabs;
 	}
 	
@@ -42,8 +43,7 @@ public function __construct() {
                 $rank_options[$rank['id']] = $rank['name'];
             }
 
-		$ltp_settings = array(
-			// MLM Settings			
+		$ltp_settings = array(	
 			'ltp' => apply_filters( 'affwp_settings_ltp',
 				array(
 					'affwp_mlm_general_header' => array(
@@ -116,6 +116,41 @@ public function __construct() {
                                     
 				)
 			)
+                        ,'ltp-stripe' => apply_filters( 'affwp_settings_ltp_stripe',
+                            array(
+                                    'ltp_stripe_general_header' => array(
+                                            'name' => '<strong>' . __( 'Errors & Ommissions Stripe Account Settings', 'affiliate-ltp' ) . '</strong>',
+                                            'type' => 'header',
+                                    )
+                                    ,'affwp_ltp_stripe_errors_and_ommissions_mode' => array(
+                                            'name' => __( 'E&O Test API Mode', 'affiliate-ltp' ),
+                                            'desc' => '<p class="description">' . __( 'Set the E&O account Stripe API in test or live mode.' ) . '</p>',
+                                            'type' => 'radio',
+                                            'std' => 'test',
+                                            'options' => ['test' => __('Test', 'affiliate-ltp'),'live' => __('Live', 'affiliate-ltp')]
+                                    )
+                                    ,'affwp_ltp_stripe_errors_and_ommissions_test_public_key' => array(
+                                            'name' => __( 'E&O Test Public Key', 'affiliate-ltp' ),
+                                            'desc' => '<p class="description">' . __( 'Enter the stripe api test public key for the Errors & Ommissions account.' ) . '</p>',
+                                            'type' => 'text'
+                                    )
+                                    ,'affwp_ltp_stripe_errors_and_ommissions_test_secret_key' => array(
+                                            'name' => __( 'E&O Test Secret Key', 'affiliate-ltp' ),
+                                            'desc' => '<p class="description">' . __( 'Enter the stripe api test secret key for the Errors & Ommissions account.' ) . '</p>',
+                                            'type' => 'text'
+                                    )
+                                    ,'affwp_ltp_stripe_errors_and_ommissions_live_public_key' => array(
+                                            'name' => __( 'E&O Live Public Key', 'affiliate-ltp' ),
+                                            'desc' => '<p class="description">' . __( 'Enter the stripe api live public key for the Errors & Ommissions account.' ) . '</p>',
+                                            'type' => 'text'
+                                    )
+                                    ,'affwp_ltp_stripe_errors_and_ommissions_live_secret_key' => array(
+                                            'name' => __( 'E&O Live Secret Key', 'affiliate-ltp' ),
+                                            'desc' => '<p class="description">' . __( 'Enter the stripe api live secret key for the Errors & Ommissions account.' ) . '</p>',
+                                            'type' => 'text'
+                                    )
+                                )
+                        )
 		);
                 
                 

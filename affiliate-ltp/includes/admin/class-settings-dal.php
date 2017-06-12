@@ -32,4 +32,15 @@ interface Settings_DAL {
      * @return double
      */
     function get_minimum_payout_amount();
+    
+    
+    /**
+     * Returns the error and ommissions api keys to be used for stripe.
+     */
+    function get_errors_and_ommissions_keys();
+    
+    /**
+     * Returns the current api mode for the errors and ommisisons settings.
+     */
+    function get_errors_and_ommissions_mode();
 }
