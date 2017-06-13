@@ -130,6 +130,14 @@ class Agents_Tree_Display {
         }
     }
     
+    private function get_rank_name( $rank_id ) {
+        $ranks = get_rank_by_id( $rank_id );
+        if (!empty($ranks)) {
+            return array_shift($ranks)["name"];
+        }
+        return "";
+    }
+    
     private function get_tree_data_for_agent_node(&$nodes, $node, $coleadership_name) {
         $sub_id = $node->id;
         
@@ -177,6 +185,10 @@ class Agents_Tree_Display {
             $sub_name .= ", CL($coleadership_name)";
             $parent_name .= ", CL($coleadership_name)";
         }
+        
+        // add in the parent ranks.
+        $parent_name .= " " . $this->get_rank_name($this->agent_dal->get_agent_rank( $parent_agent_id ) );
+        $sub_name .= " " . $this->get_rank_name( $this->agent_dal->get_agent_rank( $sub_id ) );
         
         $affiliate_status = affwp_get_affiliate_status($sub_id);
 
