@@ -571,4 +571,26 @@ ORDER BY recruits DESC, u.display_name  LIMIT %d";
         return $wpdb->get_col ( $wpdb->prepare($sql, ['current_rank', $rank_id] ) );
     }
     
+    function search_agents_by_name_and_rank($name, $rank) {
+        if (empty($name) || !is_numeric($rank)) {
+            return [];
+        }
+        
+        $lcSearch = strtolower($name);
+        $agent_ids = $this->get_agent_ids_by_rank($rank);
+        
+        $results = [];
+        foreach ($agent_ids as $id) {
+            $agent = affwp_get_affiliate($id);
+            $userData = get_userdata( $agent->user_id );
+            error_log($userData->display_name . " contains? " . $lcSearch . " = " . strpos(strtolower($userData->display_name), $lcSearch));
+            if (strpos(strtolower($userData->display_name), $lcSearch) !== false
+                    || strpos(strtolower($userData->username), $lcSearch) !== false)
+            {
+                $results[] = ["id" => $id, "display_name" => $userData->display_name];
+            }
+        }
+        return $results;
+    }
+    
 }

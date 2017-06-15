@@ -202,4 +202,11 @@ interface Agent_DAL {
      * @param int $rank_id
      */
     function get_agent_ids_by_rank( $rank_id );
+    
+    /**
+     * Searches the agents by their name(display name, username) and rank.
+     * @param string $name
+     * @param string $rank
+     */
+    function search_agents_by_name_and_rank($name, $rank);
 }

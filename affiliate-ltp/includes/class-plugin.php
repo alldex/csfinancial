@@ -18,6 +18,7 @@ use AffiliateLTP\Sugar_CRM_DAL_Localhost;
 
 use AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap;
 use AffiliateLTP\Agent_Checklist_AJAX;
+use AffiliateLTP\Agent_Partner_Search_AJAX;
 use AffiliateLTP\admin\Affiliates;
 
 use Agent_Commands;
@@ -76,6 +77,7 @@ class Plugin {
         // also controls non-admin functionality.
         new Gravity_Forms_Bootstrap();
         new Agent_Checklist_AJAX();
+        new Agent_Partner_Search_AJAX($this->get_agent_dal(), $this->get_settings_dal());
         new Affiliates(); // setup the affiliate actions.
         
         

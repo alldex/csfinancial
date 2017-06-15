@@ -69,14 +69,6 @@
            ,"progress_item_admin_id": item.data("id")
            ,"completed": completed
        };
-       /*
-        * $action  = 'affwp_ltp_search_clients',
-			$search  = $this.val(),
-			$client_id = $( '#client_id' );
-
-		$this.autocomplete( {
-			source: ajaxurl + '?action=' + $action + '&term=' + $search,
-        */
        // wp_ajax_object comes from wp_localize_script
        status.text("Saving...");
        jQuery.post(wp_ajax_object.ajaxurl, post_data, function() {
@@ -90,8 +82,8 @@
     }
     
     jQuery(document).ready(function() { 
-//        setupAgentSearch(".ginput_container .affwp-agent-search", 'affwp_ltp_search_partners');
-        setupAgentSearch(".ginput_container .affwp-agent-search", 'affwp_search_users');
+        setupAgentSearch(".ginput_container .affwp-agent-search", 'affwp_ltp_search_partners');
+//        setupAgentSearch(".ginput_container .affwp-agent-search", 'affwp_search_users');
 
         jQuery("#affwp-graphs-filter").append("<input type='hidden' name='affwp_ltp_include_super_base_shop' id='affwp_ltp_include_super_base_shop'  value='N' />");
         update_super_base_shop_checkbox();

@@ -8,6 +8,8 @@
 namespace AffiliateLTP\admin\GravityForms;
 use GF_Field;
 
+use AffiliateLTP\Plugin;
+
 /**
  * Handles the Gravity Forms Agent Custom Slug field.
  *
@@ -76,6 +78,19 @@ class Agent_Partner_Lookup_Field extends GF_Field {
         return $field_groups;
     }
     
+    public function get_value_entry_detail( $value, $currency = '', $use_text = false, $format = 'html', $media = 'screen' ) {
+            $return = '';
+            $value = esc_html( $value );
+            if (!empty($value)) {
+                $return = Plugin::instance()->get_agent_dal()->get_agent_name($value);
+            }
+            return $return;
+    }
+    
+    public function get_value_entry_list( $value, $entry, $field_id, $columns, $form ) {
+        return $this->get_value_entry_detail($value);
+    }
+    
     /**
      * Much of this was taken from the Gravity_Forms GF_Field_Text class as this
      * field is the most similar.  It returns the HTML content for the field.
@@ -94,10 +109,14 @@ class Agent_Partner_Lookup_Field extends GF_Field {
         $field_id    = $is_entry_detail || $is_form_editor || $form_id == 0 ? "input_$id" : 'input_' . $form_id . "_$id";
 
         $value        = esc_attr( $value );
+        $displayValue = "";
         
-//        if (!($is_form_editor || $is_entry_detail) && empty($value)) {
-//            
-//        }
+        
+        
+        if (!empty($value)) {
+            $displayValue = Plugin::instance()->get_agent_dal()->get_agent_name($value);
+        }
+        
         $size         = $this->size;
         $class_suffix = $is_entry_detail ? '_admin' : '';
         $class        = $size . $class_suffix;
@@ -111,9 +130,12 @@ class Agent_Partner_Lookup_Field extends GF_Field {
         $invalid_attribute     = $this->failed_validation ? 'aria-invalid="true"' : 'aria-invalid="false"';
         $input = '<span class="affwp-ajax-search-wrap">'
                 .   "<input class='agent-name affwp-agent-search {$class}' type='text' "
-                .   " name='input_{$id}' id='{$field_id}' value='{$value}' "
+                .   " name='input_search_{$id}' id='search_{$field_id}' value='{$displayValue}' "
                 .   "{$max_length} {$tabindex} {$logic_event} {$placeholder_attribute} {$required_attribute} {$invalid_attribute} {$disabled_text} "
                 . " />";
+        $input .= "<input name='input_{$id}' id='{$field_id}' "
+                . "type='hidden' class='agent-id' value='{$value}' />";
+        $input .= "</span>";
 
         return sprintf( "<div class='ginput_container ginput_container_text'>%s</div>", $input );
     }
@@ -152,11 +174,9 @@ class Agent_Partner_Lookup_Field extends GF_Field {
         if ($this->failed_validation) {
             return;
         }
-        
-        $agent_id = \AffiliateLTP\admin\Agent_Custom_Slug::get_agent_id_for_slug( $value );
-        if ( empty( $agent_id ) ) {
-            error_log("validate(): could not find agent with slug " . $value);
-            $error_message = sprintf( __( "No agent could be found for provided agent code %s", 'affiliate-ltp' ), $value );
+        $status = Plugin::instance()->get_agent_dal()->get_agent_status( $value );
+        if ($status !== 'active') { // not found or missing 
+            $error_message = __( "The partner agent you provided could not be found or is currently inactive", 'affiliate-ltp' );
             $this->failed_validation = true;
             if ( empty( $this->errorMessage ) ) {
                 $this->validation_message = $error_message;
@@ -178,21 +198,5 @@ class Agent_Partner_Lookup_Field extends GF_Field {
     public function get_value_save_entry($value, $form, $input_name, $lead_id, $lead) {
         $value = parent::get_value_save_entry($value, $form, $input_name, $lead_id, $lead);
         return $value;
-    }
-    
-    /**
-     * Returns the agent id to be used for tracking the referral on the form.
-     * @param int $affiliate_id
-     * @param string $login
-     * @return int
-     */
-    public function return_agent_id_from_slug($affiliate_id, $login = '') {
-        $agent_id = \AffiliateLTP\admin\Agent_Custom_Slug::get_agent_id_for_slug( $this->slug_value );
-        if (empty($agent_id)) {
-            error_log("Failed to find agent_id after successful validation for slug " . $this->slug_value
-                    . " .Returning passed in affiliate_id of " . $affiliate_id);
-            return $affiliate_id;
-        }
-        return $agent_id;
     }
 }
