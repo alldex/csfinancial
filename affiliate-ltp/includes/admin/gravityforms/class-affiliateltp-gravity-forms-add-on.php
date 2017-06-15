@@ -10,6 +10,7 @@ use \GFForms;
 use \GFAddOn;
 use \GF_Fields;
 use AffiliateLTP\admin\GravityForms\Agent_Slug_Field;
+use AffiliateLTP\admin\GravityForms\Agent_Partner_Lookup_Field;
 use AffiliateLTP\admin\GravityForms\Agent_Register;
 use AffiliateLTP\admin\GravityForms\Stripe_Errors_Ommissions;
 use AffiliateLTP\Plugin;
@@ -54,6 +55,7 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
         if ($this->is_gravityforms_supported()) {
             if (class_exists('GF_Field')) {
                 GF_Fields::register(new Agent_Slug_Field());
+                GF_Fields::register(new Agent_Partner_Lookup_Field());
             }
             
             new Agent_Register(); // instantiate it once.

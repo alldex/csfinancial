@@ -128,6 +128,13 @@ class Plugin {
         wp_enqueue_script( 'affiliate-ltp-core', $includePath . 'assets/js/affiliate-ltp-core.js', array( 'jquery', 'fancy-box'  ) );
         wp_localize_script( 'affiliate-ltp-core', 'wp_ajax_object',
             array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+        // make sure it's always there...
+        $wp_scripts = wp_scripts();
+        $theme = 'ui-lightness';
+        wp_enqueue_style('affiliate-ltp-jquery-ui-css',
+                        'http://ajax.googleapis.com/ajax/libs/jqueryui/' . $wp_scripts->registered['jquery-ui-core']->ver . '/themes/' . $theme . '/jquery-ui.css');
+        wp_enqueue_script('jquery-ui-autocomplete', '', array('jquery-ui-widget', 'jquery-ui-position'), '1.8.6');
+        
         
         
     }

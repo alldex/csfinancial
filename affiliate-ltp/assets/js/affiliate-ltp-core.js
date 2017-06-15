@@ -2,7 +2,40 @@
  * Copyright MyCommonSenseFinancial @2017
  * All rights reserved.
  */
-jQuery(document).ready(function() {
+(function (jQuery, window, ajaxurl) {
+    window.ltpjs = window.ltpjs || {};
+    
+    function setupAgentSearch(selector, action) {
+        var $this = jQuery(selector),
+                $action = action,
+                $search = $this.val(),
+                $status = $this.data('affwp-status'),
+                $agent_id = $this.siblings(".agent-id");
+
+        $this.autocomplete({
+            source: ajaxurl + '?action=' + $action + '&term=' + $search + '&status=' + $status,
+            delay: 500,
+            minLength: 2,
+            position: {offset: '0, -1'},
+            select: function (event, data) {
+                $agent_id.val(data.item.user_id);
+            },
+            open: function () {
+                $this.addClass('open');
+            },
+            close: function () {
+                $this.removeClass('open');
+            }
+        });
+
+        // Unset the user_id input if the input is cleared.
+        $this.on('keyup', function () {
+            if (!this.value) {
+                $agent_id.val('');
+            }
+        });
+    }
+    
     // setup our base shop filter.
     function update_super_base_shop_checkbox() {
          if (jQuery("#affwp_ltp_show_super_base_shop").prop("checked")) {
@@ -12,13 +45,9 @@ jQuery(document).ready(function() {
            jQuery("#affwp_ltp_include_super_base_shop").val('N');
        }
     }
-   jQuery("#affwp-graphs-filter").append("<input type='hidden' name='affwp_ltp_include_super_base_shop' id='affwp_ltp_include_super_base_shop'  value='N' />");
-   update_super_base_shop_checkbox();
-   jQuery("#affwp_ltp_show_super_base_shop").click(function() {
-       update_super_base_shop_checkbox();
-       jQuery("#affwp-graphs-filter").submit();
-   });
-   jQuery(".statistics-row-category-items .progress-item").click(function() {
+    
+    function updateProgressItem() {
+        
        var item = jQuery(this);
        
        // do nothing if the item can't be changed.  Someone could try to change
@@ -58,5 +87,22 @@ jQuery(document).ready(function() {
                status.text("Not started");
            }
        });
-   }) 
-});
+    }
+    
+    jQuery(document).ready(function() { 
+//        setupAgentSearch(".ginput_container .affwp-agent-search", 'affwp_ltp_search_partners');
+        setupAgentSearch(".ginput_container .affwp-agent-search", 'affwp_search_users');
+
+        jQuery("#affwp-graphs-filter").append("<input type='hidden' name='affwp_ltp_include_super_base_shop' id='affwp_ltp_include_super_base_shop'  value='N' />");
+        update_super_base_shop_checkbox();
+        jQuery("#affwp_ltp_show_super_base_shop").click(function() {
+            update_super_base_shop_checkbox();
+            jQuery("#affwp-graphs-filter").submit();
+        });
+        jQuery(".statistics-row-category-items .progress-item").click(updateProgressItem); 
+    });
+    
+    // handle the exports
+    window.ltpjs.setupAgentSearch = setupAgentSearch;
+    
+})(jQuery, window, wp_ajax_object.ajaxurl);

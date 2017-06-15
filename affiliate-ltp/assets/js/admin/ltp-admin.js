@@ -362,36 +362,7 @@
 
     var rowId = 1;
 
-    function setupAgentSearch(selector) {
-        var $this = $(selector),
-                $action = 'affwp_search_users',
-                $search = $this.val(),
-                $status = $this.data('affwp-status'),
-                $agent_id = $this.siblings(".agent-id");
-
-        $this.autocomplete({
-            source: ajaxurl + '?action=' + $action + '&term=' + $search + '&status=' + $status,
-            delay: 500,
-            minLength: 2,
-            position: {offset: '0, -1'},
-            select: function (event, data) {
-                $agent_id.val(data.item.user_id);
-            },
-            open: function () {
-                $this.addClass('open');
-            },
-            close: function () {
-                $this.removeClass('open');
-            }
-        });
-
-        // Unset the user_id input if the input is cleared.
-        $this.on('keyup', function () {
-            if (!this.value) {
-                $agent_id.val('');
-            }
-        });
-    }
+    
     
     function setupCommissionListActions() {
         $(".referrals .row-actions a.chargeback").click(function(event) {
@@ -410,11 +381,11 @@
     }
 
     function setupAgentScreen() {
-        setupAgentSearch("#affwp_edit_affiliate .affwp-agent-search");
+        ltpjs.setupAgentSearch("#affwp_edit_affiliate .affwp-agent-search", 'affwp_search_users');
         setupCommissionListActions();
     }
 
     $(document).ready(function () {
         setupAgentScreen();
     });
-})(jQuery, angular);
+})(jQuery, angular,window.ltpjs);
