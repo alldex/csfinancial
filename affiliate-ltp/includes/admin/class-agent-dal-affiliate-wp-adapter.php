@@ -466,7 +466,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         $sql = "SELECT 
         r.affiliate_id AS 'agent_id', 
         wu.display_name,
-        sum(rm.meta_value) as 'points' 
+        ROUND(sum(ifnull(rm.meta_value, 0)),0) as 'points' 
 FROM 
         wp_affiliate_wp_referralmeta rm -- points reference
 INNER JOIN 
