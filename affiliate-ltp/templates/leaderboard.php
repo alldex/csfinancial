@@ -21,7 +21,7 @@
 <p>
     <?= __("No data exists for your selection criteria", "affiliate-ltp"); ?>
 </p>
-<?php endif; ?>
+<?php else : ?>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -42,3 +42,4 @@
         <?php endfor; ?>
     </tbody>
 </table>
+<?php endif; ?>
