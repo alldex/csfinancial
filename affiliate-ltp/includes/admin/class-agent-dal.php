@@ -204,7 +204,8 @@ interface Agent_DAL {
     function get_agent_ids_by_rank( $rank_id );
     
     /**
-     * Searches the agents by their name(display name, username) and rank.
+     * Searches the agents by their name(display name, username) and rank. Returns
+     * array in format of ["id" => number, "display_name" => string];
      * @param string $name
      * @param string $rank
      */

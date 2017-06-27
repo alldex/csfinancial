@@ -21,7 +21,9 @@ use AffiliateLTP\Agent_Checklist_AJAX;
 use AffiliateLTP\Agent_Partner_Search_AJAX;
 use AffiliateLTP\admin\Affiliates;
 
-use Agent_Commands;
+use AffiliateLTP\dashboard\Agent_Events;
+
+use AffiliateLTP\commands\Command_Registration;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -97,7 +99,7 @@ class Plugin {
         // so we can check to see if its active
         add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
             
-                $new_tabs = array_merge( $tabs, array( 'organization', 'signup') );
+                $new_tabs = array_merge( $tabs, array( 'organization', 'events', 'signup') );
                 return $new_tabs;
         } );
         
@@ -107,13 +109,11 @@ class Plugin {
         add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsToGraphTab' ), 10, 1);
         
         $this->add_plugin_scripts_and_styles();
-        
-        $this->register_cli_commands();
     }
     
     private function register_cli_commands() {
         if (class_exists('WP_CLI')) {
-            $command_registration = new commands\Command_Registration($this->get_agent_dal());
+            $command_registration = new Command_Registration($this->get_settings_dal(), $this->get_agent_dal());
             $command_registration->register();
         }
     }
@@ -264,6 +264,10 @@ class Plugin {
     }
     
     public function setup_dependent_objects() {
+        
+        // need to register commands after the other plugins have executed.
+        $this->register_cli_commands();
+        
         $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
         $this->progress_items = new Progress_Item_DB();
         $this->commission_request_db = new Commission_Request_DB();
@@ -285,6 +289,8 @@ class Plugin {
                     $this->get_commission_dal(), $settings_dal);
         }
         $leaderboards = new leaderboards\Leaderboards($this->get_settings_dal(), $this->get_agent_dal());
+        
+        new Agent_Events($this->get_settings_dal(), $this->get_template_loader());
     }
 
     /**
@@ -382,6 +388,14 @@ class Plugin {
             ?>
             <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'organization' ? ' active' : ''; ?>">
                 <a href="<?php echo esc_url( add_query_arg( 'tab', 'organization' ) ); ?>"><?php _e( 'Organization', 'affiliate-ltp' ); ?></a>
+            </li>
+                <?php	
+        }
+        
+        if (affwp_affiliate_area_show_tab( 'events' )) {
+            ?>
+            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'events' ? ' active' : ''; ?>">
+                <a href="<?php echo esc_url( add_query_arg( 'tab', 'events' ) ); ?>"><?php _e( 'Events', 'affiliate-ltp' ); ?></a>
             </li>
                 <?php	
         }

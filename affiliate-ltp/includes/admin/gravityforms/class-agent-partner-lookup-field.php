@@ -17,11 +17,12 @@ use AffiliateLTP\Plugin;
  */
 class Agent_Partner_Lookup_Field extends GF_Field {
     
+    const TYPE = 'agent-partner-lookup';
     /**
      * Unique name of the type of field this is for gravity forms.
      * @var type 
      */
-    public $type = 'agent-partner-lookup';
+    public $type = self::TYPE;
     
     /**
      * Returns the title of the field that shows up on the editor fields menu.

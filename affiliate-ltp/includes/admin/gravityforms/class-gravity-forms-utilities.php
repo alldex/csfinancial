@@ -54,6 +54,27 @@ class Gravity_Forms_Utilities {
 
         return false;
     }
+    
+    public static function get_form_field_id_by_label($form, $label) {
+        $field_id = false;
+        if (!($form || $label || isset($form['fields']))) {
+            return $field_id;
+        }
+        
+        // get form fields
+        $fields = $form['fields'];
+        foreach ($fields as $field) {
+
+                if (isset($field['label']) && $label == $field['label']) {
+
+                    $field_id = $field['id'];
+
+                    break;
+                }
+            }
+        
+        return $field_id;
+    }
 
     public static function get_form_field_id($form, $field_type = '') {
 

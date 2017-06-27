@@ -14,6 +14,7 @@ use AffiliateLTP\admin\GravityForms\Agent_Partner_Lookup_Field;
 use AffiliateLTP\admin\GravityForms\Agent_Register;
 use AffiliateLTP\admin\GravityForms\Stripe_Errors_Ommissions;
 use AffiliateLTP\Plugin;
+use GFAPI;
 
 GFForms::include_addon_framework();
 
@@ -25,6 +26,11 @@ GFForms::include_addon_framework();
  */
 class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
 
+    /**
+     * The maximum number of form events to attempt to retrieve and display.
+     */
+    CONST MAXIMUM_EVENT_FORM_ENTRIES = 5000;
+    
     protected $_version = GF_LIFETESTPREP_ADDON_VERSION;
     protected $_min_gravityforms_version = '1.9';
     protected $_slug = 'affiliate-ltp';
@@ -64,6 +70,90 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
             if (Plugin::STRIPE_EO_HANDLING_ENABLED) {
                 new Stripe_Errors_Ommissions(Plugin::instance()->get_settings_dal());
             }
+            new Event();
         }
+    }
+    
+    public function get_forms_by_setting($settingName, $settingValue) {
+        $forms = GFAPI::get_forms();
+        $filter = function($a) use($settingName,$settingValue) {
+            return $a && ($a[$settingName] == $settingValue); 
+        };
+        $filtered_forms = array_filter($forms, $filter);
+        return $filtered_forms;
+    }
+    
+    private function get_entries_for_partner( $form, $partner_id ) {
+        $fields = GFAPI::get_fields_by_type($form, array(Agent_Partner_Lookup_Field::TYPE));
+        $field_ids = array_map(function($fd) { return $fd['id'];}, $fields);
+
+        $field_filters = array_map(function($fd) use($partner_id) { return ['key' => $fd, 'value' => $partner_id ]; }, $field_ids);
+        $search_criteria = [
+            'status' => 'active'
+            ,'field_filters' => $field_filters
+        ];
+        return GFAPI::get_entries($form['id'], $search_criteria);
+    }
+    
+    /**
+     * Retrieves all of the event data for the entire company organized
+     * by event then by partner and then by attendees.
+     * @param type $form
+     */
+    public function get_all_event_data( $form ) {
+        $sorting_criteria = null;
+        
+        $agent_dal = Plugin::instance()->get_agent_dal();
+        
+        $paging = ['page_size' => self::MAXIMUM_EVENT_FORM_ENTRIES];
+        $entries = GFAPI::get_entries($form['id'], ['status' => 'active'], $sorting_criteria, $paging);
+        $partner_data = [];
+        if (!empty($entries)) {
+            foreach ($entries as $entry) {
+                $entry_data = $this->get_entry_event_data($form, $entry);
+                $partner_id = !empty($entry_data['partner_id']) ? $entry_data['partner_id'] : 'unassigned';
+                if (empty($partner_data[$partner_id])) {
+                    $name = ($partner_id === "unassigned") ? "No Partner" : $agent_dal->get_agent_name($partner_id);
+                    $partner_data[$partner_id] = ["registrants" => [], "name" => $name];
+                }
+                $partner_data[$partner_id]["registrants"][] = $entry_data;
+            }
+        }
+        return ["title" => $form['title'], "partners" => $partner_data];
+//        return $mappedEntries;
+    }
+    
+    public function get_event_data_for_agent( $form, $agent_id ) {
+        $entries = $this->get_entries_for_partner( $form, $agent_id );
+        
+        $mappedEntries = [];
+        if (!empty($entries)) {
+            foreach ($entries as $entry) {
+                $mappedEntries[] = $this->get_entry_event_data($form, $entry);
+            }
+        }
+        return ["title" => $form['title'], "registrants" => $mappedEntries];
+    }
+    
+    private function get_entry_event_data($form, $entry) {
+        $name_id = Gravity_Forms_Utilities::get_form_field_id_by_label($form, 'Name');
+        $spouse_id = Gravity_Forms_Utilities::get_form_field_id_by_label($form, 'Spouse if attending');
+        $total_id = Gravity_Forms_Utilities::get_form_field_id_by_label($form, 'Total');
+
+
+        $name = $this->get_field_value($form, $entry, $name_id);
+        $spouse = $this->get_field_value($form, $entry, $spouse_id);
+        $paid_total = $this->get_field_value($form, $entry, $total_id);
+        $partner_id = Gravity_Forms_Utilities::get_form_field_value($form, $entry, 'agent-partner-lookup');
+
+
+        $entry_data = ['name' => $name, 'spouse' => $spouse
+                        , 'price_paid' => money_format("%i", $paid_total)
+                        , 'partner_id' => $partner_id];
+        return $entry_data;
+    }
+    
+    public function get_event_forms() {
+        return $this->get_forms_by_setting(Event::FORM_SETTING_NAME, "1");
     }
 }
