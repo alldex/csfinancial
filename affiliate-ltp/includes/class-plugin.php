@@ -121,13 +121,15 @@ class Plugin {
     private function add_plugin_scripts_and_styles() {
         $includePath = AFFILIATE_LTP_PLUGIN_URL;
         
+        wp_enqueue_script("jqueryui-accordion", $includePath . 'assets/js/accordion.min.js', array('jquery'), '1.11.2');
+        
         wp_enqueue_style('fancy-box', $includePath . 'assets/fancybox/source/jquery.fancybox.css');
         wp_enqueue_script('fancy-box', $includePath . 'assets/fancybox/source/jquery.fancybox.js', array('jquery'));
         
         wp_enqueue_style( 'affiliate-ltp', $includePath . 'assets/css/affiliate-ltp.css', array('fancy-box') );
         
         error_log("including affiliate-ltp-core");
-        wp_enqueue_script( 'affiliate-ltp-core', $includePath . 'assets/js/affiliate-ltp-core.js', array( 'jquery', 'fancy-box'  ) );
+        wp_enqueue_script( 'affiliate-ltp-core', $includePath . 'assets/js/affiliate-ltp-core.js', array( 'jquery', 'fancy-box', 'jqueryui-accordion'  ) );
         wp_localize_script( 'affiliate-ltp-core', 'wp_ajax_object',
             array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
         // make sure it's always there...

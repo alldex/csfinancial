@@ -92,6 +92,8 @@
             jQuery("#affwp-graphs-filter").submit();
         });
         jQuery(".statistics-row-category-items .progress-item").click(updateProgressItem); 
+        // set default active to be false so they are all collapsed.
+        jQuery(".events-accordion").accordion({collapsible: true, heightStyle: "content", active:false});
     });
     
     // handle the exports
