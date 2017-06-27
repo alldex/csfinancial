@@ -98,8 +98,12 @@ class Plugin {
         
         // so we can check to see if its active
         add_filter( 'affwp_affiliate_area_tabs', function( $tabs ) {
-            
-                $new_tabs = array_merge( $tabs, array( 'organization', 'events', 'signup') );
+                $is_partner = self::instance()->get_partner_status_for_current_agent();
+                $add_tabs = ['organization', 'signup'];
+                if ($is_partner) {
+                    $add_tabs[] = 'events';
+                }
+                $new_tabs = array_merge( $tabs, $add_tabs );
                 return $new_tabs;
         } );
         
@@ -385,6 +389,8 @@ class Plugin {
      */
     public function add_agent_tabs( $affiliate_id, $active_tab ) {
         
+        $is_partner = $this->get_partner_status_for_current_agent();
+        
         // make sure we only show the tab if it hasn't been filtered out.
         if (affwp_affiliate_area_show_tab( 'organization' )) {
             ?>
@@ -394,7 +400,7 @@ class Plugin {
                 <?php	
         }
         
-        if (affwp_affiliate_area_show_tab( 'events' )) {
+        if ($is_partner && affwp_affiliate_area_show_tab( 'events' )) {
             ?>
             <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'events' ? ' active' : ''; ?>">
                 <a href="<?php echo esc_url( add_query_arg( 'tab', 'events' ) ); ?>"><?php _e( 'Events', 'affiliate-ltp' ); ?></a>
