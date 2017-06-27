@@ -583,7 +583,6 @@ ORDER BY recruits DESC, u.display_name  LIMIT %d";
         foreach ($agent_ids as $id) {
             $agent = affwp_get_affiliate($id);
             $userData = get_userdata( $agent->user_id );
-            error_log($userData->display_name . " contains? " . $lcSearch . " = " . strpos(strtolower($userData->display_name), $lcSearch));
             if (strpos(strtolower($userData->display_name), $lcSearch) !== false
                     || strpos(strtolower($userData->username), $lcSearch) !== false)
             {
