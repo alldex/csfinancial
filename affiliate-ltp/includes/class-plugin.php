@@ -24,6 +24,7 @@ use AffiliateLTP\admin\Affiliates;
 use AffiliateLTP\dashboard\Agent_Events;
 
 use AffiliateLTP\commands\Command_Registration;
+use AffiliateLTP\stripe\Subscriptions;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -278,6 +279,8 @@ class Plugin {
         $this->progress_items = new Progress_Item_DB();
         $this->commission_request_db = new Commission_Request_DB();
         $this->template_loader = new Template_Loader();
+        $settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
+        $subscriptions = new Subscriptions($settings_dal, $this->get_template_loader());
         
         // setup chart hooks and handlers (mem references will be retained by the hooks).
         $agent_org_chart_handler = new charts\Agent_Organization_Chart();
@@ -287,16 +290,14 @@ class Plugin {
         if (is_admin()) {
             $this->adminReferrals = new Referrals($this->referralMeta);
             // TODO: stephen look at renaming the AdminMenu to keep with our naming convention
-            $adminMenu = new Menu($this->adminReferrals);
-            
-            $settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
-            
+            $adminMenu = new Menu($this->adminReferrals, $subscriptions);
             $tools = new Tools($this->get_agent_dal(), $this->getSugarCRM(),
                     $this->get_commission_dal(), $settings_dal);
         }
-        $leaderboards = new leaderboards\Leaderboards($this->get_settings_dal(), $this->get_agent_dal());
+        $leaderboards = new leaderboards\Leaderboards($settings_dal, $this->get_agent_dal());
         
-        new Agent_Events($this->get_settings_dal(), $this->get_template_loader());
+        new Agent_Events($settings_dal, $this->get_template_loader());
+        
     }
 
     /**

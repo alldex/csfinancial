@@ -2,6 +2,7 @@
 namespace AffiliateLTP\admin;
 
 use AffiliateLTP\admin\Referrals;
+use AffiliateLTP\stripe\Subscriptions;
 
 class Menu {
 
@@ -12,9 +13,10 @@ class Menu {
      */
     private $referrals;
 
-	public function __construct(Referrals $referrals) {
+	public function __construct(Referrals $referrals, Subscriptions $subscriptions) {
 		add_action( 'admin_menu', array( $this, 'register_menus' ), 100 );
                 $this->referrals = $referrals;
+                $this->subscriptions = $subscriptions;
 	}
 
 	public function register_menus() {
@@ -32,6 +34,7 @@ class Menu {
                 
                 // add it again but we are redoing the work here
                 add_submenu_page( 'affiliate-wp', __( 'Referrals', 'affiliate-wp' ), __( 'Referrals', 'affiliate-wp' ), 'manage_referrals', 'affiliate-wp-referrals', array($this->referrals, 'handleAdminSubMenuPage') );
+                add_submenu_page( 'affiliate-wp', __( 'Subscriptions', 'affiliate-ltp' ), __( 'EO Subscriptions', 'affiliate-ltp' ), 'manage_referrals', 'affiliate-ltp-subscriptions', array($this->subscriptions, 'handleAdminSubMenuPage') );
             
 //                add_menu_page( __( 'Affiliates', 'affiliate-wp' ), __( 'Affiliates', 'affiliate-wp' ), 'view_affiliate_reports', 'affiliate-wp', 'affwp_affiliates_dashboard' );
 //		add_submenu_page( 'affiliate-wp', __( 'Overview', 'affiliate-wp' ), __( 'Overview', 'affiliate-wp' ), 'view_affiliate_reports', 'affiliate-wp', 'affwp_affiliates_dashboard' );

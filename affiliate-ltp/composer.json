@@ -1,5 +1,6 @@
 {
     "require": {
         "league/csv": "^8.0"
+	,"stripe/stripe-php": "4.*"
     }
 }
