@@ -49,12 +49,12 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     private $referrals_table;
 
-    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
+    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb, Agent_DAL $agent_dal) {
         $this->referralMetaDb = $referralMetaDb;
         // see the commissions table for the hooks that alter the affiliate_referrals_list table.
         
         $this->commission_dal = new Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
-        $this->agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
+//        $this->agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
         $this->settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
         $this->referrals_table = new Commissions_Table($this->commission_dal, $this->settings_dal->get_company_agent_id());
     }

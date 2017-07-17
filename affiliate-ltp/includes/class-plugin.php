@@ -3,29 +3,11 @@ namespace AffiliateLTP;
 
 use \AffiliateWP_Multi_Level_Marketing;
 use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
-use AffiliateLTP\admin\Menu;
-use AffiliateLTP\admin\Referrals;
-use AffiliateLTP\admin\Settings;
-use AffiliateLTP\admin\Tools;
 use AffiliateLTP\Progress_Item_DB;
 use AffiliateLTP\admin\Agent_DAL;
-use AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter;
 use AffiliateLTP\admin\Settings_DAL;
-use AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter;
-
 use AffiliateLTP\Sugar_CRM_DAL;
 use AffiliateLTP\Sugar_CRM_DAL_Localhost;
-
-use AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap;
-use AffiliateLTP\Agent_Checklist_AJAX;
-use AffiliateLTP\Agent_Partner_Search_AJAX;
-use AffiliateLTP\Agent_Search_AJAX;
-use AffiliateLTP\admin\Affiliates;
-
-use AffiliateLTP\dashboard\Agent_Events;
-use AffiliateLTP\dashboard\Agent_Promotions;
-
-use AffiliateLTP\commands\Command_Registration;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -75,7 +57,9 @@ class Plugin {
     public function __construct() {
         
         $this->container = new ContainerBuilder();
-        $this->container->register('agent_dal', 'AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter');
+        $this->container->register('progress_items', 'AffiliateLTP\Progress_Item_DB');
+        $this->container->register('agent_dal', 'AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter')
+                ->addArgument(new Reference("progress_items"));
         $this->container->register('settings_dal', 'AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter');
          if (self::LOCALHOST_RESTRICTED) {
              $this->container->register("sugarcrm", "AffiliateLTP\Sugar_CRM_DAL_Localhost");
@@ -83,15 +67,6 @@ class Plugin {
         else {
             $this->container->register("sugarcrm", "AffiliateLTP\Sugar_CRM_DAL");
         }
-        
-        /**
-        $this->register_hooks_and_actions([ 
-            'referralMeta', 'progress_items', 'commission_request_db'
-            , 'template_load', 'agent_org_chart_handler', 'agent_emails'
-            ,'leaderboards', 'agent_events', 'agent_promotions'
-        ]);
-         * 
-         */
         
         $this->container->register('settings', 'AffiliateLTP\admin\Settings');
           $this->container->register("shortcodes", "AffiliateLTP\Shortcodes");
@@ -104,18 +79,19 @@ class Plugin {
                 ->addArgument(new Reference('agent_dal'))
                 ->addArgument(new Reference('settings_dal'));
         $this->container->register("affiliates", "AffiliateLTP\admin\Affiliates");
-         $this->container->register('referralMeta', 'AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB');
-        $this->container->register('progress_items', 'AffiliateLTP\Progress_Item_DB');
+        $this->container->register('referralMeta', 'AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB');
         $this->container->register('commission_request_db', 'AffiliateLTP\Commission_Request_DB');
         $this->container->register('template_loader', 'AffiliateLTP\Template_Loader');
-        $this->container->register('agent_org_chart_handler', 'AffiliateLTP\charts\Agent_Organization_Chart');
+        $this->container->register('agent_org_chart_handler', 'AffiliateLTP\charts\Agent_Organization_Chart')
+                ->addArgument(new Reference("agent_dal"));
         $this->container->register('agent_emails', 'AffiliateLTP\Agent_Emails')
                 ->addArgument(new Reference("agent_dal"))
                 ->addArgument(new Reference("settings_dal"));
         $this->container->register("commission_dal", "AffiliateLTP\admin\Commission_DAL_Affiliate_WP_Adapter")
                 ->addArgument(new Reference("referralMeta"));
         $this->container->register('referrals', 'AffiliateLTP\admin\Referrals')
-                ->addArgument(new Reference('referralMeta'));
+                ->addArgument(new Reference('referralMeta'))
+                ->addArgument(new Reference('agent_dal'));
         $this->container->register('adminMenu', 'AffiliateLTP\admin\Menu')
                 ->addArgument(new Reference('referrals'));
         $this->container->register('tools', 'AffiliateLTP\admin\Tools')
@@ -135,6 +111,10 @@ class Plugin {
         $this->container->register("Agent_Promotions", "AffiliateLTP\dashboard\Agent_Promotions")
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("template_loader"));
+        $this->container->register('upgrades', 'AffiliateLTP\admin\Upgrades')
+                ->addArgument(new Reference('referralMeta'))
+                ->addArgument(new Reference('progress_items'))
+                ->addArgument(new Reference('commission_request_db'));
         
         if( is_admin() ) {
             $this->register_hooks_and_actions('settings');
@@ -336,14 +316,6 @@ class Plugin {
         return $this->referralMeta;
     }
     
-    /*
-     * Retrieves the progress item database
-     * @return Progress_Item_DB
-     */
-    public function get_progress_items_db() {
-        return $this->progress_items;
-    }
-    
     /**
      * Retrieves the commission request db
      * @return Commission_Request_DB
@@ -367,7 +339,7 @@ class Plugin {
         
         // TODO: stephen need to search and replace this referralMeta garbage inconsistency
         $this->register_hooks_and_actions([ 
-            'referralMeta', 'progress_items', 'commission_request_db'
+            'upgrades','referralMeta', 'progress_items', 'commission_request_db'
             , 'template_loader', 'agent_org_chart_handler', 'agent_emails'
             ,'leaderboards', 'agent_events', 'agent_promotions'
         ]);

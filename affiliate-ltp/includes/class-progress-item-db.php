@@ -5,6 +5,10 @@
  */
 
 namespace AffiliateLTP;
+
+if (!class_exists("\Affiliate_WP_DB")) {
+    require_once dirname(AFFILIATE_LTP_PLUGIN_DIR) . "/affiliate-wp/includes/abstracts/class-db.php";
+}
 use Affiliate_WP_DB;
 
 /**

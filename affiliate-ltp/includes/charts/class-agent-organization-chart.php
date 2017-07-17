@@ -7,7 +7,7 @@
 
 namespace AffiliateLTP\charts;
 
-use AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter;
+use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter;
 use AffiliateLTP\Agent_Tree_Partner_Filterer;
 /**
@@ -16,7 +16,16 @@ use AffiliateLTP\Agent_Tree_Partner_Filterer;
  * @author snielson
  */
 class Agent_Organization_Chart implements \AffiliateLTP\I_Register_Hooks_And_Actions{
-    public function __construct() {}
+    
+    /**
+     * Agent database service
+     * @var Agent_DAL
+     */
+    private $agent_dal;
+    
+    public function __construct(Agent_DAL $agent_dal) {
+        $this->agent_dal = $agent_dal;
+    }
     
     public function register_hooks_and_actions() {
         remove_action('affwp_mlm_show_sub_affiliates', 'affwp_mlm_connect_affiliates', 10);
@@ -38,7 +47,7 @@ class Agent_Organization_Chart implements \AffiliateLTP\I_Register_Hooks_And_Act
     }
     
     public function render_organization_tree($agent_id) {
-        $agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
+        $agent_dal = $this->agent_dal;
         $settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
         $filterer = null;
         $checklist_filterer = new Agent_Checklist_Filterer($agent_dal, $settings_dal);

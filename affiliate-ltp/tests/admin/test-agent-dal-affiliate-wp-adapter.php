@@ -8,6 +8,7 @@
 namespace AffiliateLTP\admin;
 
 use AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter;
+use AffiliateLTP\Progress_Item_DB;
 
 /**
  * Test the Agent DAL Affiliate WP Adapter
@@ -39,7 +40,8 @@ class Test_Agent_DAL_Affiliate_WP_Adapter extends \WP_UnitTestCase {
                  Agent_DAL_Affiliate_WP_Adapter::AFFILIATE_META_KEY_COLEADERSHIP_AGENT_ID, 
                  $coleadership_id);
          
-         $agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
+         $items_db = new Progress_Item_DB();
+         $agent_dal = new Agent_DAL_Affiliate_WP_Adapter($items_db);
          $ids = $agent_dal->get_coleadership_sponsored_agent_ids($coleadership_id);
          $this->assertEquals([$affiliate_id], $ids, "affiliate id for coleadership should have been found");
      }

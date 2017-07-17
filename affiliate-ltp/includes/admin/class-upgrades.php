@@ -2,21 +2,51 @@
 namespace AffiliateLTP\admin;
 
 use AffiliateLTP\Plugin;
+use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
+use AffiliateLTP\Progress_Item_DB;
+use AffiliateLTP\Commission_Request_DB;
 
 /**
  * Handles database upgrades of the plugin.
  *
  * @author snielson
  */
-class Upgrades {
+class Upgrades implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     /*
      * Whether an upgrade occurred or not.
      */
     private $upgraded = false;
-    public function __construct() {
-        add_action( 'admin_init', array( $this, 'init' ), -9999 );
+    
+    /**
+     *
+     * @var Affiliate_WP_Referral_Meta_DB 
+     */
+    private $referral_meta;
+    
+    /**
+     *
+     * @var Progress_Item_DB 
+     */
+    private $item_db;
+    /**
+     *
+     * @var Commission_Request_DB 
+     */
+    private $commission_request_db;
+    
+    public function __construct(Affiliate_WP_Referral_Meta_DB $referral_meta
+            ,  Progress_Item_DB $item_db
+            ,  Commission_Request_DB $commission_request_db) {
+        $this->referral_meta = $referral_meta;
+        $this->item_db = $item_db;
+        $this->commission_request_db = $commission_request_db;
     }
     
+    
+    public function register_hooks_and_actions() {
+        add_action( 'admin_init', array( $this, 'init' ), -9999 );
+    }
+
     public function init() {
         $version = get_option( 'affwp_ltp_version' );
         if ( empty( $version ) ) {
@@ -45,21 +75,20 @@ class Upgrades {
     public function v0_1_0_upgrades() {
         // TODO: stephen I don't like this being public... is there a better
         // way to do this?
-        Plugin::instance()->referralMeta->create_table();
+        $this->referral_meta->create_table();
     }
     
     public function v0_2_0_upgrades() {
         // TODO: stephen I don't like this being public... is there a better
         // way to do this?
-        Plugin::instance()->get_progress_items_db()->create_table();
+        $this->item_db->create_table();
     }
     
     public function v0_3_0_upgrades() {
         // TODO: stephen I don't like this being public... is there a better
         // way to do this?
-        Plugin::instance()->get_commission_request_db()->create_table();
+        $this->commission_request_db->create_table();
         $this->upgraded = true;
     }
-    
+
 }
-new Upgrades();

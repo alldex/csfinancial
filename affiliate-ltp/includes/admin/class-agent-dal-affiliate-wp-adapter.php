@@ -6,6 +6,7 @@ namespace AffiliateLTP\admin;
  use AffiliateLTP\Agent_Tree_Node;
  use AffiliateLTP\Agent_Coleadership_Tree_Node;
  use AffiliateLTP\admin\Life_License_Status;
+ use AffiliateLTP\Progress_Item_DB;
  
 /**
  * Description of class-agent-dal-affiliate-wp-adapter
@@ -13,6 +14,14 @@ namespace AffiliateLTP\admin;
  * @author snielson
  */
 class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
+    /*
+     * Progress_Items_DB
+     */
+    private $progress_items_db;
+    
+    public function __construct(Progress_Item_DB $progress_items_db) {
+        $this->progress_items_db = $progress_items_db;
+    }
     
     const AFFILIATE_META_KEY_COLEADERSHIP_AGENT_ID = 'coleadership_agent_id';
     const AFFILIATE_META_KEY_COLEADERSHIP_AGENT_RATE = 'coleadership_agent_rate';
@@ -265,7 +274,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         }
         
         // now we need to get affiliate meta data
-        $agent_items = Plugin::instance()->get_progress_items_db()->get_progress_items( $agent_id );
+        $agent_items = $this->progress_items_db->get_progress_items( $agent_id );
         if (!empty($agent_items)) {
             // merge the agent items with the global checklist items.
             foreach ($agent_items as $agent_item) {
@@ -294,7 +303,7 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         // if it does exist it will update the completed date on the item.
         
         
-        $progress_item = Plugin::instance()->get_progress_items_db()->get_by_admin_id($agent_id, $progress_item_admin_id);
+        $progress_item = $this->progress_items_db->get_by_admin_id($agent_id, $progress_item_admin_id);
         if (empty($progress_item)) {
             $progress_items = affiliate_wp()->settings->get( 'affwp_ltp_progress_items' );
             foreach ($progress_items as $item) {
@@ -320,11 +329,11 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
         }
         
         if (empty($progress_item['progress_item_id'])) {
-            $item_id = Plugin::instance()->get_progress_items_db()->add($progress_item);
+            $item_id = $this->progress_items_db->add($progress_item);
             return $item_id !== false;
         }
         else {
-            return Plugin::instance()->get_progress_items_db()->update($progress_item['progress_item_id'], $progress_item);
+            return $this->progress_items_db->update($progress_item['progress_item_id'], $progress_item);
         }
     }
     
