@@ -228,15 +228,6 @@ class Plugin {
     
     /**
      * 
-     * @return \AffiliateLTP\admin\Commission_DAL
-     */
-    public function get_commission_dal() {
-        // TODO: stephen I really don't like this
-        return new admin\Commission_Dal_Affiliate_WP_Adapter($this->referralMeta);
-    }
-    
-    /**
-     * 
      * @return Agent_DAL
      */
     public function get_agent_dal() {
