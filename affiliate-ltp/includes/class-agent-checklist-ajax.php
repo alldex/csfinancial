@@ -12,20 +12,32 @@ namespace AffiliateLTP;
  *
  * @author snielson
  */
-class Agent_Checklist_AJAX {
+class Agent_Checklist_AJAX implements I_Register_Hooks_And_Actions {
 
-    public function __construct() {
+    /**
+     *
+     * @var LoggerInterface
+     */
+    private $logger;
+    
+    public function __construct(\Psr\Log\LoggerInterface $logger) {
+        $this->logger = $logger;
+    }
+    
+    public function register_hooks_and_actions() {
         add_action('wp_ajax_affwp_ltp_save_progress_item', array($this, 'save_progress_item'));
     }
+    
 
     public function save_progress_item() {
+        $this->logger->info("save_progress_item called");
         $agent_id = absint(filter_input(INPUT_POST, 'agent_id'));
         $progress_item_admin_id = absint(filter_input(INPUT_POST, 'progress_item_admin_id'));
         $completed_check = absint(filter_input(INPUT_POST, 'completed'));
         $completed = $completed_check !== 0;
         
         if (empty($agent_id) || empty($progress_item_admin_id)) {
-            error_log("save_progress_item called with empty agent_id or empty progress_item_admin_id");
+            $this->logger->error("save_progress_item called with empty agent_id or empty progress_item_admin_id");
             return;
         }
         
@@ -47,11 +59,11 @@ class Agent_Checklist_AJAX {
             $success = $agent_dal->update_agent_progress_item($agent_id, $progress_item_admin_id, $completed);
             if (!$success) {
                 // TODO: stephen need to report back to the client that the item failed.
-                error_log("failed to update agent progress item with agent_id $agent_id and progress_item_admin_id $progress_item_admin_id and completed $completed_check");
+                $this->logger->error("failed to update agent progress item with agent_id $agent_id and progress_item_admin_id $progress_item_admin_id and completed $completed_check");
             }
         }
         else {
-            error_log("save_progress_item called with incorrect permissions.  Current agent $current_user_agent_id has agent rank of $agent_rank");
+            $this->logger->error("save_progress_item called with incorrect permissions.  Current agent $current_user_agent_id has agent rank of $agent_rank");
         }
     }
 }

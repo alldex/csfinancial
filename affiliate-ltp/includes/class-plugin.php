@@ -10,6 +10,9 @@ use AffiliateLTP\Sugar_CRM_DAL;
 use AffiliateLTP\Sugar_CRM_DAL_Localhost;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -56,7 +59,11 @@ class Plugin {
     
     public function __construct() {
         
+        $logger = new Logger('affiliate-ltp');
+        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::WARNING));
+        
         $this->container = new ContainerBuilder();
+        $this->container->set("logger", $logger);
         $this->container->register('progress_items', 'AffiliateLTP\Progress_Item_DB');
         $this->container->register('agent_dal', 'AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter')
                 ->addArgument(new Reference("progress_items"));
@@ -71,7 +78,8 @@ class Plugin {
         $this->container->register('settings', 'AffiliateLTP\admin\Settings');
           $this->container->register("shortcodes", "AffiliateLTP\Shortcodes");
         $this->container->register("gravityforms_bootstrap", "AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap");
-        $this->container->register("ajax_agent_checklist", "AffiliateLTP\Agent_Checklist_AJAX");
+        $this->container->register("ajax_agent_checklist", "AffiliateLTP\Agent_Checklist_AJAX")
+                ->addArgument(new Reference("logger"));
         $this->container->register("ajax_agent_partner_search", "AffiliateLTP\Agent_Partner_Search_AJAX")
                 ->addArgument(new Reference('agent_dal'))
                 ->addArgument(new Reference('settings_dal'));
@@ -126,7 +134,7 @@ class Plugin {
         // these have actions in their constructors so we need to initialize them.
         $this->register_hooks_and_actions([
             'shortcodes', 'gravityforms_bootstrap', 'ajax_agent_partner_search'
-            , 'ajax_agent_search', 'affiliates'
+            , 'ajax_agent_checklist', 'ajax_agent_search', 'affiliates'
         ]);
                 
         // come in last here.

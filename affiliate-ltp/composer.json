@@ -1,6 +1,7 @@
 {
     "require": {
         "league/csv": "^8.0",
-        "symfony/dependency-injection": "^3.3"
+        "symfony/dependency-injection": "^3.3",
+        "monolog/monolog": "^1.23"
     }
 }
