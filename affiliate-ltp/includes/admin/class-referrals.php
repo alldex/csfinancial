@@ -22,7 +22,7 @@ use AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter;
  *
  * @author snielson
  */
-class Referrals {
+class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     /**
      *
@@ -50,6 +50,19 @@ class Referrals {
     private $referrals_table;
 
     public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb) {
+        $this->referralMetaDb = $referralMetaDb;
+        // see the commissions table for the hooks that alter the affiliate_referrals_list table.
+        
+        $this->commission_dal = new Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
+        $this->agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
+        $this->settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
+        $this->referrals_table = new Commissions_Table($this->commission_dal, $this->settings_dal->get_company_agent_id());
+    }
+    
+    public function register_hooks_and_actions() {
+        // TODO: stephen when dealing with rejecting / overridding commissions uncomment this piece.
+        //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
+        
         remove_action('affwp_add_referral', 'affwp_process_add_referral');
         add_action('affwp_add_referral', array($this, 'processAddReferralRequest'));
 
@@ -65,17 +78,6 @@ class Referrals {
         add_action('affwp_generate_commission_payout', array($this, 'generateCommissionPayoutFile') );
         
         add_action('affwp_process_delete_commission', array($this, 'process_delete_commission'));
-
-        // TODO: stephen when dealing with rejecting / overridding commissions uncomment this piece.
-        //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
-
-        $this->referralMetaDb = $referralMetaDb;
-        // see the commissions table for the hooks that alter the affiliate_referrals_list table.
-        
-        $this->commission_dal = new Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
-        $this->agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
-        $this->settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
-        $this->referrals_table = new Commissions_Table($this->commission_dal, $this->settings_dal->get_company_agent_id());
     }
 
     public function generateCommissionPayoutFile( $data ) {

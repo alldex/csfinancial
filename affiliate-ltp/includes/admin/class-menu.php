@@ -3,7 +3,7 @@ namespace AffiliateLTP\admin;
 
 use AffiliateLTP\admin\Referrals;
 
-class Menu {
+class Menu implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     // TODO: stephen we should probably setup some kind of registry here
     /**
@@ -13,9 +13,12 @@ class Menu {
     private $referrals;
 
 	public function __construct(Referrals $referrals) {
-		add_action( 'admin_menu', array( $this, 'register_menus' ), 100 );
                 $this->referrals = $referrals;
 	}
+        
+        public function register_hooks_and_actions() {
+            add_action( 'admin_menu', array( $this, 'register_menus' ), 100 );
+        }
 
 	public function register_menus() {
             global $wp_filter;

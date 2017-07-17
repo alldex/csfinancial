@@ -10,7 +10,7 @@ use Affiliate_WP_DB;
 /**
  * Core class used to implement the progress item table.
  */
-class Commission_Request_DB extends Affiliate_WP_DB {
+class Commission_Request_DB extends Affiliate_WP_DB implements I_Register_Hooks_And_Actions {
     
     const PRIMARY_KEY = 'commission_request_id';
     const VERSION = '1.0';
@@ -33,6 +33,8 @@ class Commission_Request_DB extends Affiliate_WP_DB {
 		$this->primary_key = self::PRIMARY_KEY;
 		$this->version     = self::VERSION;
 	}
+        
+        public function register_hooks_and_actions() {}
 
 	/**
 	 * Retrieves the table columns and data types.

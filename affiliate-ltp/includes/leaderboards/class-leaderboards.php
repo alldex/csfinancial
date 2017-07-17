@@ -20,7 +20,7 @@ use AffiliateLTP\Agent_Tree_Transformer;
  *
  * @author snielson
  */
-class Leaderboards {
+class Leaderboards implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     
     /**
      * Settings dal
@@ -37,6 +37,9 @@ class Leaderboards {
     public function __construct(Settings_DAL $settings_dal, Agent_DAL $agent_dal) {
         $this->settings_dal = $settings_dal;
         $this->agent_dal = $agent_dal;
+    }
+    
+    public function register_hooks_and_actions() {
         add_shortcode("leaderboard_agent_points", array($this, 'leaderboard_agent_points'));
         add_shortcode("leaderboard_agent_recruits", array($this, 'leaderboard_agent_recruits'));
         add_shortcode("leaderboard_partner_points", array($this, 'leaderboard_partner_points'));

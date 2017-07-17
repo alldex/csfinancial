@@ -5,10 +5,12 @@ namespace AffiliateLTP;
  * Copyright MyCommonSenseFinancial @2017
  * All rights reserved.
  */
-class Template_Loader
+class Template_Loader implements I_Register_Hooks_And_Actions
 {
-    public function __construct() {
-         add_filter( 'affwp_template_paths', array( $this, 'get_theme_template_paths' ) );
+    public function __construct() {}
+    
+    public function register_hooks_and_actions() {
+        add_filter( 'affwp_template_paths', array( $this, 'get_theme_template_paths' ) );
     }
     
      /**

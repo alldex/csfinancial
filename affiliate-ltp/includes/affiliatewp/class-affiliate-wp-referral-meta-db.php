@@ -15,7 +15,7 @@ use Affiliate_WP_DB;
  *
  * @see Affiliate_WP_DB
  */
-class Affiliate_WP_Referral_Meta_DB extends Affiliate_WP_DB {
+class Affiliate_WP_Referral_Meta_DB extends Affiliate_WP_DB implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
 	/**
 	 * Sets up the Affiliate Meta DB class.
@@ -34,9 +34,11 @@ class Affiliate_WP_Referral_Meta_DB extends Affiliate_WP_DB {
 		}
 		$this->primary_key = 'meta_id';
 		$this->version     = '1.0';
-
-		add_action( 'plugins_loaded', array( $this, 'register_table' ), 11 );
 	}
+        
+        public function register_hooks_and_actions() {
+            add_action( 'plugins_loaded', array( $this, 'register_table' ), 11 );
+        }
 
 	/**
 	 * Retrieves the table columns and data types.

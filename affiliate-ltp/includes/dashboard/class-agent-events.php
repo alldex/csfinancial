@@ -9,7 +9,7 @@ use AffiliateLTP\admin\GravityForms\AffiliateLTP_Gravity_Forms_Add_On;
 use AffiliateLTP\admin\Settings_DAL;
 use AffiliateLTP\Template_Loader;
 
-class Agent_Events {
+class Agent_Events implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     /**
      *
      * @var number
@@ -25,9 +25,12 @@ class Agent_Events {
     public function __construct(Settings_DAL $settings_dal, Template_Loader $template_loader) {
         // this hook gets triggered in the templates/dashboard-tab-events.php which is the way
         // the affiliate plugin works.
-        add_action("affwp_affiliate_dashboard_events_show", array($this, "show_events"));
         $this->company_agent_id = $settings_dal->get_company_agent_id();
         $this->template_loader = $template_loader;
+    }
+    
+    public function register_hooks_and_actions() {
+        add_action("affwp_affiliate_dashboard_events_show", array($this, "show_events"));
     }
     
     public function show_events( $agent_id ) {

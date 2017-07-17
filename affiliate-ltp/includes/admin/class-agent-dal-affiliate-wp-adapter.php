@@ -457,8 +457,21 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     }
     
     private function get_agent_leaderboard_data($limit, $date_filter, $company_agent_id, $partners_only = false) {
+        return $this->get_agent_summary_data($limit, $date_filter, $company_agent_id, $partners_only);
+    }
+    
+    public function get_agent_point_summary_data($limit, $date_filter
+            , $company_agent_id, $partners_only = false, $agent_ids = []) {
         global $wpdb;
         $partner_rank_id = 4;
+        
+        if (is_array($agent_ids)) {
+            $sanitized_ids = array_filter(function($val) { return !is_nan($val); }
+                                , array_map(intval, $agent_ids));
+        }
+        else {
+            $sanitized_ids = [];
+        }
         
         // TODO: stephen should we pull the the table prefixes and everything from the various affiliate and meta tables?
         
@@ -512,6 +525,10 @@ WHERE
         ) ";
         }
         
+        if (!empty($sanitized_ids)) {
+            $sql .= " AND a.affiliate_id IN (" . join(",", $sanitized_ids) . ") ";
+        }
+        
         $sql .= "
 GROUP BY  
         a.affiliate_id 
@@ -524,7 +541,6 @@ LIMIT %d; -- Limit is configurable
         
         $results = $wpdb->get_results ( $wpdb->prepare($sql, $params), ARRAY_A );
         return $results;
-        
     }
     
     

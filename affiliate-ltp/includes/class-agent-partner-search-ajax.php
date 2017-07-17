@@ -9,14 +9,14 @@
 namespace AffiliateLTP;
 use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\admin\Settings_DAL;
-
+use AffiliateLTP\I_Register_Hooks_And_Actions;
 
 /**
  * Ajax handler for searching for partners
  *
  * @author snielson
  */
-class Agent_Partner_Search_AJAX {
+class Agent_Partner_Search_AJAX implements I_Register_Hooks_And_Actions {
     
     /**
      *
@@ -33,9 +33,11 @@ class Agent_Partner_Search_AJAX {
     public function __construct(Agent_DAL $agent_dal, Settings_DAL $settings_dal) {
         $this->agent_dal = $agent_dal;
         $this->settings_dal = $settings_dal;
-        add_filter('wp_ajax_affwp_ltp_search_partners', array($this, 'ajax_search_partners'));
     }
     
+    public function register_hooks_and_actions() {
+        add_filter('wp_ajax_affwp_ltp_search_partners', array($this, 'ajax_search_partners'));
+    }
     
     public function ajax_search_partners() {
         
@@ -50,5 +52,7 @@ class Agent_Partner_Search_AJAX {
         }
         wp_die(json_encode($jsonResults)); // this is required to terminate immediately and return a proper response
     }
-   
+
+    
+
 }

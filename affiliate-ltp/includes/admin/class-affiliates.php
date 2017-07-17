@@ -8,7 +8,7 @@ namespace AffiliateLTP\admin;
  *
  * @author snielson
  */
-class Affiliates {
+class Affiliates implements \AffiliateLTP\I_Register_Hooks_And_Actions{
     
     /**
      * Used to store the agent id for a single table row item while
@@ -20,7 +20,9 @@ class Affiliates {
      */
     private $table_row_agent_id;
     
-    public function __construct() {
+    public function __construct() {}
+    
+    public function register_hooks_and_actions() {
         // add options to the edit affiliate screen
         add_action( 'affwp_edit_affiliate_end', array( $this, 'add_agent_fields_to_edit_screen' ) );
 

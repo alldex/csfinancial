@@ -19,14 +19,9 @@ define( 'GF_LIFETESTPREP_ADDON_VERSION', '1.0' );
  *
  * @author snielson
  */
-class Gravity_Forms_Bootstrap {
+class Gravity_Forms_Bootstrap implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
-    /**
-     * Hook into the gravity form events.
-     */
-    public function __construct() {
-        add_action( 'gform_loaded', array( $this, 'load' ), 5 );
-    }
+    public function __construct() {}
     
     /**
      * Using the addon framework register to the form.
@@ -40,4 +35,12 @@ class Gravity_Forms_Bootstrap {
 
         GFAddOn::register( AffiliateLTP_Gravity_Forms_Add_On::class );
     }
+
+    /**
+     * Hook into the gravity form events.
+     */
+    public function register_hooks_and_actions() {
+        add_action( 'gform_loaded', array( $this, 'load' ), 5 );
+    }
+
 }

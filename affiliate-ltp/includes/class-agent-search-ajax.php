@@ -17,7 +17,7 @@ use AffiliateLTP\admin\Settings_DAL;
  *
  * @author snielson
  */
-class Agent_Search_AJAX {
+class Agent_Search_AJAX implements I_Register_Hooks_And_Actions {
     
     /**
      *
@@ -34,7 +34,6 @@ class Agent_Search_AJAX {
     public function __construct(Agent_DAL $agent_dal, Settings_DAL $settings_dal) {
         $this->agent_dal = $agent_dal;
         $this->settings_dal = $settings_dal;
-        add_filter('wp_ajax_affwp_ltp_search_agents', array($this, 'ajax_search_agents'));
     }
     
     
@@ -50,5 +49,8 @@ class Agent_Search_AJAX {
         }
         wp_die(json_encode($jsonResults)); // this is required to terminate immediately and return a proper response
     }
-   
+
+    public function register_hooks_and_actions() {
+        add_filter('wp_ajax_affwp_ltp_search_agents', array($this, 'ajax_search_agents'));
+    }
 }

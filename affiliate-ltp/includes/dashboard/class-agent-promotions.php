@@ -8,7 +8,7 @@ namespace AffiliateLTP\dashboard;
 use AffiliateLTP\admin\Settings_DAL;
 use AffiliateLTP\Template_Loader;
 
-class Agent_Promotions {
+class Agent_Promotions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     /**
      *
      * @var number
@@ -24,9 +24,12 @@ class Agent_Promotions {
     public function __construct(Settings_DAL $settings_dal, Template_Loader $template_loader) {
         // this hook gets triggered in the templates/dashboard-tab-events.php which is the way
         // the affiliate plugin works.
-        add_action("affwp_affiliate_dashboard_promotions_show", array($this, "show_promotions"));
         $this->company_agent_id = $settings_dal->get_company_agent_id();
         $this->template_loader = $template_loader;
+    }
+    
+    public function register_hooks_and_actions() {
+        add_action("affwp_affiliate_dashboard_promotions_show", array($this, "show_promotions"));
     }
     
     public function show_promotions( $agent_id ) {

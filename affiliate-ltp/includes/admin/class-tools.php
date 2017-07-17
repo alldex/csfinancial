@@ -17,7 +17,7 @@ use AffiliateLTP\admin\Settings_DAL;
  *
  * @author snielson
  */
-class Tools {
+class Tools implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     
     /**
      *
@@ -27,11 +27,14 @@ class Tools {
     
     public function __construct(Agent_DAL $agent_dal, Sugar_CRM_DAL $sugar_dal
             , Commission_DAL $commission_dal, Settings_DAL $settings_dal ) {
+        $this->importer = new Commissions_Importer($agent_dal, $sugar_dal, $commission_dal, $settings_dal);
+    }
+    
+    public function register_hooks_and_actions() {
         add_action( 'affwp_tools_tab_export_import', array($this, 'add_import_commissions_tool' ), 20);
         
         // add the import action
         add_action( 'affwp_import_commissions', array($this, 'process_commissions_import' ) );
-        $this->importer = new Commissions_Importer($agent_dal, $sugar_dal, $commission_dal, $settings_dal);
     }
     
     public function add_import_commissions_tool() {

@@ -1,13 +1,16 @@
 <?php
 namespace AffiliateLTP;
+use AffiliateLTP\I_Register_Hooks_And_Actions;
 
 /**
  * Description of class-shortcodes
  *
  * @author snielson
  */
-class Shortcodes {
-    public function __construct() {
+class Shortcodes implements I_Register_Hooks_And_Actions {
+    public function __construct() {}
+    
+    public function register_hooks_and_actions() {
         add_shortcode( 'ltp_affiliate_area', array( $this, 'ltpAffiliateArea' ) );
     }
     

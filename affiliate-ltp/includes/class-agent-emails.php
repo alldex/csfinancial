@@ -22,7 +22,7 @@ use AffiliateLTP\admin\Settings_DAL;
  *
  * @author snielson
  */
-class Agent_Emails {
+class Agent_Emails implements I_Register_Hooks_And_Actions {
     /**
      *
      * @var Agent_DAL
@@ -44,6 +44,10 @@ class Agent_Emails {
     public function __construct(Agent_DAL $agent_dal, Settings_DAL $settings_dal) {
         $this->agent_dal = $agent_dal;
         $this->settings_dal = $settings_dal;
+        
+    }
+    
+    public function register_hooks_and_actions() {
         add_action("affwp_register_user", array($this, 'email_base_shop'), 10, 3);
     }
     

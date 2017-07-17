@@ -26,6 +26,8 @@ use AffiliateLTP\dashboard\Agent_Events;
 use AffiliateLTP\dashboard\Agent_Promotions;
 
 use AffiliateLTP\commands\Command_Registration;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -64,28 +66,89 @@ class Plugin {
      */
     private static $instance = null;
     
+    /**
+     * Service registry of all of the objects in the system.
+     * @var ContainerBuilder
+     */
+    private $container = null;
+    
     public function __construct() {
         
+        $this->container = new ContainerBuilder();
+        $this->container->register('agent_dal', 'AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter');
+        $this->container->register('settings_dal', 'AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter');
+         if (self::LOCALHOST_RESTRICTED) {
+             $this->container->register("sugarcrm", "AffiliateLTP\Sugar_CRM_DAL_Localhost");
+        }
+        else {
+            $this->container->register("sugarcrm", "AffiliateLTP\Sugar_CRM_DAL");
+        }
+        
+        /**
+        $this->register_hooks_and_actions([ 
+            'referralMeta', 'progress_items', 'commission_request_db'
+            , 'template_load', 'agent_org_chart_handler', 'agent_emails'
+            ,'leaderboards', 'agent_events', 'agent_promotions'
+        ]);
+         * 
+         */
+        
+        $this->container->register('settings', 'AffiliateLTP\admin\Settings');
+          $this->container->register("shortcodes", "AffiliateLTP\Shortcodes");
+        $this->container->register("gravityforms_bootstrap", "AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap");
+        $this->container->register("ajax_agent_checklist", "AffiliateLTP\Agent_Checklist_AJAX");
+        $this->container->register("ajax_agent_partner_search", "AffiliateLTP\Agent_Partner_Search_AJAX")
+                ->addArgument(new Reference('agent_dal'))
+                ->addArgument(new Reference('settings_dal'));
+        $this->container->register("ajax_agent_search", "AffiliateLTP\Agent_Search_AJAX")
+                ->addArgument(new Reference('agent_dal'))
+                ->addArgument(new Reference('settings_dal'));
+        $this->container->register("affiliates", "AffiliateLTP\admin\Affiliates");
+         $this->container->register('referralMeta', 'AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB');
+        $this->container->register('progress_items', 'AffiliateLTP\Progress_Item_DB');
+        $this->container->register('commission_request_db', 'AffiliateLTP\Commission_Request_DB');
+        $this->container->register('template_loader', 'AffiliateLTP\Template_Loader');
+        $this->container->register('agent_org_chart_handler', 'AffiliateLTP\charts\Agent_Organization_Chart');
+        $this->container->register('agent_emails', 'AffiliateLTP\Agent_Emails')
+                ->addArgument(new Reference("agent_dal"))
+                ->addArgument(new Reference("settings_dal"));
+        $this->container->register("commission_dal", "AffiliateLTP\admin\Commission_DAL_Affiliate_WP_Adapter")
+                ->addArgument(new Reference("referralMeta"));
+        $this->container->register('referrals', 'AffiliateLTP\admin\Referrals')
+                ->addArgument(new Reference('referralMeta'));
+        $this->container->register('adminMenu', 'AffiliateLTP\admin\Menu')
+                ->addArgument(new Reference('referrals'));
+        $this->container->register('tools', 'AffiliateLTP\admin\Tools')
+                ->addArgument(new Reference('agent_dal'))
+                ->addArgument(new Reference('sugarcrm'))
+                ->addArgument(new Reference('commission_dal'))
+                ->addArgument(new Reference('settings_dal'));     
+        $this->container->register("cli_commands", "AffiliateLTP\commands\Command_Registration")
+                ->addArgument(new Reference('settings_dal'))
+                ->addArgument(new Reference('agent_dal'));
+        $this->container->register("leaderboards", "AffiliateLTP\leaderboards\Leaderboards")
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("agent_dal"));
+        $this->container->register("agent_events", "AffiliateLTP\dashboard\Agent_Events")
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("template_loader"));
+        $this->container->register("Agent_Promotions", "AffiliateLTP\dashboard\Agent_Promotions")
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("template_loader"));
+        
         if( is_admin() ) {
-            
-            
-            // setup the settings.
-            $this->settings = new Settings();
+            $this->register_hooks_and_actions('settings');
             
             // setup our admin scripts.
             add_action( 'admin_enqueue_scripts', array($this, 'admin_scripts' ) );
         }
-        new Shortcodes(); //setup the shortcodes.
-        // setup the gravity forms
-        // TODO: stephen we should probably take this out of admin since it
-        // also controls non-admin functionality.
-        new Gravity_Forms_Bootstrap();
-        new Agent_Checklist_AJAX();
-        new Agent_Partner_Search_AJAX($this->get_agent_dal(), $this->get_settings_dal());
-        new Agent_Search_AJAX($this->get_agent_dal(), $this->get_settings_dal());
-        new Affiliates(); // setup the affiliate actions.
         
-        
+        // these have actions in their constructors so we need to initialize them.
+        $this->register_hooks_and_actions([
+            'shortcodes', 'gravityforms_bootstrap', 'ajax_agent_partner_search'
+            , 'ajax_agent_search', 'affiliates'
+        ]);
+                
         // come in last here.
         add_filter( 'load_textdomain_mofile', array($this, 'load_ltp_en_mofile'), 50, 2 );
         
@@ -119,9 +182,33 @@ class Plugin {
         $this->add_plugin_scripts_and_styles();
     }
     
+    /**
+     * Given a service or array of services go through and initiate all the
+     * wordpress hooks, filters, shortcodes, etc for the service.
+     * @param array $services Array of service string names used by the container
+     * @return void
+     */
+    private function register_hooks_and_actions($services) {
+        if (empty($services)) {
+            return;
+        }
+        if (!is_array($services)) {
+            $services = [$services];
+        }
+        foreach ($services as $service) {
+            $obj = $this->container->get($service);
+            if ($obj instanceof I_Register_Hooks_And_Actions) {
+                $obj->register_hooks_and_actions();
+            }
+            else {
+                error_log("attempted to initialize class '$service' hooks and actions but interface is not implemented");
+            }
+        }
+    }
+    
     private function register_cli_commands() {
         if (class_exists('WP_CLI')) {
-            $command_registration = new Command_Registration($this->get_settings_dal(), $this->get_agent_dal());
+            $command_registration = $this->container->get("cli_commands");
             $command_registration->register();
         }
     }
@@ -165,7 +252,7 @@ class Plugin {
      * @return Agent_DAL
      */
     public function get_agent_dal() {
-        return new Agent_DAL_Affiliate_WP_Adapter();
+        return $this->container->get("agent_dal");
     }
     
     /**
@@ -173,7 +260,7 @@ class Plugin {
      * @return Settings_DAL
      */
     public function get_settings_dal() {
-        return new Settings_DAL_Affiliate_WP_Adapter();
+        return $this->container->get("settings_dal");
     }
     
     public function addPointsToGraphTab( $affiliate_id ) {
@@ -278,30 +365,19 @@ class Plugin {
         // need to register commands after the other plugins have executed.
         $this->register_cli_commands();
         
-        $this->referralMeta = new Affiliate_WP_Referral_Meta_DB();
-        $this->progress_items = new Progress_Item_DB();
-        $this->commission_request_db = new Commission_Request_DB();
-        $this->template_loader = new Template_Loader();
-        
-        // setup chart hooks and handlers (mem references will be retained by the hooks).
-        $agent_org_chart_handler = new charts\Agent_Organization_Chart();
-        // construct it so we can have the right hooks and everything.
-        $agent_emails = new Agent_Emails($this->get_agent_dal(), $this->get_settings_dal());
-        
+        // TODO: stephen need to search and replace this referralMeta garbage inconsistency
+        $this->register_hooks_and_actions([ 
+            'referralMeta', 'progress_items', 'commission_request_db'
+            , 'template_loader', 'agent_org_chart_handler', 'agent_emails'
+            ,'leaderboards', 'agent_events', 'agent_promotions'
+        ]);
         if (is_admin()) {
-            $this->adminReferrals = new Referrals($this->referralMeta);
-            // TODO: stephen look at renaming the AdminMenu to keep with our naming convention
-            $adminMenu = new Menu($this->adminReferrals);
-            
-            $settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
-            
-            $tools = new Tools($this->get_agent_dal(), $this->getSugarCRM(),
-                    $this->get_commission_dal(), $settings_dal);
+            $this->register_hooks_and_actions([ 
+                'referrals'
+                ,'adminMenu'
+                ,'tools'
+            ]);
         }
-        $leaderboards = new leaderboards\Leaderboards($this->get_settings_dal(), $this->get_agent_dal());
-        
-        new Agent_Events($this->get_settings_dal(), $this->get_template_loader());
-        new Agent_Promotions($this->get_settings_dal(), $this->get_template_loader());
     }
 
     /**

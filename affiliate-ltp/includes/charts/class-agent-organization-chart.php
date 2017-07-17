@@ -15,8 +15,10 @@ use AffiliateLTP\Agent_Tree_Partner_Filterer;
  *
  * @author snielson
  */
-class Agent_Organization_Chart {
-    public function __construct() {
+class Agent_Organization_Chart implements \AffiliateLTP\I_Register_Hooks_And_Actions{
+    public function __construct() {}
+    
+    public function register_hooks_and_actions() {
         remove_action('affwp_mlm_show_sub_affiliates', 'affwp_mlm_connect_affiliates', 10);
         add_action('affwp_mlm_show_sub_affiliates', array($this, 'display_sub_agent_charts'), 10, 2);
         

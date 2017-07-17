@@ -1,15 +1,18 @@
 <?php
 namespace AffiliateLTP\admin;
 
+use AffiliateLTP\I_Register_Hooks_And_Actions;
 /**
  * Description of class-settings
  *
  * @author snielson
  */
-class Settings {
+class Settings implements I_Register_Hooks_And_Actions {
     
-public function __construct() {
-
+        public function __construct() {}
+        
+        public function register_hooks_and_actions() {
+            
 		add_filter( 'affwp_settings_tabs', array( $this, 'settings_tab' ) );
 		add_filter( 'affwp_settings', array( $this, 'settings' ), 10, 1 );
                 
@@ -17,7 +20,7 @@ public function __construct() {
                 add_action( 'admin_init', array( $this, 'add_table_settings' ), 20);
                 
                 add_filter( 'affwp_settings_ltp_sanitize', array( $this, 'sanitize_progress_items' ) );
-	}
+        }
 	
 	/**
 	 * Register the MLM Settings Tab
