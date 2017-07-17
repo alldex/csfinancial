@@ -19,9 +19,11 @@ use AffiliateLTP\Sugar_CRM_DAL_Localhost;
 use AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap;
 use AffiliateLTP\Agent_Checklist_AJAX;
 use AffiliateLTP\Agent_Partner_Search_AJAX;
+use AffiliateLTP\Agent_Search_AJAX;
 use AffiliateLTP\admin\Affiliates;
 
 use AffiliateLTP\dashboard\Agent_Events;
+use AffiliateLTP\dashboard\Agent_Promotions;
 
 use AffiliateLTP\commands\Command_Registration;
 
@@ -80,6 +82,7 @@ class Plugin {
         new Gravity_Forms_Bootstrap();
         new Agent_Checklist_AJAX();
         new Agent_Partner_Search_AJAX($this->get_agent_dal(), $this->get_settings_dal());
+        new Agent_Search_AJAX($this->get_agent_dal(), $this->get_settings_dal());
         new Affiliates(); // setup the affiliate actions.
         
         
@@ -102,6 +105,7 @@ class Plugin {
                 $add_tabs = ['organization', 'signup'];
                 if ($is_partner) {
                     $add_tabs[] = 'events';
+                    $add_tabs[] = 'promotions';
                 }
                 $new_tabs = array_merge( $tabs, $add_tabs );
                 return $new_tabs;
@@ -297,6 +301,7 @@ class Plugin {
         $leaderboards = new leaderboards\Leaderboards($this->get_settings_dal(), $this->get_agent_dal());
         
         new Agent_Events($this->get_settings_dal(), $this->get_template_loader());
+        new Agent_Promotions($this->get_settings_dal(), $this->get_template_loader());
     }
 
     /**
@@ -404,6 +409,14 @@ class Plugin {
             ?>
             <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'events' ? ' active' : ''; ?>">
                 <a href="<?php echo esc_url( add_query_arg( 'tab', 'events' ) ); ?>"><?php _e( 'Events', 'affiliate-ltp' ); ?></a>
+            </li>
+                <?php	
+        }
+        
+        if ($is_partner && affwp_affiliate_area_show_tab( 'promotions' )) {
+            ?>
+            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'promotions' ? ' active' : ''; ?>">
+                <a href="<?php echo esc_url( add_query_arg( 'tab', 'promotions' ) ); ?>"><?php _e( 'Promotions', 'affiliate-ltp' ); ?></a>
             </li>
                 <?php	
         }

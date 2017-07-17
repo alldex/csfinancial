@@ -592,4 +592,17 @@ ORDER BY recruits DESC, u.display_name  LIMIT %d";
         return $results;
     }
     
+    function search_agents_by_code($agent_code_snippet) {
+        global $wpdb;
+        $sql = "SELECT am.meta_value AS 'code', u.display_name, a.affiliate_id "
+                . " FROM wp_affiliate_wp_affiliatemeta am "
+                . " JOIN wp_affiliate_wp_affiliates a ON a.affiliate_id = am.affiliate_id "
+                . " JOIN wp_users u ON a.user_id = u.ID "
+                . " WHERE am.meta_key = 'custom_slug' AND am.meta_value LIKE '%s'";
+        $prepared = $wpdb->prepare( $sql, '%' . $wpdb->esc_like($agent_code_snippet) . '%');
+        $results = $wpdb->get_results ( $prepared, ARRAY_A );
+        return $results;
+
+    }
+    
 }

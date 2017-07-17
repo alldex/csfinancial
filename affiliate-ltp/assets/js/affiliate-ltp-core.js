@@ -13,7 +13,7 @@
                 $agent_id = $this.siblings(".agent-id");
 
         $this.autocomplete({
-            source: ajaxurl + '?action=' + $action + '&term=' + $search + '&status=' + $status,
+            source: ajaxurl + '?action=' + $action + '&status=' + $status,
             delay: 500,
             minLength: 2,
             position: {offset: '0, -1'},
@@ -85,6 +85,7 @@
         setupAgentSearch(".ginput_container .affwp-agent-search", 'affwp_ltp_search_partners');
 //        setupAgentSearch(".ginput_container .affwp-agent-search", 'affwp_search_users');
 
+        setupAgentSearch(".affwp-tab-content .affwp-agent-search", 'affwp_ltp_search_agents');
         jQuery("#affwp-graphs-filter").append("<input type='hidden' name='affwp_ltp_include_super_base_shop' id='affwp_ltp_include_super_base_shop'  value='N' />");
         update_super_base_shop_checkbox();
         jQuery("#affwp_ltp_show_super_base_shop").click(function() {
