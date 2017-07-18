@@ -104,10 +104,17 @@ class Plugin {
                 ->addArgument(new Reference("agent_dal"))
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("sugarcrm"));
-        $this->container->register('referrals', 'AffiliateLTP\admin\Referrals')
+        $this->container->register("commission_payout_exporter", "AffiliateLTP\admin\Commission_Payout_Export")
                 ->addArgument(new Reference('referralMeta'))
+                ->addArgument(new Reference("settings_dal"));
+        $this->container->register("state_dal", "AffiliateLTP\admin\State_DAL");
+        $this->container->register('referrals', 'AffiliateLTP\admin\Referrals')
+                ->addArgument(new Reference("commission_dal"))
                 ->addArgument(new Reference('agent_dal'))
-                ->addArgument(new Reference("commission_processor"));
+                ->addArgument(new Reference('settings_dal'))
+                ->addArgument(new Reference("commission_processor"))
+                ->addArgument(new Reference("commission_payout_exporter"))
+                ->addArgument(new Reference("state_dal"));
         $this->container->register('adminMenu', 'AffiliateLTP\admin\Menu')
                 ->addArgument(new Reference('referrals'));
         $this->container->register('tools', 'AffiliateLTP\admin\Tools')

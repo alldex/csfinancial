@@ -5,15 +5,13 @@ namespace AffiliateLTP\admin;
 use AffiliateLTP\Plugin;
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Commission_Payout_Export;
-use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
 use \AffWP_Referrals_Table;
 use AffiliateLTP\admin\Referrals_New_Request_Builder;
 use AffiliateLTP\admin\Commission_DAL;
-use AffiliateLTP\admin\Commission_Dal_Affiliate_WP_Adapter;
 use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\admin\Commission_Processor;
 use AffiliateLTP\admin\Settings_DAL;
-use AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter;
+use AffiliateLTP\admin\State_DAL;
 
 /**
  * Description of class-referrals
@@ -39,32 +37,40 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
      * @var Settings_DAL 
      */
     private $settings_dal;
-    /**
-     *
-     * @var Affiliate_WP_Referral_Meta_DB
-     */
-    private $referralMetaDb;
 
     /**
      * The service that actually creates and implements the commissions
      * @var Commission_Processor
      */
     private $commission_processor;
+    
+    /**
+     *
+     * @var Commission_Payout_Export 
+     */
+    private $commission_payout_exporter;
+    
+    /**
+     * The database access object for retrieving state definitions.
+     * @var State_DAL
+     */
+    private $state_dal;
 
-    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb, Agent_DAL $agent_dal,
-            Commission_Processor $processor) {
-        $this->referralMetaDb = $referralMetaDb;
-        // see the commissions table for the hooks that alter the affiliate_referrals_list table.
-        
-        $this->commission_dal = new Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
+    public function __construct(Commission_Dal $commission_dal, Agent_DAL $agent_dal,
+            Settings_DAL $settings_dal, Commission_Processor $processor
+            , Commission_Payout_Export $exporter, State_DAL $state_dal) {
+        $this->commission_dal = $commission_dal;
         $this->agent_dal = $agent_dal;
-        $this->settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
+        $this->settings_dal = $settings_dal;
         $this->commission_processor = $processor;
+        $this->commission_payout_exporter = $exporter;
+        $this->state_dal = $state_dal;
     }
     
     public function register_hooks_and_actions() {
         // TODO: stephen when dealing with rejecting / overridding commissions uncomment this piece.
         //add_filter( 'affwp_referral_row_actions', array($this, 'disableEditsForOverrideCommissions'), 10, 2);
+        // see the commissions table for the hooks that alter the affiliate_referrals_list table.
         
         remove_action('affwp_add_referral', 'affwp_process_add_referral');
         add_action('affwp_add_referral', array($this, 'processAddReferralRequest'));
@@ -84,7 +90,7 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     }
 
     public function generateCommissionPayoutFile( $data ) {
-        $export = new Commission_Payout_Export($this->referralMetaDb, $this->settings_dal);
+        $export = $this->commission_payout_exporter;
         if (isset($data['is_life_commission'])) {
             $export->commissionType = Commission_Type::TYPE_LIFE;
         }
@@ -107,6 +113,7 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     }
 
     public function handleDisplayListReferralsScreen() {
+        // TODO: stephen should we di this??
         $referrals_table = new AffWP_Referrals_Table();
         $referrals_table->prepare_items();
 
@@ -259,7 +266,7 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     public function handleDisplayNewReferralScreen() {
         // load up the template.. defaults to our templates/admin-referral-edit.php
         // if no one else has overridden it.
-        $state_dal = new State_DAL();
+        $state_dal = $this->state_dal;
         $state_list = $state_dal->get_states();
         $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 'new', false);
         include_once $templatePath;
