@@ -6,6 +6,8 @@
  */
 
 namespace AffiliateLTP;
+use AffiliateLTP\admin\Agent_DAL;
+use AffiliateLTP\admin\Settings_DAL;
 
 /**
  * Ajax handler for saving the agent progress status.
@@ -20,8 +22,23 @@ class Agent_Checklist_AJAX implements I_Register_Hooks_And_Actions {
      */
     private $logger;
     
-    public function __construct(\Psr\Log\LoggerInterface $logger) {
+    /**
+     *
+     * @var Agent_DAL 
+     */
+    private $agent_dal;
+    
+    
+    /**
+     *
+     * @var Settings_DAL
+     */
+    private $settings_dal;
+    
+    public function __construct(\Psr\Log\LoggerInterface $logger, Agent_DAL $agent_dal, Settings_DAL $settings_dal) {
         $this->logger = $logger;
+        $this->agent_dal = $agent_dal;
+        $this->settings_dal = $settings_dal;
     }
     
     public function register_hooks_and_actions() {
@@ -44,11 +61,11 @@ class Agent_Checklist_AJAX implements I_Register_Hooks_And_Actions {
         // verify permission settings
         // check to see if the current user is a 
         
-        $agent_dal = Plugin::instance()->get_agent_dal();
+        $agent_dal = $this->agent_dal;
         $current_user_agent_id = $agent_dal->get_current_user_agent_id();
         $agent_rank = $agent_dal->get_agent_rank($current_user_agent_id);
         
-        $settings = Plugin::instance()->get_settings_dal();
+        $settings = $this->settings_dal;
         $partner_rank_id = $settings->get_partner_rank_id();
         $trainer_rank_id = $settings->get_trainer_rank_id();
         

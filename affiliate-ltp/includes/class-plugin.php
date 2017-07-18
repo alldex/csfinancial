@@ -79,7 +79,9 @@ class Plugin {
           $this->container->register("shortcodes", "AffiliateLTP\Shortcodes");
         $this->container->register("gravityforms_bootstrap", "AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap");
         $this->container->register("ajax_agent_checklist", "AffiliateLTP\Agent_Checklist_AJAX")
-                ->addArgument(new Reference("logger"));
+                ->addArgument(new Reference("logger"))
+                ->addArgument(new Reference("agent_dal"))
+                ->addArgument(new Reference("settings_dal"));
         $this->container->register("ajax_agent_partner_search", "AffiliateLTP\Agent_Partner_Search_AJAX")
                 ->addArgument(new Reference('agent_dal'))
                 ->addArgument(new Reference('settings_dal'));
