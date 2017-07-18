@@ -226,6 +226,10 @@ class Plugin {
         
     }
     
+    public function get_container() {
+        return $this->container;
+    }
+    
     /**
      * 
      * @return Agent_DAL

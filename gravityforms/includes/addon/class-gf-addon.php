@@ -177,8 +177,8 @@ abstract class GFAddOn {
 	 * Gets executed before all init functions. Override this function to perform initialization tasks that must be done prior to init
 	 */
 	public function pre_init() {
-
 		if ( $this->is_gravityforms_supported() ) {
+                                
 
 			//Entry meta
 			if ( $this->method_is_overridden( 'get_entry_meta' ) ) {

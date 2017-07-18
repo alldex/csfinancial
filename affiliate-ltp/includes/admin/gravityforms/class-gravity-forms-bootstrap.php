@@ -40,7 +40,7 @@ class Gravity_Forms_Bootstrap implements \AffiliateLTP\I_Register_Hooks_And_Acti
      * Hook into the gravity form events.
      */
     public function register_hooks_and_actions() {
-        add_action( 'gform_loaded', array( $this, 'load' ), 5 );
+        add_action( 'gform_loaded', array( $this, 'load' ), -25);
     }
 
 }

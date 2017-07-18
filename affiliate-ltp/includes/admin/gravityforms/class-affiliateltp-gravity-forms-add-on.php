@@ -15,6 +15,8 @@ use AffiliateLTP\admin\GravityForms\Agent_Register;
 use AffiliateLTP\admin\GravityForms\Stripe_Errors_Ommissions;
 use AffiliateLTP\Plugin;
 use GFAPI;
+use AffiliateLTP\admin\Agent_DAL;
+use AffiliateLTP\admin\Settings_DAL;
 
 GFForms::include_addon_framework();
 
@@ -39,6 +41,18 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
     protected $_title = 'Gravity Forms Affiliate-LTP Add-On';
     protected $_short_title = 'Affiliate-LTP Add-On';
     private static $_instance = null;
+    
+    /**
+     * The agent database service
+     * @var Agent_DAL
+     */
+    private $agent_dal;
+    
+    /**
+     * The settings database service
+     * @var Settings_DAL
+     */
+    private $settings_dal;
 
     /**
      * Returns an instance of the gravity forms.
@@ -50,6 +64,15 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
         }
 
         return self::$_instance;
+    }
+    
+    public function __construct() {
+        // we grab the container which is the best we can do due to
+        // gravity forms static initializations mechanisms.
+        $container = Plugin::instance()->get_container();
+        $this->agent_dal = $container->get('agent_dal');
+        $this->settings_dal = $container->get('settings_dal');
+        parent::__construct();
     }
 
     /**
@@ -68,7 +91,7 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
             
             // new feature flag... so we can turn this off if things go wrong.
             if (Plugin::STRIPE_EO_HANDLING_ENABLED) {
-                new Stripe_Errors_Ommissions(Plugin::instance()->get_settings_dal());
+                new Stripe_Errors_Ommissions($this->settings_dal);
             }
             new Event();
         }
@@ -103,7 +126,7 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
     public function get_all_event_data( $form ) {
         $sorting_criteria = null;
         
-        $agent_dal = Plugin::instance()->get_agent_dal();
+        $agent_dal = $this->agent_dal;
         
         $paging = ['page_size' => self::MAXIMUM_EVENT_FORM_ENTRIES];
         $entries = GFAPI::get_entries($form['id'], ['status' => 'active'], $sorting_criteria, $paging);
