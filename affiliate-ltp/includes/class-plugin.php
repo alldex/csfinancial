@@ -99,9 +99,15 @@ class Plugin {
                 ->addArgument(new Reference("settings_dal"));
         $this->container->register("commission_dal", "AffiliateLTP\admin\Commission_DAL_Affiliate_WP_Adapter")
                 ->addArgument(new Reference("referralMeta"));
+        $this->container->register("commission_processor", "AffiliateLTP\admin\Commission_Processor")
+                ->addArgument(new Reference("commission_dal"))
+                ->addArgument(new Reference("agent_dal"))
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("sugarcrm"));
         $this->container->register('referrals', 'AffiliateLTP\admin\Referrals')
                 ->addArgument(new Reference('referralMeta'))
-                ->addArgument(new Reference('agent_dal'));
+                ->addArgument(new Reference('agent_dal'))
+                ->addArgument(new Reference("commission_processor"));
         $this->container->register('adminMenu', 'AffiliateLTP\admin\Menu')
                 ->addArgument(new Reference('referrals'));
         $this->container->register('tools', 'AffiliateLTP\admin\Tools')
@@ -125,6 +131,9 @@ class Plugin {
                 ->addArgument(new Reference('referralMeta'))
                 ->addArgument(new Reference('progress_items'))
                 ->addArgument(new Reference('commission_request_db'));
+        $this->container->register("commissions_table", "AffiliateLTP\admin\Commissions_Table")
+                ->addArgument(new Reference("commission_dal"))
+                ->addArgument("%company_agent_id%");
         
         if( is_admin() ) {
             $this->register_hooks_and_actions('settings');
@@ -170,6 +179,16 @@ class Plugin {
         add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'addPointsToGraphTab' ), 10, 1);
         
         $this->add_plugin_scripts_and_styles();
+    }
+    
+    private function get_company_agent_id() {
+        $settings_dal = $this->container->get("settings_dal");
+        if ($settings_dal instanceof Settings_DAL) {
+            return $settings_dal->get_company_agent_id();
+        }
+        else {
+            return null;
+        }
     }
     
     /**
@@ -232,22 +251,6 @@ class Plugin {
         return $this->container;
     }
     
-    /**
-     * 
-     * @return Agent_DAL
-     */
-    public function get_agent_dal() {
-        return $this->container->get("agent_dal");
-    }
-    
-    /**
-     * 
-     * @return Settings_DAL
-     */
-    public function get_settings_dal() {
-        return $this->container->get("settings_dal");
-    }
-    
     public function addPointsToGraphTab( $affiliate_id ) {
         
         // TODO: stephen see if there's a way to get around this global function
@@ -257,7 +260,6 @@ class Plugin {
         $start = $date_range['year'] . '-' . $date_range['m_start'] . '-' . $date_range['day'] . ' 00:00:00';
         $end   = $date_range['year_end'] . '-' . $date_range['m_end'] . '-' . $date_range['day_end'] . ' 23:59:59';
         
-//        $is_partner = $this->get_agent_dal()->get_current_user_agent_id();
         $is_partner = $this->get_partner_status_for_current_agent();
         if ($is_partner) {
             // this value is inserted via javascript since the current plugin
@@ -274,7 +276,8 @@ class Plugin {
             ,"range" => $date_range['range']
         );
         
-        $agent_downline = $this->get_agent_dal()->get_agent_downline_with_coleaderships($agent_id);
+        $agent_dal = $this->container->get("agent_dal");
+        $agent_downline = $agent_dal->get_agent_downline_with_coleaderships($affiliate_id);
         
         $points_data = $points_retriever->get_points( $affiliate_id, $points_date_range, $include_super_shop );
         
@@ -298,9 +301,11 @@ class Plugin {
     
     private function get_partner_status_for_current_agent() {
         
-        $agent_id = $this->get_agent_dal()->get_current_user_agent_id();
-        $partner_rank_id = $this->get_settings_dal()->get_partner_rank_id();
-        $agent_rank = $this->get_agent_dal()->get_agent_rank($agent_id);
+        $agent_dal = $this->container->get("agent_dal");
+        $settings_dal = $this->container->get("settings_dal");
+        $agent_id = $agent_dal->get_current_user_agent_id();
+        $partner_rank_id = $settings_dal->get_partner_rank_id();
+        $agent_rank = $agent_dal->get_agent_rank($agent_id);
         
         return $agent_rank == $partner_rank_id;
     }
@@ -339,20 +344,25 @@ class Plugin {
     
     public function setup_dependent_objects() {
         
-        // need to register commands after the other plugins have executed.
-        $this->register_cli_commands();
-        
+       
         // TODO: stephen need to search and replace this referralMeta garbage inconsistency
         $this->register_hooks_and_actions([ 
             'upgrades','referralMeta', 'progress_items', 'commission_request_db'
             , 'template_loader', 'agent_org_chart_handler', 'agent_emails'
             ,'leaderboards', 'agent_events', 'agent_promotions'
         ]);
+        
+        $this->container->setParameter("company_agent_id", $this->get_company_agent_id());
+        
+        // need to register commands after the other plugins have executed.
+        $this->register_cli_commands();
+        
         if (is_admin()) {
             $this->register_hooks_and_actions([ 
                 'referrals'
                 ,'adminMenu'
                 ,'tools'
+                , 'commissions_table'
             ]);
         }
     }

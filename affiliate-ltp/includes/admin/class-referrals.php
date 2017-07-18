@@ -8,11 +8,9 @@ use AffiliateLTP\admin\Commission_Payout_Export;
 use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
 use \AffWP_Referrals_Table;
 use AffiliateLTP\admin\Referrals_New_Request_Builder;
-use AffiliateLTP\admin\Commissions_Table;
 use AffiliateLTP\admin\Commission_DAL;
 use AffiliateLTP\admin\Commission_Dal_Affiliate_WP_Adapter;
 use AffiliateLTP\admin\Agent_DAL;
-use AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter;
 use AffiliateLTP\admin\Commission_Processor;
 use AffiliateLTP\admin\Settings_DAL;
 use AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter;
@@ -47,16 +45,21 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
      */
     private $referralMetaDb;
 
-    private $referrals_table;
+    /**
+     * The service that actually creates and implements the commissions
+     * @var Commission_Processor
+     */
+    private $commission_processor;
 
-    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb, Agent_DAL $agent_dal) {
+    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb, Agent_DAL $agent_dal,
+            Commission_Processor $processor) {
         $this->referralMetaDb = $referralMetaDb;
         // see the commissions table for the hooks that alter the affiliate_referrals_list table.
         
         $this->commission_dal = new Commission_Dal_Affiliate_WP_Adapter($referralMetaDb);
-//        $this->agent_dal = new Agent_DAL_Affiliate_WP_Adapter();
+        $this->agent_dal = $agent_dal;
         $this->settings_dal = new Settings_DAL_Affiliate_WP_Adapter();
-        $this->referrals_table = new Commissions_Table($this->commission_dal, $this->settings_dal->get_company_agent_id());
+        $this->commission_processor = $processor;
     }
     
     public function register_hooks_and_actions() {
@@ -296,8 +299,7 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         
         try {
             $company_agent_id = $this->settings_dal->get_company_agent_id();
-            $chargeback_processor = new Commission_Chargeback_Processor($this->commission_dal, 
-                    $this->agent_dal, $company_agent_id);
+            $chargeback_processor = $this->commission_processor;
             $chargeback_processor->process_request($commission_request_id);
             wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=commission_chargeback_success&affwp_message=Chargeback%20Succeeded' ) );
             exit;
@@ -336,8 +338,7 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
             $request = Referrals_New_Request_Builder::build($requestData);
 //            error_log(var_export($request, true));
             
-            $commissionProcessor = new Commission_Processor($this->commission_dal, 
-                    $this->agent_dal, $this->settings_dal);
+            $commissionProcessor = $this->commission_processor;
             $commissionProcessor->process_commission_request($request);
             $response['type'] = 'success';
             $response['message'] = __("Commission Added", 'affiliate-ltp');

@@ -13,7 +13,7 @@ use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Commission_DAL;
 use AffWP\Admin\List_Table;
 
-class Commissions_Table extends List_Table {
+class Commissions_Table extends List_Table implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     /**
      *
@@ -33,14 +33,17 @@ class Commissions_Table extends List_Table {
 	public function __construct(Commission_DAL $commission_dal, $company_agent_id) {
             $this->commission_dal = $commission_dal;
             $this->company_agent_id = $company_agent_id;
-		add_filter( 'affwp_referral_table_columns', array($this, 'add_table_columns' ) );
-		add_filter( 'affwp_referral_table_points', array($this, 'column_points'), 10, 2);
-		add_filter( 'affwp_referral_table_type', array($this, 'column_type'), 10, 2);
-                
-                add_filter( 'affwp_referral_row_actions', array($this, 'update_commission_actions'), 10, 2);
-                
-                add_filter( 'affwp_referrals_bulk_actions', array($this, 'update_bulk_actions'), 10, 1);
 	}
+        
+        public function register_hooks_and_actions() {
+            add_filter( 'affwp_referral_table_columns', array($this, 'add_table_columns' ) );
+            add_filter( 'affwp_referral_table_points', array($this, 'column_points'), 10, 2);
+            add_filter( 'affwp_referral_table_type', array($this, 'column_type'), 10, 2);
+
+            add_filter( 'affwp_referral_row_actions', array($this, 'update_commission_actions'), 10, 2);
+
+            add_filter( 'affwp_referrals_bulk_actions', array($this, 'update_bulk_actions'), 10, 1);
+        }
 
 	public function add_table_columns($columns) {
 		$new = array(

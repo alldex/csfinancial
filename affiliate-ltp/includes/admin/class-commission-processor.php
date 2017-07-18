@@ -2,7 +2,6 @@
 
 namespace AffiliateLTP\admin;
 
-use AffiliateLTP\Plugin;
 use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\commissions\Commission_Node;
@@ -15,6 +14,7 @@ use AffiliateLTP\admin\Commission_Request_Persister;
 use Exception;
 use AffiliateLTP\admin\Commission_Status;
 use AffiliateLTP\Commission;
+use AffiliateLTP\Sugar_CRM_DAL;
 
 class Commission_Validation_Exception extends \RuntimeException {
     private $validation_errors;
@@ -75,13 +75,22 @@ class Commission_Processor {
      */
     private $company_agent_id;
     
+    /**
+     * The client relationship management dal
+     * @var Sugar_CRM_DAL 
+     */
+    private $sugar_crm;
+    
     const STATUS_DEFAULT = 'unpaid';
 
-    public function __construct(Commission_DAL $commission_dal, Agent_DAL $agent_dal, Settings_DAL $settings_dal) {
+    public function __construct(Commission_DAL $commission_dal
+            , Agent_DAL $agent_dal, Settings_DAL $settings_dal
+            , Sugar_CRM_DAL $sugar_crm) {
         $this->commission_dal = $commission_dal;
         $this->agent_dal = $agent_dal;
         $this->settings_dal = $settings_dal;
         $this->processed_items = [];
+        $this->sugar_crm = $sugar_crm;
     }
 
     public function parse_agent_trees(Referrals_New_Request $request) {
@@ -360,8 +369,7 @@ class Commission_Processor {
             return $clientData['id'];
         }
         // create the client on the sugar CRM system.
-        $instance = Plugin::instance()->getSugarCRM();
-        return $instance->createAccount($clientData);
+        return $this->sugar_crm->createAccount($clientData);
     }
 
     private function debugLog($message) {
