@@ -8,6 +8,7 @@
 namespace AffiliateLTP\admin\GravityForms;
 use GF_Field;
 
+use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\Plugin;
 
 /**
@@ -83,7 +84,7 @@ class Agent_Partner_Lookup_Field extends GF_Field {
             $return = '';
             $value = esc_html( $value );
             if (!empty($value)) {
-                $return = Plugin::instance()->get_agent_dal()->get_agent_name($value);
+                $return = $this->get_agent_dal()->get_agent_name($value);
             }
             return $return;
     }
@@ -115,7 +116,7 @@ class Agent_Partner_Lookup_Field extends GF_Field {
         
         
         if (!empty($value)) {
-            $displayValue = Plugin::instance()->get_agent_dal()->get_agent_name($value);
+            $displayValue = $this->get_agent_dal()->get_agent_name($value);
         }
         
         $size         = $this->size;
@@ -175,7 +176,7 @@ class Agent_Partner_Lookup_Field extends GF_Field {
         if ($this->failed_validation) {
             return;
         }
-        $status = Plugin::instance()->get_agent_dal()->get_agent_status( $value );
+        $status = $this->get_agent_dal()->get_agent_status( $value );
         if ($status !== 'active') { // not found or missing 
             $error_message = __( "The partner agent you provided could not be found or is currently inactive", 'affiliate-ltp' );
             $this->failed_validation = true;
@@ -199,5 +200,15 @@ class Agent_Partner_Lookup_Field extends GF_Field {
     public function get_value_save_entry($value, $form, $input_name, $lead_id, $lead) {
         $value = parent::get_value_save_entry($value, $form, $input_name, $lead_id, $lead);
         return $value;
+    }
+    
+    /**
+     * Returns the agent dal
+     * @return Agent_DAL
+     */
+    private function get_agent_dal() {
+        $container = Plugin::instance()->get_container();
+        $agent_dal = $container->get("agent_dal");
+        return $agent_dal;
     }
 }
