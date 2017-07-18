@@ -12,6 +12,7 @@ use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\admin\Commission_Processor;
 use AffiliateLTP\admin\Settings_DAL;
 use AffiliateLTP\admin\State_DAL;
+use AffiliateLTP\Sugar_CRM_DAL;
 
 /**
  * Description of class-referrals
@@ -55,16 +56,24 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
      * @var State_DAL
      */
     private $state_dal;
+    
+    /**
+     * 
+     * @var Sugar_CRM_DAL
+     */
+    private $sugar_crm_dal;
 
     public function __construct(Commission_Dal $commission_dal, Agent_DAL $agent_dal,
             Settings_DAL $settings_dal, Commission_Processor $processor
-            , Commission_Payout_Export $exporter, State_DAL $state_dal) {
+            , Commission_Payout_Export $exporter, State_DAL $state_dal
+            , Sugar_CRM_DAL $sugar_crm_dal) {
         $this->commission_dal = $commission_dal;
         $this->agent_dal = $agent_dal;
         $this->settings_dal = $settings_dal;
         $this->commission_processor = $processor;
         $this->commission_payout_exporter = $exporter;
         $this->state_dal = $state_dal;
+        $this->sugar_crm_dal = $sugar_crm_dal;
     }
     
     public function register_hooks_and_actions() {
@@ -203,7 +212,7 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     public function ajaxSearchClients() {
         // TODO: stephen would it be better to just make searchAccounts conform
         // to what we return to the client instead of what it's returning now?
-        $instance = Plugin::instance()->getSugarCRM();
+        $instance = $this->sugar_crm_dal;
 
         // TODO: stephen have this use the filter_input functions.
         $searchQuery = htmlentities2(trim($_REQUEST['term']));
@@ -244,7 +253,7 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         $clientId = $this->commission_dal->get_commission_client_id($referralId);
         
         if (!empty($clientId)) {
-            $instance = Plugin::instance()->getSugarCRM();
+            $instance = $this->sugar_crm_dal;
             $client = $instance->getAccountById($clientId);
         } else {
             $client = array(

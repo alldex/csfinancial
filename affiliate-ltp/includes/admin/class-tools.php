@@ -25,9 +25,8 @@ class Tools implements \AffiliateLTP\I_Register_Hooks_And_Actions {
      */
     private $importer;
     
-    public function __construct(Agent_DAL $agent_dal, Sugar_CRM_DAL $sugar_dal
-            , Commission_DAL $commission_dal, Settings_DAL $settings_dal ) {
-        $this->importer = new Commissions_Importer($agent_dal, $sugar_dal, $commission_dal, $settings_dal);
+    public function __construct(Commissions_Importer $importer ) {
+        $this->importer = $importer;
     }
     
     public function register_hooks_and_actions() {

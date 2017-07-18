@@ -10,6 +10,7 @@ use AffiliateLTP\Agent_Tree_Aggregate_Filterer;
 use AffiliateLTP\Agent_Tree_Registration_Filterer;
 use AffiliateLTP\Agent_Tree_Partner_Filterer;
 use AffiliateLTP\Agent_Tree_Transformer;
+use AffiliateLTP\Template_Loader;
 
 /**
  * Copyright MyCommonSenseFinancial @2017
@@ -34,9 +35,17 @@ class Leaderboards implements \AffiliateLTP\I_Register_Hooks_And_Actions {
      */
     private $agent_dal;
     
-    public function __construct(Settings_DAL $settings_dal, Agent_DAL $agent_dal) {
+    /**
+     * For retrieving and displaying template files.
+     * @var Template_Loader
+     */
+    private $template_loader;
+    
+    public function __construct(Settings_DAL $settings_dal, Agent_DAL $agent_dal
+            , Template_Loader $template_loader) {
         $this->settings_dal = $settings_dal;
         $this->agent_dal = $agent_dal;
+        $this->template_loader = $template_loader;
     }
     
     public function register_hooks_and_actions() {
@@ -240,7 +249,7 @@ class Leaderboards implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         $currentFilter = $this->get_leaderboard_filter();
         $months = ["January", "February", "March", "April", "May", "June", 
             "July", "August", "September", "October", "November", "December"];
-        $loader = Plugin::instance()->get_template_loader();
+        $loader = $this->template_loader;
         $file = $loader->get_template_part('leaderboard', null, false);
         ob_start();
         include $file;

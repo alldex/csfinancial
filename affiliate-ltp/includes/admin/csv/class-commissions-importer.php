@@ -11,9 +11,8 @@ use AffiliateLTP\admin\csv\Commission_Parser;
 use League\Csv\Reader;
 use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\Sugar_CRM_DAL;
-use AffiliateLTP\admin\Commission_DAL;
-use AffiliateLTP\admin\Settings_DAL;
 use AffiliateLTP\admin\Referrals_Agent_Request;
+use AffiliateLTP\admin\Commission_Processor;
 
 /**
  * Creates a commission for each of the CSV records found.
@@ -35,17 +34,17 @@ class Commissions_Importer {
     private $sugar_crm_dal;
     
     /**
+    /**
      *
-     * @var Commission_DAL
+     * @var Commission_Processor
      */
-    private $commission_dal;
+    private $commission_processor;
     
-    public function __construct(Agent_dal $agent_dal, Sugar_CRM_DAL $sugar_crm_dal,
-     Commission_DAL $commission_dal, Settings_DAL $settings_dal) {
+    public function __construct(Agent_DAL $agent_dal
+            , Sugar_CRM_DAL $sugar_crm_dal, Commission_Processor $processor) {
         $this->sugar_crm_dal = $sugar_crm_dal;
         $this->agent_dal = $agent_dal;
-        $this->commission_dal = $commission_dal;
-        $this->settings_dal = $settings_dal;
+        $this->commission_processor = $processor;
     }
     
     public function import_from_file($path) {
@@ -71,8 +70,7 @@ class Commissions_Importer {
             
             foreach ($requests_to_process as $request_to_process) {
 //                $time1 = microtime(true);
-                $processor = new \AffiliateLTP\admin\Commission_Processor($this->commission_dal, 
-                        $this->agent_dal, $this->settings_dal);
+                $processor = $this->commission_processor;
                 // go through and create the items;
                 $processor->process_commission_request($request_to_process);
 //                echo "record import time: " . (microtime(true) - $time1) . "\n";
