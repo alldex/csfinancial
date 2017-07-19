@@ -210,4 +210,13 @@ interface Agent_DAL {
      * @param string $rank
      */
     function search_agents_by_name_and_rank($name, $rank);
+    
+    /**
+     * 
+     * @param int $limit
+     * @param array $date_filter
+     * @param boolean $partners_only
+     * @param array $agent_ids
+     */
+    function get_agent_point_summary_data($limit, $date_filter, $partners_only = false, $agent_ids);
 }

@@ -28,8 +28,7 @@ class Tabs implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     }
     
     public function register_hooks_and_actions() {
-        
-        add_action ('plugins_loaded', array($this, 'remove_affiliate_wp_mlm_tab_hooks'));
+        $this->remove_affiliate_wp_mlm_tab_hooks();
         
         add_filter( 'affwp_affiliate_area_tabs', array($this, 'setup_affiliate_area_tabs') );
         

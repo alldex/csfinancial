@@ -19,8 +19,24 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
      */
     private $progress_items_db;
     
-    public function __construct(Progress_Item_DB $progress_items_db) {
+    /**
+     * The id of the partner rank
+     * @var int
+     */
+    private $partner_rank_id;
+    
+    /**
+     *
+     * @var int
+     */
+    private $company_agent_id;
+    
+    public function __construct(Progress_Item_DB $progress_items_db
+            ,$partner_rank_id
+            ,$company_agent_id) {
         $this->progress_items_db = $progress_items_db;
+        $this->partner_rank_id = $partner_rank_id;
+        $this->company_agent_id = $company_agent_id;
     }
     
     const AFFILIATE_META_KEY_COLEADERSHIP_AGENT_ID = 'coleadership_agent_id';
@@ -466,13 +482,13 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     }
     
     private function get_agent_leaderboard_data($limit, $date_filter, $company_agent_id, $partners_only = false) {
-        return $this->get_agent_summary_data($limit, $date_filter, $company_agent_id, $partners_only);
+        return $this->get_agent_summary_data($limit, $date_filter, $partners_only);
     }
     
     public function get_agent_point_summary_data($limit, $date_filter
-            , $company_agent_id, $partners_only = false, $agent_ids = []) {
+            , $partners_only = false, $agent_ids = []) {
         global $wpdb;
-        $partner_rank_id = 4;
+        $partner_rank_id = $this->partner_rank_id;
         
         if (is_array($agent_ids)) {
             $sanitized_ids = array_filter(function($val) { return !is_nan($val); }
@@ -517,7 +533,7 @@ WHERE
         AND r.affiliate_id != %d  -- skip over the company user
         AND r.status = 'paid'  -- we only want paid commissions
         AND r.date BETWEEN %s AND %s ";
-        $params[] = $company_agent_id;
+        $params[] = $this->company_agent_id;
         $params[] = $date_filter['start'];
         $params[] = $date_filter['end'];
         if ($partners_only) {

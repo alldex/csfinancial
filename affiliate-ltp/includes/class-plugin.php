@@ -1,13 +1,6 @@
 <?php
 namespace AffiliateLTP;
 
-use \AffiliateWP_Multi_Level_Marketing;
-use AffiliateLTP\AffiliateWP\Affiliate_WP_Referral_Meta_DB;
-use AffiliateLTP\Progress_Item_DB;
-use AffiliateLTP\admin\Agent_DAL;
-use AffiliateLTP\admin\Settings_DAL;
-use AffiliateLTP\Sugar_CRM_DAL;
-use AffiliateLTP\Sugar_CRM_DAL_Localhost;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Monolog\Logger;
@@ -51,9 +44,18 @@ class Plugin {
         $this->container = new ContainerBuilder();
         $this->container->set("logger", $logger);
         $this->container->register('progress_items', 'AffiliateLTP\Progress_Item_DB');
-        $this->container->register('agent_dal', 'AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter')
-                ->addArgument(new Reference("progress_items"));
         $this->container->register('settings_dal', 'AffiliateLTP\admin\Settings_DAL_Affiliate_WP_Adapter');
+        
+        // we override this when we setup the dependent objects, but we need an inital setting
+        // as part of the registration
+        $this->container->setParameter("company_agent_id", null);
+        $this->container->setParameter("partner_rank_id", null);
+        
+        $this->container->register('agent_dal', 'AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter')
+                ->addArgument(new Reference("progress_items"))
+                ->addArgument("%partner_rank_id%")
+                ->addArgument("%company_agent_id%");
+        
          if (self::LOCALHOST_RESTRICTED) {
              $this->container->register("sugarcrm", "AffiliateLTP\Sugar_CRM_DAL_Localhost");
         }
@@ -146,6 +148,10 @@ class Plugin {
         
         $this->container->register("translations", "AffiliateLTP\Translations");
         $this->container->register("asset_loader", "AffiliateLTP\Asset_Loader");
+        $this->container->register("agent_promotions", "AffiliateLTP\dashboard\Agent_Promotions")
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("template_loader"))
+                ->addArgument(new Reference("agent_dal"));
         
         if( is_admin() ) {
             $this->register_hooks_and_actions('settings');
@@ -153,10 +159,7 @@ class Plugin {
         
         // these have actions in their constructors so we need to initialize them.
         $this->register_hooks_and_actions([
-            'shortcodes', 'gravityforms_bootstrap', 'ajax_agent_partner_search'
-            , 'ajax_agent_checklist', 'ajax_agent_search', 'affiliates'
-            , 'dashboard_tabs', 'translations'
-            , 'asset_loader'
+            'shortcodes', 'gravityforms_bootstrap', 'translations', 'asset_loader'
         ]);
        
         // do some cleanup on the plugins
@@ -203,16 +206,18 @@ class Plugin {
     }
     
     public function setup_dependent_objects() {
-        // TODO: stephen need to search and replace this referralMeta garbage inconsistency
-        $this->register_hooks_and_actions([ 
-            'upgrades','referral_meta', 'progress_items', 'commission_request_db'
-            , 'template_loader', 'agent_org_chart_handler', 'agent_emails'
-            ,'leaderboards', 'agent_events', 'agent_promotions'
-        ]);
-        
         $settings_dal = $this->container->get("settings_dal");
         $this->container->setParameter("company_agent_id", $settings_dal->get_company_agent_id());
         $this->container->setParameter("partner_rank_id", $settings_dal->get_partner_rank_id());
+        
+        // TODO: stephen need to search and replace this referralMeta garbage inconsistency
+        $this->register_hooks_and_actions([ 
+            'upgrades', 'affiliates', 'dashboard_tabs'
+            , 'ajax_agent_partner_search', 'ajax_agent_checklist', 'ajax_agent_search'
+            ,'referral_meta', 'progress_items', 'commission_request_db'
+            , 'template_loader', 'agent_org_chart_handler', 'agent_emails'
+            ,'leaderboards', 'agent_events', 'agent_promotions'
+        ]);
         
         // hooks dependent on the parameters above need to be registerd after the fact
         $this->register_hooks_and_actions(['dashboard_agent_graphs']);
