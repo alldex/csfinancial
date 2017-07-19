@@ -511,6 +511,9 @@ WHERE
                         AND m2.meta_value > 0
         ) ";
         }
+        else {
+            $sql .= " AND r.custom = 'direct'";
+        }
         
         $sql .= "
 GROUP BY  
