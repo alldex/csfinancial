@@ -44,7 +44,7 @@ class Agent_Search_AJAX implements I_Register_Hooks_And_Actions {
         $jsonResults = [];
         if (!empty($agents)) {
             foreach ($agents as $agent) {
-                $jsonResults[] = ["label" => $agent['display_name'], "user_id" => $agent['id'], "value" => $agent['display_name']];
+                $jsonResults[] = ["label" => $agent['display_name'], "user_id" => $agent['agent_id'], "value" => $agent['display_name']];
             }
         }
         wp_die(json_encode($jsonResults)); // this is required to terminate immediately and return a proper response

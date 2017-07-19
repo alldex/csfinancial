@@ -111,6 +111,12 @@ interface Agent_DAL {
     function get_agent_downline_with_coleaderships( $agent_id );
     
     /**
+     * Retrieves the downline but only includes your base-shop, not partners
+     * @param int $agent_id
+     */
+    function get_agent_base_shop_with_coleaderships( $agent_id );
+    
+    /**
      * Returns the list of progress items for the agent including their 
      * date_completed.
      * @param int $agent_id The id of the agent to get the progress data for.
@@ -219,4 +225,10 @@ interface Agent_DAL {
      * @param array $agent_ids
      */
     function get_agent_point_summary_data($limit, $date_filter, $partners_only = false, $agent_ids);
+    
+    /**
+     * Get the unique agent code that represents an agent and sub-agents can
+     * sign up under.
+     */
+    function get_agent_code( $agent_id );
 }

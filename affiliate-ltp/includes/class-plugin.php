@@ -39,7 +39,7 @@ class Plugin {
     public function __construct() {
         
         $logger = new Logger('affiliate-ltp');
-        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::WARNING));
+        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::DEBUG));
         
         $this->container = new ContainerBuilder();
         $this->container->set("logger", $logger);
@@ -52,9 +52,9 @@ class Plugin {
         $this->container->setParameter("partner_rank_id", null);
         
         $this->container->register('agent_dal', 'AffiliateLTP\admin\Agent_DAL_Affiliate_WP_Adapter')
+                ->addArgument(new Reference("logger"))
                 ->addArgument(new Reference("progress_items"))
-                ->addArgument("%partner_rank_id%")
-                ->addArgument("%company_agent_id%");
+                ->addArgument(new Reference("settings_dal"));
         
          if (self::LOCALHOST_RESTRICTED) {
              $this->container->register("sugarcrm", "AffiliateLTP\Sugar_CRM_DAL_Localhost");
@@ -149,6 +149,7 @@ class Plugin {
         $this->container->register("translations", "AffiliateLTP\Translations");
         $this->container->register("asset_loader", "AffiliateLTP\Asset_Loader");
         $this->container->register("agent_promotions", "AffiliateLTP\dashboard\Agent_Promotions")
+                ->addArgument(new Reference("logger"))
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("template_loader"))
                 ->addArgument(new Reference("agent_dal"));
@@ -209,7 +210,6 @@ class Plugin {
         $settings_dal = $this->container->get("settings_dal");
         $this->container->setParameter("company_agent_id", $settings_dal->get_company_agent_id());
         $this->container->setParameter("partner_rank_id", $settings_dal->get_partner_rank_id());
-        
         // TODO: stephen need to search and replace this referralMeta garbage inconsistency
         $this->register_hooks_and_actions([ 
             'upgrades', 'affiliates', 'dashboard_tabs'

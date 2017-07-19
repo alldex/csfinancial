@@ -6,15 +6,7 @@
 ?>
 <div id="affwp-mlm-sub-affiliates-tree">
         <h4><?php echo __('Promotions', 'affiliate-ltp'); ?></h4>
-        <div class="search-controls">
-            <span class="affwp-ajax-search-wrap">
-                <input class='agent-name affwp-agent-search' type='text' data-affwp-status="active"
-                name='input_search_agent' />
-                <input name='input_agent_id'
-                    type='hidden' class='agent-id' />
-            </span>
-            <input type="button" value="Search" />
-        </div>
+        <?php $filter_widget->display(); ?>
             <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
             <script type="text/javascript">
                 google.charts.load('current', {packages: ["orgchart"]});
@@ -42,9 +34,12 @@
             //$sub_data = show_affiliate_data($node['id']);
             $sub_node = '<div class="sub_node ' . $node['status'] . ' affwp-mlm-aff">';
             $sub_node .= '<div class="affwp-mlm-aff-avatar">' . addslashes($node['avatar']) . '</div>';
-            $sub_node .= '<span class="affwp-mlm-aff-name ' . $life_licensed_class . '">' . $node['name'] . ' ' 
-                        . '<span class="points">' . $node['points'] . '</span>'
-                    . '</span>';
+            $sub_node .= '<span class="affwp-mlm-aff-name ' . $life_licensed_class . '">' 
+                    . $node['name'] . " (" . $node['code'] . ")</span>";
+            if (!empty($node['points'])) {
+                $sub_node .= '<div class="points">'. __("Points", 'affiliate-ltp')
+                    . " " . $node['points'] . '</div>';
+            }
             //$sub_node .= preg_replace( "/\r|\n/", "", $sub_data );
             $sub_node .= '</div>';
 
