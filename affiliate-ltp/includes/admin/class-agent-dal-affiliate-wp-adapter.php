@@ -549,6 +549,9 @@ WHERE
                         AND m2.meta_value > 0
         ) ";
         }
+        else {
+            $sql .= " AND r.custom = 'direct'";
+        }
         
         if (!empty($sanitized_ids)) {
             $sql .= " AND a.affiliate_id IN (" . join(",", $sanitized_ids) . ") ";
