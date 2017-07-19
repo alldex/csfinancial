@@ -143,7 +143,7 @@ class Plugin {
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("agent_dal"));
         
-        $this->container->register("dashboard_tabs", "AffiliateLTP\dashboard\Tabs")
+        $this->container->register("dashboard", "AffiliateLTP\dashboard\Dashboard")
                 ->addArgument(new Reference("current_user"));
         
         $this->container->register("translations", "AffiliateLTP\Translations");
@@ -212,7 +212,7 @@ class Plugin {
         $this->container->setParameter("partner_rank_id", $settings_dal->get_partner_rank_id());
         // TODO: stephen need to search and replace this referralMeta garbage inconsistency
         $this->register_hooks_and_actions([ 
-            'upgrades', 'affiliates', 'dashboard_tabs'
+            'upgrades', 'affiliates', 'dashboard'
             , 'ajax_agent_partner_search', 'ajax_agent_checklist', 'ajax_agent_search'
             ,'referral_meta', 'progress_items', 'commission_request_db'
             , 'template_loader', 'agent_org_chart_handler', 'agent_emails'
