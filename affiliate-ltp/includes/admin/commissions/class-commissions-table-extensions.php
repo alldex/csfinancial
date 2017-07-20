@@ -13,7 +13,7 @@ use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Commission_DAL;
 use AffWP\Admin\List_Table;
 
-class Commissions_Table extends List_Table implements \AffiliateLTP\I_Register_Hooks_And_Actions {
+class Commissions_Table_Extensions extends List_Table implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     /**
      *
