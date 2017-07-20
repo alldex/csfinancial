@@ -667,6 +667,15 @@ ORDER BY recruits DESC, u.display_name  LIMIT %d";
         return $this->get_results($prepared, ARRAY_A);
     }
     
+    public function get_agent_by_code( $agent_code ) {
+        global $wpdb;
+        $sql = "SELECT am.affiliate_id "
+                . " FROM wp_affiliate_wp_affiliatemeta am "
+                . " WHERE am.meta_key = 'custom_slug' AND am.meta_value = %s";
+        $prepared = $wpdb->prepare($sql, $agent_code );
+        return $this->get_var($prepared);
+    }
+    
     public function get_agent_code( $agent_id ) {
         global $wpdb;
         $sql = "SELECT am.meta_value AS 'code' "
@@ -678,22 +687,30 @@ ORDER BY recruits DESC, u.display_name  LIMIT %d";
     
     private function get_var($statement) {
         global $wpdb;
-        $this->logger->debug("Query: " . $statement);
-        return $wpdb->get_var($statement);
+        $this->logger->debug("get_var() Query: " . $statement);
+        $results = $wpdb->get_var($statement);
+        if ($wpdb->last_error) {
+            $this->logger->error("get_var() Query Failed with statement: " . $statement. "\nError: " . $wpdb->last_error);
+        }
+        return $results;
     }
     
     private function get_col($statement) {
         global $wpdb;
-        $this->logger->debug("Query: " . $statement);
-        return $wpdb->get_col($statement);
+        $this->logger->debug("get_col() Query: " . $statement);
+        $results = $wpdb->get_col($statement);
+        if ($wpdb->last_error) {
+            $this->logger->error("get_col() Query Failed with statement: " . $statement. "\nError: " . $wpdb->last_error);
+        }
+        return $results;
     }
 
     private function get_results($statement, $type) {
         global $wpdb;
-        $this->logger->debug("Query: " . $statement . "\nResult Type: " . $type);
+        $this->logger->debug("get_results() Query: " . $statement . "\nResult Type: " . $type);
         $results = $wpdb->get_results($statement, $type);
-        if ($results === false) {
-            $this->logger->error("Query Failed with statement: " . $statement);
+        if ($wpdb->last_error) {
+            $this->logger->error("get_results() Query Failed with statement: " . $statement. "\nError: " . $wpdb->last_error);
         }
         return $results;
     }

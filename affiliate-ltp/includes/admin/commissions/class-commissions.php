@@ -12,10 +12,13 @@ use AffiliateLTP\admin\Commission_Processor;
 use AffiliateLTP\admin\Settings_DAL;
 use AffiliateLTP\admin\State_DAL;
 use AffiliateLTP\Sugar_CRM_DAL;
+use AffiliateLTP\admin\commissions\Commissions_Table;
 
 /**
- * Description of class-referrals
+ * Handles the admin edit,view, and list of commissions.  Overrides the
+ * affiliate-wp notion of a referral where needed and abstracts it into a commission.
  *
+ * TODO: stephen replace areas referring to referrals that we can and make it a commission.
  * @author snielson
  */
 class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
@@ -122,7 +125,7 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     public function handleDisplayListReferralsScreen() {
         // TODO: stephen should we di this??
-        $referrals_table = new AffWP_Referrals_Table();
+        $referrals_table = new Commissions_Table($this->commission_dal, $this->agent_dal);
         $referrals_table->prepare_items();
 
         $minimum_payout_amount = $this->settings_dal->get_minimum_payout_amount();

@@ -231,4 +231,16 @@ interface Agent_DAL {
      * sign up under.
      */
     function get_agent_code( $agent_id );
+    
+    /**
+     * Retrieve the agent id by their agent code.
+     * @param string $agent_code
+     */
+    function get_agent_by_code( $agent_code );
+    
+    /**
+     * Return a list of agents that have the code snippet in their agent code
+     * @param string $agent_code_snippet
+     */
+    function search_agents_by_code( $agent_code_snippet );
 }

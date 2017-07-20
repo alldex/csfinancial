@@ -13,6 +13,11 @@ use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Commission_DAL;
 use AffWP\Admin\List_Table;
 
+/**
+ * This class due to some wierdness with the wordpress list table is tightly
+ * coupled to the Commissions_Table class.  It adds some functionality through
+ * hooks and filters that are then implemented in the Commissions_Table
+ */
 class Commissions_Table_Extensions extends List_Table implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     /**
@@ -37,14 +42,17 @@ class Commissions_Table_Extensions extends List_Table implements \AffiliateLTP\I
         
         public function register_hooks_and_actions() {
             add_filter( 'affwp_referral_table_columns', array($this, 'add_table_columns' ) );
-            add_filter( 'affwp_referral_table_points', array($this, 'column_points'), 10, 2);
-            add_filter( 'affwp_referral_table_type', array($this, 'column_type'), 10, 2);
-
             add_filter( 'affwp_referral_row_actions', array($this, 'update_commission_actions'), 10, 2);
-
             add_filter( 'affwp_referrals_bulk_actions', array($this, 'update_bulk_actions'), 10, 1);
         }
 
+        /**
+         * Normally this would be in the commissions table, however there's some really wierd VUDU
+         * going on that I spent a day investigating and couldn't figure out why I can override
+         * the columns with this hook, but not with a direct method override.
+         * @param array $columns The current columns
+         * @return array The new columns to display.
+         */
 	public function add_table_columns($columns) {
 		$new = array(
 			'cb' => $columns['cb']
