@@ -36,10 +36,10 @@ interface Commission_DAL {
     
     /**
      * Removes the meta information for the key and value from the database
-     * @param int $agent_id
+     * @param int $commission_id
      * @param string $key
      */
-    function delete_commission_meta( $agent_id, $key );
+    function delete_commission_meta( $commission_id, $key );
     
     /**
      * Removes all of the meta information connected to a commission.
@@ -120,4 +120,21 @@ interface Commission_DAL {
      * @param int $commission_request_id
      */
     function get_commission_ids_for_request( $commission_request_id );
+    
+    /**
+     * Retrieve the name of the client for this specific commission
+     * @param string $commission_id
+     */
+    function get_commission_client_name( $commission_id );
+    
+    /*
+     * Returns a list of commission requests from the offset up to the limit.
+     */
+    function get_commission_requests($limit, $offset);
+    
+    /**
+     * Return the number of commissions for this contract
+     * @param string $contract_number
+     */
+    function get_commissions_by_contract( $contract_number );
 }

@@ -108,7 +108,9 @@ class Plugin {
                 ->addArgument(new Reference('commissions'));
         $this->container->register("cli_commands", "AffiliateLTP\commands\Command_Registration")
                 ->addArgument(new Reference('settings_dal'))
-                ->addArgument(new Reference('agent_dal'));
+                ->addArgument(new Reference('agent_dal'))
+                ->addArgument(new Reference('sugarcrm'))
+                ->addArgument(new Reference('commission_dal'));
         $this->container->register("leaderboards", "AffiliateLTP\leaderboards\Leaderboards")
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("agent_dal"))

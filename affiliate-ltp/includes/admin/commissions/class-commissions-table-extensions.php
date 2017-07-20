@@ -58,8 +58,9 @@ class Commissions_Table_Extensions extends List_Table implements \AffiliateLTP\I
 			'cb' => $columns['cb']
 			,'amount' => $columns['amount']
 			,'affiliate' => $columns['affiliate']
-			,'type' => __('Type', 'affiliate-ltp')
-			,'reference' => $columns['reference']
+                        ,'client' => __('Client', 'affiliate-ltp')
+                        ,'reference' => __('Contract Number', 'affiliate-ltp')	
+                        ,'type' => __('Type', 'affiliate-ltp')
 			,'description' => $columns['description']
 			,'date' => $columns['date']
 			,'status' => $columns['status']

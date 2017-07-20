@@ -86,6 +86,10 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
             return null;
         }
         
+        return $this->adapt_referral_to_commission($referral);
+    }
+    
+    private function adapt_referral_to_commission( $referral) {
         $commission = new Commission();
         $commission->commission_id = $referral->referral_id;
         $commission->agent_id = $referral->affiliate_id;
@@ -121,14 +125,15 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         $this->referral_meta_db->add_meta($commission_id, $key, $value);
     }
 
-    public function delete_commission_meta($agent_id, $key) {
-        $this->referral_meta_db->delete_meta($agent_id, $key);
+    public function delete_commission_meta($commission_id, $key) {
+        $this->referral_meta_db->delete_meta($commission_id, $key);
     }
 
     public function delete_commission_meta_all($commission_id) {
         // TODO: stephen this is so silly... look at making this into a SQL query
         $this->delete_commission_meta($commission_id, 'client_id');
         $this->delete_commission_meta($commission_id, 'client_contract_number');
+        $this->delete_commission_meta($commission_id, 'client_name');
         $this->delete_commission_meta($commission_id, 'company_commission');
         $this->delete_commission_meta($commission_id, 'company_commission');
         $this->delete_commission_meta($commission_id, 'points');
@@ -148,6 +153,7 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         // add the connection for the client.
         $this->add_commission_meta($commission_id, 'client_id', $client_data['id']);
         $this->add_commission_meta($commission_id, 'client_contract_number', $client_data['contract_number']);
+        $this->add_commission_meta($commission_id, 'client_name', $client_data['name']);
     }
 
     public function get_commission_agent_rate($commission_id) {
@@ -238,6 +244,32 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
             return true;
         }
         return false;
+    }
+    
+    public function get_commission_client_name($commission_id) {
+        return $this->referral_meta_db->get_meta($commission_id, 'client_name', true);
+    }
+    
+    public function get_commission_requests($limit, $offset) {
+        $clauses = ["fields" => "*", "orderby" => "commission_request_id"];
+        $args = ["number" => $limit, "offset" => $offset];
+        return $this->commission_request_db->get_results($clauses, $args);
+    }
+    
+    public function get_commissions_by_contract($contract_number) {
+        global $wpdb;
+        $where = $wpdb->prepare("WHERE reference = %s", $contract_number);
+        $clauses = ["fields" => "*", "where" => $where, "orderby" => "reference"];
+        
+        // shouldn't have more than this # of commissions for the same contract I'm thinking...
+        $results = affiliate_wp()->referrals->get_results($clauses, ["number" => 10000]);
+        $adapted_results = [];
+        if (!empty($results)) {
+            foreach ($results as $result) {
+                $adapted_results[] = $this->adapt_referral_to_commission($result);
+            }
+        }
+        return $adapted_results;
     }
 
 }

@@ -78,7 +78,12 @@ class Commissions_Table extends AffWP_Referrals_Table {
             return apply_filters( 'affwp_referral_table_affiliate', $value, $commission );
 	}
         
-       
+        public function column_client( $commission ) {
+            $id = $commission->referral_id;
+            $name = $this->commission_dal->get_commission_client_name($id);
+            return $name;
+        }
+    
         /**
          * Override the referral data to handle our own search criteria
          * @return array the list of commissions(aka referrals)
