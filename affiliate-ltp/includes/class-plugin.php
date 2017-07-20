@@ -96,7 +96,7 @@ class Plugin {
                 ->addArgument(new Reference('referral_meta'))
                 ->addArgument(new Reference("settings_dal"));
         $this->container->register("state_dal", "AffiliateLTP\admin\State_DAL");
-        $this->container->register('commissions', 'AffiliateLTP\admin\Commissions')
+        $this->container->register('commissions', 'AffiliateLTP\admin\commissions\Commissions')
                 ->addArgument(new Reference("commission_dal"))
                 ->addArgument(new Reference('agent_dal'))
                 ->addArgument(new Reference('settings_dal'))

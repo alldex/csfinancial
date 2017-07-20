@@ -1,11 +1,10 @@
 <?php
 namespace AffiliateLTP\admin;
 
-use AffiliateLTP\admin\Commissions;
+use AffiliateLTP\admin\commissions\Commissions;
 
 class Menu implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
-    // TODO: stephen we should probably setup some kind of registry here
     /**
      * 
      * @var Commissions

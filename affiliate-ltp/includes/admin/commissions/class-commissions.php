@@ -1,8 +1,7 @@
 <?php
 
-namespace AffiliateLTP\admin;
+namespace AffiliateLTP\admin\commissions;
 
-use AffiliateLTP\Plugin;
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Commission_Payout_Export;
 use \AffWP_Referrals_Table;
