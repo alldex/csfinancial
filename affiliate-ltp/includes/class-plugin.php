@@ -96,7 +96,7 @@ class Plugin {
                 ->addArgument(new Reference('referral_meta'))
                 ->addArgument(new Reference("settings_dal"));
         $this->container->register("state_dal", "AffiliateLTP\admin\State_DAL");
-        $this->container->register('referrals', 'AffiliateLTP\admin\Referrals')
+        $this->container->register('commissions', 'AffiliateLTP\admin\Commissions')
                 ->addArgument(new Reference("commission_dal"))
                 ->addArgument(new Reference('agent_dal'))
                 ->addArgument(new Reference('settings_dal'))
@@ -105,7 +105,7 @@ class Plugin {
                 ->addArgument(new Reference("state_dal"))
                 ->addArgument(new Reference("sugarcrm"));
         $this->container->register('adminMenu', 'AffiliateLTP\admin\Menu')
-                ->addArgument(new Reference('referrals'));
+                ->addArgument(new Reference('commissions'));
         $this->container->register("cli_commands", "AffiliateLTP\commands\Command_Registration")
                 ->addArgument(new Reference('settings_dal'))
                 ->addArgument(new Reference('agent_dal'));
@@ -227,7 +227,7 @@ class Plugin {
         
         if (is_admin()) {
             $this->register_hooks_and_actions([ 
-                'referrals'
+                'commissions'
                 ,'adminMenu'
                 ,'tools'
                 , 'commissions_table'

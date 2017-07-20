@@ -1,18 +1,18 @@
 <?php
 namespace AffiliateLTP\admin;
 
-use AffiliateLTP\admin\Referrals;
+use AffiliateLTP\admin\Commissions;
 
 class Menu implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     // TODO: stephen we should probably setup some kind of registry here
     /**
      * 
-     * @var Referrals
+     * @var Commissions
      */
     private $referrals;
 
-	public function __construct(Referrals $referrals) {
+	public function __construct(Commissions $referrals) {
                 $this->referrals = $referrals;
 	}
         

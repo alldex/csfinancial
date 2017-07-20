@@ -19,7 +19,7 @@ use AffiliateLTP\Sugar_CRM_DAL;
  *
  * @author snielson
  */
-class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
+class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     /**
      *
@@ -133,7 +133,10 @@ class Referrals implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     }
 
     /**
-     * Handles the display of the different admin referral pages.
+     * Handles the display of the different admin referral pages. This action
+     * is a menu item action that is added by the Menu class for all of
+     * the commission pages.
+     * @see admin/Menu 
      */
     public function handleAdminSubMenuPage() {
         // filter our post variables
