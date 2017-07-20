@@ -1,5 +1,5 @@
 <?php 
-namespace AffiliateLTP\admin;
+namespace AffiliateLTP\admin\commissions;
 
 // we'd use our autoloader but the affiliate-wp doesn't follow any kind
 // of convention

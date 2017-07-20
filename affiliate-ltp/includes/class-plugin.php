@@ -123,7 +123,7 @@ class Plugin {
                 ->addArgument(new Reference('referral_meta'))
                 ->addArgument(new Reference('progress_items'))
                 ->addArgument(new Reference('commission_request_db'));
-        $this->container->register("commissions_table", "AffiliateLTP\admin\Commissions_Table")
+        $this->container->register("commissions_table", "AffiliateLTP\admin\commissions\Commissions_Table")
                 ->addArgument(new Reference("commission_dal"))
                 ->addArgument("%company_agent_id%");
         $this->container->register("commissions_importer", "AffiliateLTP\admin\csv\Commissions_Importer")
