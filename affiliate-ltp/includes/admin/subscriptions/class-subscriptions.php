@@ -56,11 +56,7 @@ class Subscriptions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
             Stripe::setApiKey($keys['live_secret_key']);
         }
         try {
-            $response = \Stripe\Subscription::all(array('expand' => array('data.customer')));
-//            echo '<pre>';
-//            var_dump($response->data[0]);
-//            echo "</pre>";
-//            exit;
+            $response = \Stripe\Subscription::all(array('status' => 'all', 'expand' => array('data.customer')));
             $subscriptions = $response->autoPagingIterator();
             $subscription_table = new Subscriptions_List_Table([], $subscriptions);
             $subscription_table->prepare_items();

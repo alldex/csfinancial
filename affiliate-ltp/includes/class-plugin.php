@@ -50,7 +50,7 @@ class Plugin {
     public function __construct() {
         
         $logger = new Logger('affiliate-ltp');
-        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::DEBUG));
+        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::NOTICE));
         
         $this->container = new ContainerBuilder();
         $this->container->set("logger", $logger);
@@ -171,7 +171,7 @@ class Plugin {
         $this->container->register("subscriptions",  "AffiliateLTP\admin\subscriptions\Subscriptions")
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("template_loader"));
-        $this->container->register("subscriptions_listener",  "AffiliateLTP\stripe\Subscriptions_Event_Listener")
+        $this->container->register("subscriptions_listener",  "AffiliateLTP\stripe\Subscription_Event_Listener")
                 ->addArgument(new Reference("logger"));
         
         if( is_admin() ) {
@@ -181,6 +181,7 @@ class Plugin {
         // these have actions in their constructors so we need to initialize them.
         $this->register_hooks_and_actions([
             'shortcodes', 'gravityforms_bootstrap', 'translations', 'asset_loader'
+            ,'subscriptions_listener'
         ]);
        
         // do some cleanup on the plugins
