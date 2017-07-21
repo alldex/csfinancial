@@ -2,6 +2,8 @@
 namespace AffiliateLTP\admin;
 
 use AffiliateLTP\admin\commissions\Commissions;
+use AffiliateLTP\admin\Referrals;
+use AffiliateLTP\stripe\Subscriptions;
 
 class Menu implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
@@ -9,10 +11,11 @@ class Menu implements \AffiliateLTP\I_Register_Hooks_And_Actions {
      * 
      * @var Commissions
      */
-    private $referrals;
+    private $commissions;
 
-	public function __construct(Commissions $referrals) {
-                $this->referrals = $referrals;
+	public function __construct(Commissions $commissions, Subscriptions $subscriptions) {
+                $this->commissions = $commissions;
+                $this->subscriptions = $subscriptions;
 	}
         
         public function register_hooks_and_actions() {
@@ -33,7 +36,8 @@ class Menu implements \AffiliateLTP\I_Register_Hooks_And_Actions {
                 remove_action($hookname, 'affwp_referrals_admin');
                 
                 // add it again but we are redoing the work here
-                add_submenu_page( 'affiliate-wp', __( 'Referrals', 'affiliate-wp' ), __( 'Referrals', 'affiliate-wp' ), 'manage_referrals', 'affiliate-wp-referrals', array($this->referrals, 'handleAdminSubMenuPage') );
+                add_submenu_page( 'affiliate-wp', __( 'Referrals', 'affiliate-wp' ), __( 'Referrals', 'affiliate-wp' ), 'manage_referrals', 'affiliate-wp-referrals', array($this->commissions, 'handleAdminSubMenuPage') );
+                add_submenu_page( 'affiliate-wp', __( 'Subscriptions', 'affiliate-ltp' ), __( 'EO Subscriptions', 'affiliate-ltp' ), 'manage_referrals', 'affiliate-ltp-subscriptions', array($this->subscriptions, 'handleAdminSubMenuPage') );
             
 //                add_menu_page( __( 'Affiliates', 'affiliate-wp' ), __( 'Affiliates', 'affiliate-wp' ), 'view_affiliate_reports', 'affiliate-wp', 'affwp_affiliates_dashboard' );
 //		add_submenu_page( 'affiliate-wp', __( 'Overview', 'affiliate-wp' ), __( 'Overview', 'affiliate-wp' ), 'view_affiliate_reports', 'affiliate-wp', 'affwp_affiliates_dashboard' );

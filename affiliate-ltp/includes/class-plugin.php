@@ -5,7 +5,18 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use AffiliateLTP\stripe\Subscriptions;
+use AffiliateLTP\Sugar_CRM_DAL;
+use AffiliateLTP\Sugar_CRM_DAL_Localhost;
 
+use AffiliateLTP\admin\GravityForms\Gravity_Forms_Bootstrap;
+use AffiliateLTP\Agent_Checklist_AJAX;
+use AffiliateLTP\Agent_Partner_Search_AJAX;
+use AffiliateLTP\admin\Affiliates;
+
+use AffiliateLTP\dashboard\Agent_Events;
+
+use AffiliateLTP\commands\Command_Registration;
 
 /**
  * Main starting point for the plugin.  Registers all the classes.
@@ -104,8 +115,9 @@ class Plugin {
                 ->addArgument(new Reference("commission_payout_exporter"))
                 ->addArgument(new Reference("state_dal"))
                 ->addArgument(new Reference("sugarcrm"));
-        $this->container->register('adminMenu', 'AffiliateLTP\admin\Menu')
-                ->addArgument(new Reference('commissions'));
+        $this->container->register('admin_menu', 'AffiliateLTP\admin\Menu')
+                ->addArgument(new Reference('commissions'))
+                ->addArgument(new Reference('subscriptions'));
         $this->container->register("cli_commands", "AffiliateLTP\commands\Command_Registration")
                 ->addArgument(new Reference('settings_dal'))
                 ->addArgument(new Reference('agent_dal'))
@@ -155,6 +167,10 @@ class Plugin {
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("template_loader"))
                 ->addArgument(new Reference("agent_dal"));
+        
+        $this->container->register("subscriptions",  "AffiliateLTP\stripe\Subscriptions")
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("template_loader"));
         
         if( is_admin() ) {
             $this->register_hooks_and_actions('settings');
@@ -230,7 +246,7 @@ class Plugin {
         if (is_admin()) {
             $this->register_hooks_and_actions([ 
                 'commissions'
-                ,'adminMenu'
+                ,'admin_menu'
                 ,'tools'
                 , 'commissions_table_extensions'
             ]);
