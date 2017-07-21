@@ -168,9 +168,11 @@ class Plugin {
                 ->addArgument(new Reference("template_loader"))
                 ->addArgument(new Reference("agent_dal"));
         
-        $this->container->register("subscriptions",  "AffiliateLTP\stripe\Subscriptions")
+        $this->container->register("subscriptions",  "AffiliateLTP\admin\subscriptions\Subscriptions")
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("template_loader"));
+        $this->container->register("subscriptions_listener",  "AffiliateLTP\stripe\Subscriptions_Event_Listener")
+                ->addArgument(new Reference("logger"));
         
         if( is_admin() ) {
             $this->register_hooks_and_actions('settings');

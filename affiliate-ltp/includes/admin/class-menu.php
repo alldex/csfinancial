@@ -2,8 +2,7 @@
 namespace AffiliateLTP\admin;
 
 use AffiliateLTP\admin\commissions\Commissions;
-use AffiliateLTP\admin\Referrals;
-use AffiliateLTP\stripe\Subscriptions;
+use AffiliateLTP\admin\subscriptions\Subscriptions;
 
 class Menu implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 

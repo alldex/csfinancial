@@ -1,5 +1,5 @@
 <?php
-namespace AffiliateLTP\stripe;
+namespace AffiliateLTP\admin\subscriptions;
 
 use Stripe\Stripe;
 use AffiliateLTP\admin\Settings_DAL;
