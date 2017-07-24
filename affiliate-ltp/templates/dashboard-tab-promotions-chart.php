@@ -36,7 +36,7 @@
             $sub_node .= '<div class="affwp-mlm-aff-avatar">' . addslashes($node['avatar']) . '</div>';
             $sub_node .= '<span class="affwp-mlm-aff-name ' . $life_licensed_class . '">' 
                     . $node['name'] . " (" . $node['code'] . ")</span>";
-            if (!empty($node['points'])) {
+            if (isset($node['points'])) {
                 $sub_node .= '<div class="points">'. __("Points", 'affiliate-ltp')
                     . " " . $node['points'] . '</div>';
             }

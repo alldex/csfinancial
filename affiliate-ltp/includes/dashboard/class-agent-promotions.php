@@ -70,11 +70,8 @@ class Agent_Promotions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         
         if (!empty($ids)) {
             $this->logger->debug("agent first level downline ids: " . implode(",",$ids));
-            $len = count($ids);
-            $point_data = $this->agent_dal->get_agent_point_summary_data($len, $date_filter, false, $ids, $personal_sales_only);
-            $nodes = array_map(function($record) use ($agent_name) {
-                return $this->get_promotion_node_data($record['agent_id'], $record['points'], $agent_name);
-            }, $point_data);
+            $nodes = $this->get_direct_downline_nodes($date_filter, 
+                    $personal_sales_only, $agent_name, $ids);
         }
         // now add in the parent agent.
         $agent_point_data = $this->agent_dal->get_agent_point_summary_data(1, $date_filter, false, [$agent_id], $personal_sales_only);
@@ -86,6 +83,24 @@ class Agent_Promotions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         $sub_id = $agent_id;
         $include = $this->template_loader->get_template_part('dashboard-tab', 'promotions-chart', false);
         include_once $include;
+    }
+    
+    private function get_direct_downline_nodes($date_filter, $personal_sales_only, $parent_name, array $agent_ids) {
+        $len = count($agent_ids);
+        $point_data = $this->agent_dal->get_agent_point_summary_data($len, $date_filter, false, $agent_ids, $personal_sales_only);
+        $points_by_id = [];
+        foreach ($point_data as $record) {
+            $points_by_id[$record['agent_id']] = $record['points'];
+        }
+        $nodes = [];
+        foreach ($agent_ids as $agent_id) {
+            $points = 0;
+            if (isset($points_by_id[$agent_id])) {
+                $points = $points_by_id[$agent_id];
+            }
+            $nodes[] = $this->get_promotion_node_data($agent_id, $points, $parent_name);
+        }
+        return $nodes;
     }
     
     private function setup_filter_widget($agent_id, $agent_name) {

@@ -50,7 +50,7 @@ class Plugin {
     public function __construct() {
         
         $logger = new Logger('affiliate-ltp');
-        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::NOTICE));
+        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::DEBUG));
         
         $this->container = new ContainerBuilder();
         $this->container->set("logger", $logger);
@@ -85,6 +85,7 @@ class Plugin {
                 ->addArgument(new Reference('agent_dal'))
                 ->addArgument(new Reference('settings_dal'));
         $this->container->register("ajax_agent_search", "AffiliateLTP\Agent_Search_AJAX")
+                ->addArgument(new Reference('logger'))
                 ->addArgument(new Reference('agent_dal'))
                 ->addArgument(new Reference('settings_dal'));
         $this->container->register("affiliates", "AffiliateLTP\admin\Affiliates");
