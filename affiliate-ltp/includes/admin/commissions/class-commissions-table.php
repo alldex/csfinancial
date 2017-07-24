@@ -123,6 +123,8 @@ class Commissions_Table extends AffWP_Referrals_Table {
                     $affiliate = $this->agent_dal->get_agent_by_code($code);
                 } elseif ( strpos( $search, 'context:' ) !== false ) {
                         $context = trim( str_replace( 'context:', '', $search ) );
+                } elseif ( strpos( $search, 'contract_number:' ) !== false ) {
+                        $reference = trim( str_replace( 'contract_number:', '', $search ) );
                 }
         }
 
