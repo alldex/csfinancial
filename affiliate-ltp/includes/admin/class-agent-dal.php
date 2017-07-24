@@ -1,6 +1,7 @@
 <?php
 namespace AffiliateLTP\admin;
 
+use AffiliateLTP\admin\Agent_Points_Summary_Request;
 /**
  *
  * @author snielson
@@ -218,13 +219,10 @@ interface Agent_DAL {
     function search_agents_by_name_and_rank($name, $rank);
     
     /**
-     * 
-     * @param int $limit
-     * @param array $date_filter
-     * @param boolean $partners_only
-     * @param array $agent_ids
+     * Retrieves the summary data using the request parameters provided.
+     * @param Agent_Points_Summary_Request $request
      */
-    function get_agent_point_summary_data($limit, $date_filter, $partners_only = false, $agent_ids);
+    function get_agent_point_summary_data(Agent_Points_Summary_Request $request);
     
     /**
      * Get the unique agent code that represents an agent and sub-agents can

@@ -26,6 +26,11 @@ class Agent_Filter_Widget {
     
     private $filter_to;
     
+    private $show_super_shop_filter;
+    
+    private $include_super_shop;
+            
+    
     public function __construct($tab, $agent, $dates, $filter_from = '', $filter_to='') {
         $this->tab = $tab;
         $this->agent_id = $agent['id'];
@@ -33,6 +38,20 @@ class Agent_Filter_Widget {
         $this->dates = $dates;
         $this->filter_from = $filter_from;
         $this->filter_to = $filter_to;
+        $this->show_super_shop_filter = false;
+        $this->include_super_shop = false;
+    }
+    
+    public function toggle_super_shop() {
+        $this->show_super_shop_filter = !$this->show_super_shop_filter;
+    }
+    
+    public function set_include_super_shop($include_super_shop) {
+        $this->include_super_shop = $include_super_shop;
+    }
+    
+    public function include_super_shop() {
+        return $this->include_super_shop;
     }
     
     private function get_date_options() {
@@ -68,7 +87,7 @@ class Agent_Filter_Widget {
 	*/
 	function display() {
 		$date_options = $this->get_date_options();
-
+                
 		$display = $this->dates['range'] == 'other' ? 'style="display:inline-block;"' : 'style="display:none;"';
 		?>
 		<form id="affwp-graphs-filter search-controls" method="get">
@@ -109,6 +128,13 @@ class Agent_Filter_Widget {
 					</span>
 
 				</div>
+                                
+                                <?php if ($this->show_super_shop_filter) : ?>
+                                <label>
+                                    Show Super Shop
+                                    <input type="checkbox" name="show_super_shop" value="1" <?= $this->include_super_shop ? "CHECKED" : ""; ?> />
+                                </label>
+                                <?php endif; ?>
 
 				<input type="submit" class="button" value="<?php _e( 'Filter', 'affiliate-wp' ); ?>"/>
 			</div>

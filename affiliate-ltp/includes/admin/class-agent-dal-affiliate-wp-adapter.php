@@ -9,6 +9,7 @@ use AffiliateLTP\Agent_Coleadership_Tree_Node;
 use AffiliateLTP\admin\Life_License_Status;
 use AffiliateLTP\Progress_Item_DB;
 use Psr\Log\LoggerInterface;
+use AffiliateLTP\admin\Agent_Points_Summary_Request;
 
 /**
  * Description of class-agent-dal-affiliate-wp-adapter
@@ -496,7 +497,14 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     }
 
     public function get_partner_agent_leaderboard_points_data($limit, $date_filter, $company_agent_id) {
-        return $this->get_agent_leaderboard_data($limit, $date_filter, $company_agent_id, true);
+        $request = new Agent_Points_Summary_Request();
+        $request->limit = $limit;
+        $request->date_filter = $date_filter;
+        $request->partners_only = true;
+        $request->base_shop_only = true;
+        $request->personal_sales_only = false;
+        return $this->get_agent_point_summary_data($request);
+//        return $this->get_agent_leaderboard_data($limit, $date_filter, $company_agent_id, true);
     }
 
     public function get_agent_leaderboard_points_data($limit, $date_filter, $company_agent_id) {
@@ -504,25 +512,19 @@ class Agent_DAL_Affiliate_WP_Adapter implements Agent_DAL {
     }
 
     private function get_agent_leaderboard_data($limit, $date_filter, $company_agent_id, $partners_only = false) {
-        return $this->get_agent_summary_data($limit, $date_filter, $partners_only);
+        $request = new Agent_Points_Summary_Request();
+        $request->limit = $limit;
+        $request->date_filter = $date_filter;
+        $request->partners_only = $partners_only;
+        $request->base_shop_only = $partners_only;
+        return $this->get_agent_point_summary_data($request);
     }
 
-    public function get_agent_point_summary_data($limit, $date_filter
-    , $partners_only = false, $agent_ids = [], $personal_sales_only = true) {
+    public function get_agent_point_summary_data(Agent_Points_Summary_Request $request) {
         global $wpdb;
-        $partner_rank_id = $this->partner_rank_id;
-
-        if (is_array($agent_ids)) {
-            $sanitized_ids = array_filter(array_map(intval, $agent_ids)
-                    , function($val) {
-                return !is_nan($val);
-            });
-        } else {
-            $sanitized_ids = [];
-        }
 
         // TODO: stephen should we pull the the table prefixes and everything from the various affiliate and meta tables?
-
+        // TODO: stephen should we make this into a view to try and simplify this??
         $params = [];
         $sql = "SELECT 
         r.affiliate_id AS 'agent_id', 
@@ -536,8 +538,8 @@ INNER JOIN
         wp_affiliate_wp_affiliates a USING (affiliate_id) -- agents table
 INNER JOIN 
         wp_users wu ON a.user_id = wu.ID ";
-        if ($partners_only) {
-            $params[] = $partner_rank_id;
+        if ($request->partners_only) {
+            $params[] = $this->partner_rank_id;
             $sql .= "
 INNER JOIN (
                 SELECT 
@@ -557,9 +559,9 @@ WHERE
         AND r.status = 'paid'  -- we only want paid commissions
         AND r.date BETWEEN %s AND %s ";
         $params[] = $this->company_agent_id;
-        $params[] = $date_filter['start'];
-        $params[] = $date_filter['end'];
-        if ($partners_only) {
+        $params[] = $request->date_filter['start'];
+        $params[] = $request->date_filter['end'];
+        if ($request->base_shop_only) {
             $sql .= "
 -- super shop is tracked by 
         AND r.referral_id NOT IN ( -- skip over points earned outside the base shop
@@ -572,12 +574,12 @@ WHERE
                         AND m2.meta_value > 0
         ) ";
         }
-        if ($personal_sales_only) {
+        if ($request->personal_sales_only) {
             $sql .= " AND r.custom = 'direct'";
         }
 
-        if (!empty($sanitized_ids)) {
-            $sql .= " AND a.affiliate_id IN (" . join(",", $sanitized_ids) . ") ";
+        if (!empty($request->get_agent_ids())) {
+            $sql .= " AND a.affiliate_id IN (" . join(",", $request->get_agent_ids()) . ") ";
         }
 
         $sql .= "
@@ -588,7 +590,7 @@ ORDER BY
         ,wu.display_name
 LIMIT %d; -- Limit is configurable
 ";
-        $params[] = $limit;
+        $params[] = $request->limit;
 
         return $this->get_results($wpdb->prepare($sql, $params), ARRAY_A);
     }

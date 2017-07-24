@@ -40,6 +40,7 @@
                 $sub_node .= '<div class="points">'. __("Points", 'affiliate-ltp')
                     . " " . $node['points'] . '</div>';
             }
+            $sub_node .= '<div class="rank">' . $node['rank'] . '</div>';
             //$sub_node .= preg_replace( "/\r|\n/", "", $sub_data );
             $sub_node .= '</div>';
 

@@ -167,7 +167,8 @@ class Plugin {
                 ->addArgument(new Reference("logger"))
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("template_loader"))
-                ->addArgument(new Reference("agent_dal"));
+                ->addArgument(new Reference("agent_dal"))
+                ->addArgument(new Reference("current_user"));
         
         $this->container->register("subscriptions",  "AffiliateLTP\admin\subscriptions\Subscriptions")
                 ->addArgument(new Reference("settings_dal"))

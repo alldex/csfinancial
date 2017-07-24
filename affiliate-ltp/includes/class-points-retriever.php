@@ -37,7 +37,9 @@ class Points_Retriever {
                 'number'       => -1,
                 'affiliate_id' => $affiliate_id
         ) );
+        
         $paidReferrals = wp_list_filter( $referrals, array( 'status' => 'paid' ) );
+        var_dump(count($paidReferrals));
         $pointsData = array();
                 
         $lifePointsSum = 0;
@@ -48,7 +50,7 @@ class Points_Retriever {
             if ( in_array( $date_range['range'], array( 'this_year', 'last_year' ), true )
                     || $difference >= YEAR_IN_SECONDS
             ) {
-                    $date = date( 'Y-m', strtotime( $referral->date ) );
+                    $date = date( 'Y-m-d', strtotime( $referral->date ) );
             } else {
                     $date = date( 'Y-m-d', strtotime( $referral->date ) );
             }

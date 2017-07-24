@@ -82,7 +82,6 @@ class Agent_Graphs implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         );
         
         $agent_dal = $this->agent_dal;
-        $agent_downline = $agent_dal->get_agent_downline_with_coleaderships($affiliate_id);
         
         $points_data = $points_retriever->get_points( $affiliate_id, $points_date_range, $include_super_shop );
         
