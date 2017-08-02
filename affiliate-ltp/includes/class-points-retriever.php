@@ -39,7 +39,6 @@ class Points_Retriever {
         ) );
         
         $paidReferrals = wp_list_filter( $referrals, array( 'status' => 'paid' ) );
-        var_dump(count($paidReferrals));
         $pointsData = array();
                 
         $lifePointsSum = 0;

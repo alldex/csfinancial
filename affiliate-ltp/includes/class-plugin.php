@@ -50,7 +50,7 @@ class Plugin {
     public function __construct() {
         
         $logger = new Logger('affiliate-ltp');
-        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::DEBUG));
+        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::WARNING));
         
         $this->container = new ContainerBuilder();
         $this->container->set("logger", $logger);
@@ -99,6 +99,10 @@ class Plugin {
                 ->addArgument(new Reference("settings_dal"));
         $this->container->register("commission_dal", "AffiliateLTP\admin\Commission_DAL_Affiliate_WP_Adapter")
                 ->addArgument(new Reference("referral_meta"));
+        $this->container->register("commission_chargeback_processor", "AffiliateLTP\admin\Commission_Chargeback_Processor")
+                ->addArgument(new Reference("commission_dal"))
+                ->addArgument(new Reference("agent_dal"))
+                ->addArgument("%company_agent_id%");
         $this->container->register("commission_processor", "AffiliateLTP\admin\Commission_Processor")
                 ->addArgument(new Reference("commission_dal"))
                 ->addArgument(new Reference("agent_dal"))
@@ -115,7 +119,9 @@ class Plugin {
                 ->addArgument(new Reference("commission_processor"))
                 ->addArgument(new Reference("commission_payout_exporter"))
                 ->addArgument(new Reference("state_dal"))
-                ->addArgument(new Reference("sugarcrm"));
+                ->addArgument(new Reference("sugarcrm"))
+                ->addArgument(new Reference("commission_chargeback_processor"))
+                ->addArgument(new Reference("logger"));
         $this->container->register('admin_menu', 'AffiliateLTP\admin\Menu')
                 ->addArgument(new Reference('commissions'))
                 ->addArgument(new Reference('subscriptions'));

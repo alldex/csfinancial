@@ -46,13 +46,18 @@ class Asset_Loader implements I_Register_Hooks_And_Actions {
         if( ! affwp_is_admin_page() ) {
 		return;
 	}
+        // include the frontend scripts and the admin scripts.
+        $this->frontend_scripts();
 
         $suffix = "";
 //	$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
         $plugin_url = AFFILIATE_LTP_PLUGIN_URL;
+        
+        
         $url = $plugin_url . 'assets/js/admin/ltp-admin' . $suffix . '.js';
         wp_enqueue_script( 'angular', $plugin_url . 'assets/js/bower_components/angular/angular.min.js');
-	wp_enqueue_script( 'affiliate-ltp-admin', $url, array( 'jquery', 'jquery-ui-autocomplete', 'angular' ));
+	wp_enqueue_script( 'affiliate-ltp-admin', $url, array( 'jquery', 'jquery-ui-autocomplete', 'angular', 'affiliate-ltp-core' ));
+        
         
         wp_enqueue_style( 'affwp-admin', $plugin_url . 'assets/css/admin' . $suffix . '.css', array());
         

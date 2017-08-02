@@ -13,6 +13,9 @@ use AffiliateLTP\admin\Settings_DAL;
 use AffiliateLTP\admin\State_DAL;
 use AffiliateLTP\Sugar_CRM_DAL;
 use AffiliateLTP\admin\commissions\Commissions_Table;
+use Psr\Log\LoggerInterface;
+use AffiliateLTP\admin\Commission_Validation_Exception;
+use AffiliateLTP\admin\Commission_Chargeback_Processor;
 
 /**
  * Handles the admin edit,view, and list of commissions.  Overrides the
@@ -48,6 +51,12 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     private $commission_processor;
     
     /**
+     * Handles the chargebacks of commissions.
+     * @var Commission_Chargeback_Processor
+     */
+    private $commission_chargeback_processor;
+    
+    /**
      *
      * @var Commission_Payout_Export 
      */
@@ -64,11 +73,19 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
      * @var Sugar_CRM_DAL
      */
     private $sugar_crm_dal;
+    
+    /**
+     *
+     * @var LoggerInterface
+     */
+    private $logger;
 
     public function __construct(Commission_Dal $commission_dal, Agent_DAL $agent_dal,
             Settings_DAL $settings_dal, Commission_Processor $processor
             , Commission_Payout_Export $exporter, State_DAL $state_dal
-            , Sugar_CRM_DAL $sugar_crm_dal) {
+            , Sugar_CRM_DAL $sugar_crm_dal
+            , Commission_Chargeback_Processor $commission_chargeback_processor
+            , LoggerInterface $logger) {
         $this->commission_dal = $commission_dal;
         $this->agent_dal = $agent_dal;
         $this->settings_dal = $settings_dal;
@@ -76,6 +93,8 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         $this->commission_payout_exporter = $exporter;
         $this->state_dal = $state_dal;
         $this->sugar_crm_dal = $sugar_crm_dal;
+        $this->logger = $logger;
+        $this->commission_chargeback_processor = $commission_chargeback_processor;
     }
     
     public function register_hooks_and_actions() {
@@ -320,13 +339,13 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         
         try {
             $company_agent_id = $this->settings_dal->get_company_agent_id();
-            $chargeback_processor = $this->commission_processor;
+            $chargeback_processor = $this->commission_chargeback_processor;
             $chargeback_processor->process_request($commission_request_id);
             wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=commission_chargeback_success&affwp_message=Chargeback%20Succeeded' ) );
             exit;
         } catch (Exception $ex) {
             $message = $ex->getMessage() . "\nTrace: " . $ex->getTraceAsString(); 
-            error_log($message);
+            $this->logger->error($message);
         }
         wp_safe_redirect( admin_url( 'admin.php?page=affiliate-wp-referrals&affwp_notice=commission_chargeback_failed&affwp_message=Chargeback%20Failed' ) );
         exit;
@@ -368,10 +387,10 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         } catch (Commission_Validation_Exception $ex) {
             $response['errors'] = $ex->get_validation_errors();
             $response['type'] = 'validation';
-            error_log($response['message']);
+            $this->logger->warning($response['message'] . "\nTrace: " . $ex->getTraceAsString());
         } catch (\Exception $ex) {
             $message = $ex->getMessage() . "\nTrace: " . $ex->getTraceAsString(); 
-            error_log($message);
+            $this->logger->error($message);
             $response['message'] = __("A server error occurred and we could not process the request.  Check the server logs for more details", 'affiliate-ltp');
         }
         echo json_encode($response);
@@ -384,8 +403,7 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     }
     
     private function debugLog($message) {
-        // TODO: stephen need to put in the logger here.
-        error_log($message);
+        $this->logger->debug($message);
     }
     
     private function fill_agent_user_ids($agents) {
