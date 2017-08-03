@@ -131,6 +131,8 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
         $paging = ['page_size' => self::MAXIMUM_EVENT_FORM_ENTRIES];
         $entries = GFAPI::get_entries($form['id'], ['status' => 'active'], $sorting_criteria, $paging);
         $partner_data = [];
+        $total_participants = 0;
+        $total_paid = 0;
         if (!empty($entries)) {
             foreach ($entries as $entry) {
                 $entry_data = $this->get_entry_event_data($form, $entry);
@@ -140,9 +142,15 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
                     $partner_data[$partner_id] = ["registrants" => [], "name" => $name];
                 }
                 $partner_data[$partner_id]["registrants"][] = $entry_data;
+                $total_participants += ($entry_data['spouse']) ? 2 : 1;
+                if ($entry_data['price_paid_unformatted'] > 0) {
+                    $total_paid += $entry_data['price_paid_unformatted'];
+                }
             }
         }
-        return ["title" => $form['title'], "partners" => $partner_data];
+        return ["title" => $form['title'], "partners" => $partner_data
+                , 'total_participants' => $total_participants
+                , 'total_paid' => money_format("%i", $total_paid)];
 //        return $mappedEntries;
     }
     
@@ -150,12 +158,29 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
         $entries = $this->get_entries_for_partner( $form, $agent_id );
         
         $mappedEntries = [];
-        if (!empty($entries)) {
-            foreach ($entries as $entry) {
-                $mappedEntries[] = $this->get_entry_event_data($form, $entry);
+        $total_participants = 0;
+        $total_paid = 0;
+        if (empty($entries)) {
+            return ["title" => $form['title'], "registrants" => []
+                , 'total_paid' => '0.00', 'total_participants' => 0];
+        }
+        foreach ($entries as $entry) {
+            $mappedEntry = $this->get_entry_event_data($form, $entry);
+            $mappedEntries[] = $mappedEntry;
+            if ($mappedEntry['spouse']) {
+                $total_participants += 2;
+            }
+            else {
+                $total_participants += 1;
+            }
+            if ($mappedEntry['price_paid_unformatted'] > 0) {
+                $total_paid += $mappedEntry['price_paid_unformatted'];
             }
         }
-        return ["title" => $form['title'], "registrants" => $mappedEntries];
+        return ["title" => $form['title']
+                , "registrants" => $mappedEntries
+                , 'total_participants' => $total_participants
+                , 'total_paid' => money_format("%i", $total_paid)];
     }
     
     private function get_entry_event_data($form, $entry) {
@@ -172,6 +197,7 @@ class AffiliateLTP_Gravity_Forms_Add_On extends GFAddOn {
 
         $entry_data = ['name' => $name, 'spouse' => $spouse
                         , 'price_paid' => money_format("%i", $paid_total)
+                        , 'price_paid_unformatted' => $paid_total
                         , 'partner_id' => $partner_id];
         return $entry_data;
     }
