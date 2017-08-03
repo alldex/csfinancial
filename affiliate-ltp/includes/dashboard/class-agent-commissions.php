@@ -59,6 +59,34 @@ class Agent_Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
      public function show_commissions( $current_agent_id ) {
         $this->logger->info("show_commissions(" . $current_agent_id . ")");
         
+        $per_page = 30;
+        $page = get_query_var('page', 1);
+        $pages = absint(ceil(affwp_count_referrals($current_agent_id) / $per_page));
+        $referrals = affiliate_wp()->referrals->get_referrals(
+                array(
+                    'number' => $per_page,
+                    'offset' => $per_page * ( $page - 1 ),
+                    'affiliate_id' => $current_agent_id,
+                    'status' => array('paid', 'unpaid', 'rejected'),
+                )
+        );
+        $has_pagination = false;
+        $pagination = "";
+        if ($pages > 1) {
+            $has_pagination = true;
+            $pagination = paginate_links(
+                    array(
+                        'format' => '?paged=%#%',
+                        'current' => $page,
+                        'total' => $pages,
+                        'add_fragment' => '#affwp-affiliate-dashboard-referrals',
+                        'add_args' => array(
+                            'tab' => 'commissions',
+                        ),
+                    )
+            );
+        }
+        
         $include = $this->template_loader->get_template_part('dashboard-tab', 'commissions-list', false);
         include_once $include;
     }
