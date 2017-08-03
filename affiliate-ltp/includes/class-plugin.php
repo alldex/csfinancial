@@ -134,12 +134,8 @@ class Plugin {
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("agent_dal"))
                 ->addArgument(new Reference("template_loader"));
-        $this->container->register("agent_events", "AffiliateLTP\dashboard\Agent_Events")
-                ->addArgument(new Reference("settings_dal"))
-                ->addArgument(new Reference("template_loader"));
-        $this->container->register("Agent_Promotions", "AffiliateLTP\dashboard\Agent_Promotions")
-                ->addArgument(new Reference("settings_dal"))
-                ->addArgument(new Reference("template_loader"));
+        
+        
         $this->container->register('upgrades', 'AffiliateLTP\admin\Upgrades')
                 ->addArgument(new Reference('referral_meta'))
                 ->addArgument(new Reference('progress_items'))
@@ -155,26 +151,16 @@ class Plugin {
                 ->addArgument(new Reference('commissions_importer'));
         $this->container->register('points_retriever', 'AffiliateLTP\Points_Retriever')
                 ->addArgument(new Reference("referral_meta"));
-        $this->container->register('dashboard_agent_graphs', 'AffiliateLTP\dashboard\Agent_Graphs')
-                ->addArgument(new Reference("agent_dal"))
-                ->addArgument(new Reference("referral_meta"))
-                ->addArgument(new Reference("points_retriever"))
-                ->addArgument("%partner_rank_id%");
         $this->container->register("current_user", "AffiliateLTP\Current_User")
                 ->addArgument(new Reference("settings_dal"))
                 ->addArgument(new Reference("agent_dal"));
+        $this->register_dashboard();
         
-        $this->container->register("dashboard", "AffiliateLTP\dashboard\Dashboard")
-                ->addArgument(new Reference("current_user"));
+       
         
         $this->container->register("translations", "AffiliateLTP\Translations");
         $this->container->register("asset_loader", "AffiliateLTP\Asset_Loader");
-        $this->container->register("agent_promotions", "AffiliateLTP\dashboard\Agent_Promotions")
-                ->addArgument(new Reference("logger"))
-                ->addArgument(new Reference("settings_dal"))
-                ->addArgument(new Reference("template_loader"))
-                ->addArgument(new Reference("agent_dal"))
-                ->addArgument(new Reference("current_user"));
+       
         
         $this->container->register("subscriptions",  "AffiliateLTP\admin\subscriptions\Subscriptions")
                 ->addArgument(new Reference("settings_dal"))
@@ -198,6 +184,31 @@ class Plugin {
         // we need to clear the tracking cookie when an affiliate registers
         // TODO: stephen move this out into a more appropriate place instead of in Plugin.
         add_action( 'affwp_register_user', array( $this, 'clearTrackingCookie' ), 10, 3 );
+    }
+    
+    private function register_dashboard() {
+         $this->container->register("dashboard", "AffiliateLTP\dashboard\Dashboard")
+                ->addArgument(new Reference("current_user"));
+         $this->container->register("dashboard.agent_events", "AffiliateLTP\dashboard\Agent_Events")
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("template_loader"));
+         $this->container->register("dashboard.agent_promotions", "AffiliateLTP\dashboard\Agent_Promotions")
+                ->addArgument(new Reference("logger"))
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("template_loader"))
+                ->addArgument(new Reference("agent_dal"))
+                ->addArgument(new Reference("current_user"));
+         $this->container->register("dashboard.agent_commissions", "AffiliateLTP\dashboard\Agent_Commissions")
+                ->addArgument(new Reference("logger"))
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("template_loader"))
+                ->addArgument(new Reference("agent_dal"))
+                ->addArgument(new Reference("current_user"));
+         $this->container->register('dashboard.agent_graphs', 'AffiliateLTP\dashboard\Agent_Graphs')
+                ->addArgument(new Reference("agent_dal"))
+                ->addArgument(new Reference("referral_meta"))
+                ->addArgument(new Reference("points_retriever"))
+                ->addArgument("%partner_rank_id%");
     }
     
     /**
@@ -245,11 +256,9 @@ class Plugin {
             , 'ajax_agent_partner_search', 'ajax_agent_checklist', 'ajax_agent_search'
             ,'referral_meta', 'progress_items', 'commission_request_db'
             , 'template_loader', 'agent_org_chart_handler', 'agent_emails'
-            ,'leaderboards', 'agent_events', 'agent_promotions'
+            ,'leaderboards', 'dashboard.agent_events', 'dashboard.agent_promotions'
+            ,'dashboard.agent_graphs', 'dashboard.agent_commissions'
         ]);
-        
-        // hooks dependent on the parameters above need to be registerd after the fact
-        $this->register_hooks_and_actions(['dashboard_agent_graphs']);
         
         // need to register commands after the other plugins have executed.
         $this->register_cli_commands();

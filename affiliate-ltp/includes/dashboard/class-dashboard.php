@@ -109,7 +109,7 @@ class Dashboard implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     
     function setup_affiliate_area_tabs( $tabs ) {
         $is_partner = $this->current_user->is_partner();
-        $add_tabs = ['organization', 'signup'];
+        $add_tabs = ['commissions','organization', 'signup'];
         if ($is_partner) {
             $add_tabs[] = 'events';
             $add_tabs[] = 'promotions';
@@ -149,6 +149,7 @@ class Dashboard implements \AffiliateLTP\I_Register_Hooks_And_Actions {
             case 'sub-affiliates':
 //            case 'urls':
             case 'visits':
+            case 'referrals':
             case 'creatives': {
                 $shouldDisplay = false;
             }
@@ -161,46 +162,43 @@ class Dashboard implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         return $shouldDisplay;
     }
     
+    private function echo_agent_tab($active_tab, $tab_name, $display_name ) {
+        ?>
+            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == $tab_name ? ' active' : ''; ?>">
+                <a href="<?php echo esc_url( add_query_arg( 'tab', $tab_name ) ); ?>"><?php _e( $display_name, 'affiliate-ltp' ); ?></a>
+            </li>
+        <?php
+    }
+    
     /**
      * Add the organization tab.
      * @param type $affiliate_id
      * @param type $active_tab
      */
     public function add_agent_tabs( $affiliate_id, $active_tab ) {
+        $tabs = [
+            'commissions' => 'Commissions'
+            ,'organization' => 'Organization'
+            ,'signup' => 'Signup'
+        ];
+        
+        foreach ( $tabs as $tab_name => $display_name ) {
+            // make sure we only show the tab if it hasn't been filtered out.
+            if ( affwp_affiliate_area_show_tab( $tab_name ) ) {
+                $this->echo_agent_tab( $active_tab, $tab_name, $display_name );
+            }
+        }
         
         $is_partner = $this->current_user->is_partner();
-        
-        // make sure we only show the tab if it hasn't been filtered out.
-        if (affwp_affiliate_area_show_tab( 'organization' )) {
-            ?>
-            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'organization' ? ' active' : ''; ?>">
-                <a href="<?php echo esc_url( add_query_arg( 'tab', 'organization' ) ); ?>"><?php _e( 'Organization', 'affiliate-ltp' ); ?></a>
-            </li>
-                <?php	
-        }
-        
-        if ($is_partner && affwp_affiliate_area_show_tab( 'events' )) {
-            ?>
-            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'events' ? ' active' : ''; ?>">
-                <a href="<?php echo esc_url( add_query_arg( 'tab', 'events' ) ); ?>"><?php _e( 'Events', 'affiliate-ltp' ); ?></a>
-            </li>
-                <?php	
-        }
-        
-        if ($is_partner && affwp_affiliate_area_show_tab( 'promotions' )) {
-            ?>
-            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'promotions' ? ' active' : ''; ?>">
-                <a href="<?php echo esc_url( add_query_arg( 'tab', 'promotions' ) ); ?>"><?php _e( 'Promotions', 'affiliate-ltp' ); ?></a>
-            </li>
-                <?php	
-        }
-        
-        if (affwp_affiliate_area_show_tab( 'signup' )) {
-            ?>
-            <li class="affwp-affiliate-dashboard-tab<?php echo $active_tab == 'signup' ? ' active' : ''; ?>">
-                <a href="<?php echo esc_url( add_query_arg( 'tab', 'signup' ) ); ?>"><?php _e( 'Signup', 'affiliate-ltp' ); ?></a>
-            </li>
-                <?php	
+        $partner_tabs = [
+            'events' => 'Events'
+            ,'promotions' => 'Promotions'
+        ];
+        foreach ( $partner_tabs as $tab_name => $display_name ) {
+            // make sure we only show the tab if it hasn't been filtered out.
+            if ( $is_partner && affwp_affiliate_area_show_tab( $tab_name ) ) {
+                $this->echo_agent_tab( $active_tab, $tab_name, $display_name );
+            }
         }
     }
 }
