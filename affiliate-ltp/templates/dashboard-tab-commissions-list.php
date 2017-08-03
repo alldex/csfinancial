@@ -4,31 +4,33 @@
 <table id="affwp-affiliate-dashboard-referrals" class="affwp-table">
     <thead>
         <tr>
-            <th class="referral-amount"><?php _e('Amount', 'affiliate-wp'); ?></th>
-            <th class="referral-description"><?php _e('Description', 'affiliate-wp'); ?></th>
-            <th class="referral-status"><?php _e('Status', 'affiliate-wp'); ?></th>
-            <th class="referral-date"><?php _e('Date', 'affiliate-wp'); ?></th>
-            <?php do_action('affwp_referrals_dashboard_th'); ?>
+            <th class="commission-policy"><?php _e('Policy Number', 'affiliate-ltp'); ?></th>
+            <th class="commission-client"><?php _e('Client Name', 'affiliate-ltp'); ?></th>
+            <th class="commission-amount"><?php _e('Amount', 'affiliate-wp'); ?></th>
+            <th class="commission-description"><?php _e('Description', 'affiliate-wp'); ?></th>
+            <th class="commission-status"><?php _e('Status', 'affiliate-wp'); ?></th>
+            <th class="commission-date"><?php _e('Date', 'affiliate-wp'); ?></th>
         </tr>
     </thead>
 
     <tbody>
-        <?php if ($referrals) : ?>
+        <?php if ($commissions) : ?>
 
-            <?php foreach ($referrals as $referral) : ?>
+            <?php foreach ($commissions as $commission) : ?>
                 <tr>
-                    <td class="referral-amount"><?php echo affwp_currency_filter(affwp_format_amount($referral->amount)); ?></td>
-                    <td class="referral-description"><?php echo wp_kses_post(nl2br($referral->description)); ?></td>
-                    <td class="referral-status <?php echo $referral->status; ?>"><?php echo affwp_get_referral_status_label($referral); ?></td>
-                    <td class="referral-date"><?php echo date_i18n(get_option('date_format'), strtotime($referral->date)); ?></td>
-                    <?php do_action('affwp_referrals_dashboard_td', $referral); ?>
+                    <td class="commission-policy"><?= $commission->reference; ?></td>
+                    <td class="commission-client"><?= $commission->client_name; ?></td>
+                    <td class="commission-amount"><?php echo affwp_currency_filter(affwp_format_amount($commission->amount)); ?></td>
+                    <td class="commission-description"><?php echo wp_kses_post(nl2br($commission->description)); ?></td>
+                    <td class="commission-status <?php echo $commission->status; ?>"><?= $commission->status; ?></td>
+                    <td class="commission-date"><?php echo date_i18n(get_option('date_format'), strtotime($commission->date)); ?></td>
                 </tr>
             <?php endforeach; ?>
 
         <?php else : ?>
 
             <tr>
-                <td colspan="4"><?php _e('You have not made any referrals yet.', 'affiliate-wp'); ?></td>
+                <td colspan="4"><?php _e('You have not made any commissions yet.', 'affiliate-ltp'); ?></td>
             </tr>
 
         <?php endif; ?>

@@ -5,7 +5,7 @@ namespace AffiliateLTP\dashboard;
  * Copyright MyCommonSenseFinancial @2017
  * All rights reserved.
  */
-use AffiliateLTP\admin\Settings_DAL;
+use AffiliateLTP\admin\Commission_DAL;
 use AffiliateLTP\Template_Loader;
 use AffiliateLTP\admin\Agent_DAL;
 use Psr\Log\LoggerInterface;
@@ -34,22 +34,20 @@ class Agent_Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
     private $logger;
     
     /**
-     * The current user
-     * @var Current_User
+     * The database service for retrieving commissions
+     * @var Commission_DAL
      */
-    private $current_user;
+    private $commission_DAL;
     
     public function __construct(LoggerInterface $logger, 
-            Settings_DAL $settings_dal, Template_Loader $template_loader
-            ,Agent_DAL $agent_dal
-            ,Current_User $current_user) {
+            Commission_DAL $commission_dal, Template_Loader $template_loader
+            ,Agent_DAL $agent_dal) {
         $this->logger = $logger;
         // this hook gets triggered in the templates/dashboard-tab-events.php which is the way
         // the affiliate plugin works.
-        $this->company_agent_id = $settings_dal->get_company_agent_id();
         $this->template_loader = $template_loader;
         $this->agent_dal = $agent_dal;
-        $this->current_user = $current_user;
+        $this->commission_DAL = $commission_dal;
     }
     
      public function register_hooks_and_actions() {
@@ -61,15 +59,17 @@ class Agent_Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         
         $per_page = 30;
         $page = get_query_var('page', 1);
-        $pages = absint(ceil(affwp_count_referrals($current_agent_id) / $per_page));
-        $referrals = affiliate_wp()->referrals->get_referrals(
-                array(
-                    'number' => $per_page,
-                    'offset' => $per_page * ( $page - 1 ),
-                    'affiliate_id' => $current_agent_id,
-                    'status' => array('paid', 'unpaid', 'rejected'),
-                )
-        );
+        $total_commissions = $this->commission_DAL->get_total_commissions_for_agent($current_agent_id);
+//        affwp_count_referrals($current_agent_id);
+        $pages = absint(ceil($total_commissions / $per_page));
+        $commissions = $this->commission_DAL->get_commissions_for_agent($current_agent_id, $per_page, $per_page * ( $page - 1 ) );
+        
+        // TODO: stephen look at optimizing this by combining it in the single query result set.
+        foreach ($commissions as $record) {
+            $record->client_name = $this->commission_DAL->get_commission_client_name($record->commission_id);
+            $record->status = ucfirst($record->status);
+        }
+        
         $has_pagination = false;
         $pagination = "";
         if ($pages > 1) {

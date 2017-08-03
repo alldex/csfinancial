@@ -200,7 +200,7 @@ class Plugin {
                 ->addArgument(new Reference("current_user"));
          $this->container->register("dashboard.agent_commissions", "AffiliateLTP\dashboard\Agent_Commissions")
                 ->addArgument(new Reference("logger"))
-                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("commission_dal"))
                 ->addArgument(new Reference("template_loader"))
                 ->addArgument(new Reference("agent_dal"))
                 ->addArgument(new Reference("current_user"));

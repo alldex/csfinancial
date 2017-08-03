@@ -137,4 +137,19 @@ interface Commission_DAL {
      * @param string $contract_number
      */
     function get_commissions_by_contract( $contract_number );
+    
+    /**
+     * Retrieve the total number of commissions that an agent has.
+     * @param int $agent_id
+     */
+    function get_total_commissions_for_agent($agent_id);
+    
+    /**
+     * Retrieve the commissions records for the passed in agent up to the amount
+     * specified in $limit starting at $offset.
+     * @param int $agent_id The agent to retrieve the commissions for
+     * @param int $limit The maximum number of comission records to retrieve
+     * @param int $offset Where in the result set to start retrieving the records.
+     */
+    function get_commissions_for_agent($agent_id, $limit, $offset );
 }

@@ -272,4 +272,31 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         return $adapted_results;
     }
 
+    public function get_commissions_for_agent($agent_id, $limit, $offset) {
+        $referrals = affiliate_wp()->referrals->get_referrals(
+                array(
+                    'number' => $limit,
+                    'offset' => $offset,
+                    'affiliate_id' => $agent_id,
+                    'status' => array('paid', 'unpaid', 'rejected'),
+                )
+        );
+        return $this->adapt_referrals_to_commission($referrals);
+    }
+    
+    private function adapt_referrals_to_commission($result_set) {
+        $adapted_results = [];
+        if (!empty($result_set)) {
+            foreach ($result_set as $result) {
+                $adapted_results[] = $this->adapt_referral_to_commission($result);
+            }
+        }
+        return $adapted_results;
+    }
+
+    public function get_total_commissions_for_agent($agent_id) {
+        $total = affwp_count_referrals($agent_id);
+        return $total;
+    }
+
 }
