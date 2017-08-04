@@ -150,6 +150,7 @@ interface Commission_DAL {
      * @param int $agent_id The agent to retrieve the commissions for
      * @param int $limit The maximum number of comission records to retrieve
      * @param int $offset Where in the result set to start retrieving the records.
+     * @param array contains the name of the column and the sort order ('asc' or 'desc')
      */
-    function get_commissions_for_agent($agent_id, $limit, $offset );
+    function get_commissions_for_agent($agent_id, $limit, $offset, $sort );
 }

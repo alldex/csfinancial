@@ -272,16 +272,48 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         return $adapted_results;
     }
 
-    public function get_commissions_for_agent($agent_id, $limit, $offset) {
-        $referrals = affiliate_wp()->referrals->get_referrals(
-                array(
-                    'number' => $limit,
-                    'offset' => $offset,
-                    'affiliate_id' => $agent_id,
-                    'status' => array('paid', 'unpaid', 'rejected'),
-                )
-        );
-        return $this->adapt_referrals_to_commission($referrals);
+    public function get_commissions_for_agent($agent_id, $limit, $offset, $sort_order) {
+        global $wpdb;
+        if (empty($sort_order)) {
+            $sort_order = ['date' => 'DESC'];
+        }
+        $direction = current($sort_order) == 'ASC' ? 'ASC' : 'DESC';
+        $orderby = key($sort_order);
+        
+        if (array_search($orderby, 
+            ['date', 'client_name', 'reference', 'amount', 'status']) === false) {
+            $orderby = 'date';
+        }
+        
+        $sql = "SELECT r.*, rm.meta_value as 'client_name' FROM wp_affiliate_wp_referrals r "
+                . " LEFT JOIN wp_affiliate_wp_referralmeta rm ON (rm.referral_id = r.referral_id AND rm.meta_key = 'client_name') "
+                . " WHERE r.status IN ('paid', 'unpaid', 'rejected') "
+                . " AND r.affiliate_id = %d "
+                . " ORDER BY $orderby $direction "
+                . " LIMIT %d, %d ";
+        $prepared_sql = $wpdb->prepare($sql, [$agent_id, $offset, $limit]);
+        $results = $wpdb->get_results($prepared_sql, ARRAY_A);
+        
+        
+        $commissions = [];
+        foreach ($results as $result) {
+            $commission = new Commission();
+            $commission->agent_id = $result['affiliate_id'];
+            $commission->amount = $result['amount'];
+            $commission->client = [
+                'id' => $result['referral']
+                , 'name' => $result['client_name']
+            ];
+            $commission->commission_id = $result['referral_id'];
+            $commission->context = $result['context'];
+            $commission->date = $result['date'];
+            $commission->description = $result['description'];
+            $commission->payout_id = $result['payout_id'];
+            $commission->reference = $result['reference'];
+            $commission->status = $result['status'];
+            $commissions[] = $commission;
+        }
+        return $commissions;
     }
     
     private function adapt_referrals_to_commission($result_set) {

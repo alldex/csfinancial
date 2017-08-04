@@ -62,13 +62,21 @@ class Agent_Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         $total_commissions = $this->commission_DAL->get_total_commissions_for_agent($current_agent_id);
 //        affwp_count_referrals($current_agent_id);
         $pages = absint(ceil($total_commissions / $per_page));
-        $commissions = $this->commission_DAL->get_commissions_for_agent($current_agent_id, $per_page, $per_page * ( $page - 1 ) );
+        $sort = filter_input(INPUT_GET, 'sort') ? filter_input(INPUT_GET, 'sort') : 'date';
+        $sort_order = filter_input(INPUT_GET, 'sort_order') ? filter_input(INPUT_GET, 'sort_order') : 'DESC';
+        $commissions = $this->commission_DAL->get_commissions_for_agent($current_agent_id, $per_page
+                , $per_page * ( $page - 1 ), array($sort => $sort_order) );
         
-        // TODO: stephen look at optimizing this by combining it in the single query result set.
         foreach ($commissions as $record) {
-            $record->client_name = $this->commission_DAL->get_commission_client_name($record->commission_id);
+            $record->client_name = $record->client['name'];
             $record->status = ucfirst($record->status);
         }
+        
+        $sort_links = [
+            'date' => $this->get_sort_data('date', $sort, $sort_order),
+            'reference' => $this->get_sort_data('reference', $sort, $sort_order),
+            'client_name' => $this->get_sort_data('client_name', $sort, $sort_order)
+        ];
         
         $has_pagination = false;
         $pagination = "";
@@ -82,6 +90,8 @@ class Agent_Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
                         'add_fragment' => '#affwp-affiliate-dashboard-referrals',
                         'add_args' => array(
                             'tab' => 'commissions',
+                            'sort' => $sort,
+                            'sort_order' => $sort_order
                         ),
                     )
             );
@@ -89,6 +99,23 @@ class Agent_Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         
         $include = $this->template_loader->get_template_part('dashboard-tab', 'commissions-list', false);
         include_once $include;
+    }
+    
+    private function get_sort_data($field, $current_sort, $current_sort_order) {
+        $query_arg = $this->get_sort_query_arg($field, $current_sort, $current_sort_order);
+        $link = add_query_arg($query_arg);
+        return ["link" => $link, "sort_order" => $current_sort_order];
+    }
+    
+    private function get_sort_query_arg($field, $current_sort, $current_sort_order) {
+        $sort_order = 'ASC';
+        
+        if ($current_sort == $field
+                && $current_sort_order == 'ASC') {
+            $sort_order = 'DESC';
+        }
+//        var_dump("$current_sort == $field, current_sort_order => $current_sort_order; sort_order => $sort_order");
+        return ["sort" => $field, "sort_order" => $sort_order];
     }
 
 //put your code here

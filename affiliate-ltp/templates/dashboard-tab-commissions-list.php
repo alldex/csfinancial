@@ -4,12 +4,36 @@
 <table id="affwp-affiliate-dashboard-referrals" class="affwp-table">
     <thead>
         <tr>
-            <th class="commission-policy"><?php _e('Policy Number', 'affiliate-ltp'); ?></th>
-            <th class="commission-client"><?php _e('Client Name', 'affiliate-ltp'); ?></th>
+            <th class="commission-policy"><a href="<?= $sort_links['reference']['link']; ?>"><?php _e('Policy Number', 'affiliate-ltp'); ?></a>
+            <?php if ($sort == 'reference') : ?>
+                <?php if ($sort_links['reference']['sort_order'] == 'ASC') : ?>
+                <i class="fa fa-sort-asc" aria-hidden="true"></i>    
+                <?php elseif ($sort_links['reference']['sort_order'] == 'DESC') : ?>
+                <i class="fa fa-sort-desc" aria-hidden="true"></i>
+                <?php endif; ?>
+            <?php endif; ?>
+            </th>
+            <th class="commission-client"><a href="<?= $sort_links['client_name']['link']; ?>"><?php _e('Client Name', 'affiliate-ltp'); ?></a>
+            <?php if ($sort == 'client_name') : ?>
+                <?php if ($sort_links['client_name']['sort_order'] == 'ASC') : ?>
+                <i class="fa fa-sort-asc" aria-hidden="true"></i>    
+                <?php elseif ($sort_links['client_name']['sort_order'] == 'DESC') : ?>
+                <i class="fa fa-sort-desc" aria-hidden="true"></i>
+                <?php endif; ?>
+            <?php endif; ?>
+            </th>
             <th class="commission-amount"><?php _e('Amount', 'affiliate-wp'); ?></th>
             <th class="commission-description"><?php _e('Description', 'affiliate-wp'); ?></th>
             <th class="commission-status"><?php _e('Status', 'affiliate-wp'); ?></th>
-            <th class="commission-date"><?php _e('Date', 'affiliate-wp'); ?></th>
+            <th class="commission-date"><a href="<?= $sort_links['date']['link']; ?>"><?php _e('Date', 'affiliate-wp'); ?></a>
+            <?php if ($sort == 'date') : ?>
+                <?php if ($sort_links['date']['sort_order'] == 'ASC') : ?>
+                <i class="fa fa-sort-asc" aria-hidden="true"></i>    
+                <?php elseif ($sort_links['date']['sort_order'] == 'DESC') : ?>
+                <i class="fa fa-sort-desc" aria-hidden="true"></i>
+                <?php endif; ?>
+            <?php endif; ?>
+            </th>
         </tr>
     </thead>
 
