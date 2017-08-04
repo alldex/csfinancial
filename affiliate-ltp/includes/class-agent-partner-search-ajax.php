@@ -37,6 +37,8 @@ class Agent_Partner_Search_AJAX implements I_Register_Hooks_And_Actions {
     
     public function register_hooks_and_actions() {
         add_filter('wp_ajax_affwp_ltp_search_partners', array($this, 'ajax_search_partners'));
+        // make it so non logged in users can access it also.
+        add_filter('wp_ajax_nopriv_affwp_ltp_search_partners', array($this, 'ajax_search_partners'));
     }
     
     public function ajax_search_partners() {
