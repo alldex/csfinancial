@@ -54,6 +54,28 @@ class Agent_Graphs implements \AffiliateLTP\I_Register_Hooks_And_Actions {
 
     public function register_hooks_and_actions() {
         add_action( 'affwp_affiliate_dashboard_after_graphs', array( $this, 'add_points_to_graph_tab' ), 10, 1);
+        
+        add_action( 'affwp_after_graph', array($this, 'add_graph_point_totals' ), 10, 1);
+    }
+    
+    public function add_graph_point_totals($graph_instance) {
+        if (!$graph_instance instanceof \Affiliate_WP_Referrals_Graph) {
+            return;
+        }
+        $data = $graph_instance->get_data();
+        
+        // now we want to total up for the whole period
+        echo "<ul>";
+        foreach ($data as $description => $record) {
+            $record_total = 0;
+            foreach ($record as $time_record) {
+                // the total is in the second column
+                $record_total += $time_record[1];
+            }
+            echo "<li>$description - $record_total</li>";
+        }
+        echo "</ul>";
+        
     }
     
     public function add_points_to_graph_tab( $affiliate_id ) {
