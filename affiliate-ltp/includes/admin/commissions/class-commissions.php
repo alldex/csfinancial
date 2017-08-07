@@ -142,13 +142,13 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         return $actions;
     }
 
-    public function handleDisplayListReferralsScreen() {
+    public function handle_display_list_commission_screen() {
         // TODO: stephen should we di this??
         $referrals_table = new Commissions_Table($this->commission_dal, $this->agent_dal);
         $referrals_table->prepare_items();
 
         $minimum_payout_amount = $this->settings_dal->get_minimum_payout_amount();
-        $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 'list', false);
+        $templatePath = affiliate_wp()->templates->get_template_part('admin-commission', 'list', false);
 
         include_once $templatePath;
     }
@@ -164,11 +164,11 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         $action = filter_input(INPUT_GET, 'action');
 
         if (isset($action) && 'add_referral' == $action) {
-            $this->handleDisplayNewReferralScreen();
+            $this->handle_display_new_commission_screen();
         } else if (isset($action) && 'edit_referral' == $action) {
-            $this->handleDisplayEditReferralScreen();
+            $this->handle_display_edit_commission_screen();
         } else {
-            $this->handleDisplayListReferralsScreen();
+            $this->handle_display_list_commission_screen();
         }
     }
     
@@ -255,8 +255,8 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         wp_die(json_encode($jsonResults)); // this is required to terminate immediately and return a proper response
     }
 
-    public function handleDisplayEditReferralScreen() {
-        // load up the template.. defaults to our templates/admin-referral-edit.php
+    public function handle_display_edit_commission_screen() {
+        // load up the template.. defaults to our templates/admin-commission-edit.php
         // if no one else has overridden it.
 
         $referral_id = filter_input(INPUT_GET, 'referral_id');
@@ -291,17 +291,17 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
             );
         }
 
-        $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 'edit', false);
+        $templatePath = affiliate_wp()->templates->get_template_part('admin-commission', 'edit', false);
 
         include_once $templatePath;
     }
 
-    public function handleDisplayNewReferralScreen() {
-        // load up the template.. defaults to our templates/admin-referral-edit.php
+    public function handle_display_new_commission_screen() {
+        // load up the template.. defaults to our templates/admin-commission-edit.php
         // if no one else has overridden it.
         $state_dal = $this->state_dal;
         $state_list = $state_dal->get_states();
-        $templatePath = affiliate_wp()->templates->get_template_part('admin-referral', 'new', false);
+        $templatePath = affiliate_wp()->templates->get_template_part('admin-commission', 'new', false);
         include_once $templatePath;
     }
     
