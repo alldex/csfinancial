@@ -9,6 +9,7 @@ namespace AffiliateLTP\admin\commissions;
 
 use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\Commission_Type;
+use AffiliateLTP\admin\commissions\Transformation_Result;
 
 
 /**
@@ -43,7 +44,8 @@ class Points_Calculate_Transformer {
         else {
             $points = $this->request_points;
         }
-        return $this->update_node_points($tree, $points);
+        $node = $this->update_node_points($tree, $points);
+        return new Transformation_Result($this, [$node]);
     }
     
     private function update_node_points(Commission_Node $tree, $points) {

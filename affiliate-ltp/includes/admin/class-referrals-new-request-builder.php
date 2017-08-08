@@ -112,6 +112,9 @@ class Referrals_New_Request_Builder {
         if (isset($requestData['new_business']) && $requestData['new_business'] === false) {
             $request->new_business = false;
         }
+        if (isset($requestData['renewal']) && $requestData['renewal'] === true) {
+            $request->renewal = true;
+        }
         $request->client = isset($requestData['client']) ? self::parseClientArgs($requestData['client']) : null;
         $request->amount = ! empty( $requestData['amount'] ) ? sanitize_text_field( $requestData['amount'] )      : '';
         $request->date = self::parseDate($requestData);

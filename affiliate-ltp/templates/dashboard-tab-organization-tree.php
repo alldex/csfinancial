@@ -51,7 +51,7 @@
             //$sub_node .= preg_replace( "/\r|\n/", "", $sub_data );
             $sub_node .= '</div>';
 
-            $tooltip = 'Affiliate ID: ' . $sub_id;
+            $tooltip = 'Affiliate ID: ' . $node['id'];
             ?>
 
                             [{v: '<?php echo $node['name']; ?>', f: '<?php echo $sub_node; ?>'}, '<?php echo $node['parent_name']; ?>', '<?php echo $tooltip; ?>'],

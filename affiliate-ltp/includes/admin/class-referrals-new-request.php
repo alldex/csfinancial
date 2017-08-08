@@ -44,6 +44,12 @@ class Referrals_New_Request {
      * @var boolean
      */
     public $new_business;
+    
+    /**
+     * Whether the request is a renewal that only goes to partner's or not.
+     * @var boolean
+     */
+    public $renewal;
 
     public function __construct() {
         $this->agents = array();

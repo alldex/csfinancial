@@ -11,6 +11,7 @@ use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\commissions\Agent_Data;
 use AffiliateLTP\admin\Settings_DAL;
+use AffiliateLTP\admin\commissions\Transformation_Result;
 
 /**
  * Runs through the tree and changes the agent rate to be what the actual rate
@@ -47,7 +48,8 @@ class Real_Rate_Calculate_Transformer {
      * @return type
      */
     public function transform(Commission_Node $tree) {
-        return $this->update_parent(0, $tree);
+        $result = $this->update_parent(0, $tree);
+        return new Transformation_Result($this, [$result]);
     }
     
     /**

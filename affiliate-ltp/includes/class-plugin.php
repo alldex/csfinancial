@@ -27,7 +27,7 @@ class Plugin {
         
     const AFFILIATEWP_LTP_VERSION = "1.0.0";
     
-    const LOCALHOST_RESTRICTED = false;
+    const LOCALHOST_RESTRICTED = true;
     
     /**
      * Whether the errors and ommissions stripe account handling
@@ -50,7 +50,7 @@ class Plugin {
     public function __construct() {
         
         $logger = new Logger('affiliate-ltp');
-        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::WARNING));
+        $logger->pushHandler(new StreamHandler(AFFILIATE_LTP_PLUGIN_DIR . "/debug.log", Logger::DEBUG));
         
         $this->container = new ContainerBuilder();
         $this->container->set("logger", $logger);
@@ -107,7 +107,8 @@ class Plugin {
                 ->addArgument(new Reference("commission_dal"))
                 ->addArgument(new Reference("agent_dal"))
                 ->addArgument(new Reference("settings_dal"))
-                ->addArgument(new Reference("sugarcrm"));
+                ->addArgument(new Reference("sugarcrm"))
+                ->addArgument(new Reference("logger"));
         $this->container->register("commission_payout_exporter", "AffiliateLTP\admin\Commission_Payout_Export")
                 ->addArgument(new Reference('referral_meta'))
                 ->addArgument(new Reference("settings_dal"));

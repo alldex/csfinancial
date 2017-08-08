@@ -86,7 +86,7 @@ class Agents_Tree_Display {
         if ($downline_tree->children) {
             foreach ($downline_tree->children as $child) {
                 if ($this->should_visit_node($child)) {
-                    $child = $this->get_tree_with_downline_counts($child, $count);
+                    $child = $this->get_tree_with_downline_counts($child);
                     // add the child's downline and one more to count the child.
                     $total_child_count += $child->downline_count + 1;
                 }

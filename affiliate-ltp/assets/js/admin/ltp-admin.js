@@ -31,6 +31,7 @@
         this.amount = 0;
         this.new_business = true;
         this.haircut_percent = 15; // default company haircut percent
+        this.renewal = false;
         
         this.getSplitTotal = function () {
             var total = !isNaN(+this.writing_agent.split) ? +this.writing_agent.split : 0;
@@ -60,6 +61,9 @@
         // handle when a client is selected.
         $scope.$on('client.autocomplete.selected', function (event, client) {
             fillObject(commissionsAdd.client, client);
+            if (client && client['client_id']) {
+                commissionsAdd.client.id = client['client_id'];
+            }
 
             if (commissionsAdd.client.id) {
                 commissionsAdd.readonlyClient = true;
@@ -121,6 +125,9 @@
         };
         commissionsAdd.isLifePolicy = function () {
             return commissionsAdd.commission.is_life_commission;
+        };
+        commissionsAdd.shouldShowRenewal = function() {
+            return commissionsAdd.isLifePolicy() && commissionsAdd.readonlyClient;
         };
         commissionsAdd.toggleSplit = function () {
             commissionsAdd.commission.split_commission = !commissionsAdd.commission.split_commission;
@@ -190,6 +197,7 @@
                 , 'affwp_add_referral_nonce': commissionsAdd.nonce
                 , skip_life_licensed_check: commissionsAdd.skip_life_licensed_check
                 , company_haircut_percent: commission.company_haircut_all ? 100 : commission.haircut_percent
+                , renewal: commission.renewal
             };
             
             CommissionService.save(data).then(function (data) {

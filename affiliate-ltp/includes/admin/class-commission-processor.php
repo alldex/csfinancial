@@ -6,6 +6,7 @@ use AffiliateLTP\admin\Referrals_New_Request;
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\commissions\Commission_Node;
 use AffiliateLTP\admin\commissions\Points_Calculate_Transformer;
+use AffiliateLTP\admin\commissions\Partners_Filter_Transformer;
 use AffiliateLTP\admin\commissions\New_Commission_Tree_Parser;
 use AffiliateLTP\admin\commissions\Repeat_Commission_Tree_Parser;
 use AffiliateLTP\admin\commissions\Commission_Tree_Validator;
@@ -15,6 +16,7 @@ use Exception;
 use AffiliateLTP\admin\Commission_Status;
 use AffiliateLTP\Commission;
 use AffiliateLTP\Sugar_CRM_DAL;
+use Psr\Log\LoggerInterface;
 
 class Commission_Validation_Exception extends \RuntimeException {
     private $validation_errors;
@@ -41,7 +43,7 @@ class Commission_Processor {
      */
     const HEIARCHY_MAX_LEVEL_BREAK = 100;
     
-    const DEBUG_ENABLED = false;
+    const DEBUG_ENABLED = true;
 
     /**
      *
@@ -85,12 +87,14 @@ class Commission_Processor {
 
     public function __construct(Commission_DAL $commission_dal
             , Agent_DAL $agent_dal, Settings_DAL $settings_dal
-            , Sugar_CRM_DAL $sugar_crm) {
+            , Sugar_CRM_DAL $sugar_crm
+            , LoggerInterface $logger) {
         $this->commission_dal = $commission_dal;
         $this->agent_dal = $agent_dal;
         $this->settings_dal = $settings_dal;
         $this->processed_items = [];
         $this->sugar_crm = $sugar_crm;
+        $this->logger = $logger;
     }
 
     public function parse_agent_trees(Referrals_New_Request $request) {
@@ -148,8 +152,18 @@ class Commission_Processor {
         // save it off for future processing.
         $this->commission_request_id = $this->save_commission_request($request, $agent_trees);
         
+        // print out pre transformation.
+        if (self::DEBUG_ENABLED) {
+            $this->log_request($request, $agent_trees);
+        }
+        
         // transform the trees now
         $transformed_trees = $this->perform_tree_transformations($updatedRequest, $agent_trees);
+        
+        
+        if (self::DEBUG_ENABLED) {
+            $this->log_request($request, $transformed_trees);
+        }
         
          // if the company is taking everything we don't process anything for other
         // agents
@@ -164,10 +178,6 @@ class Commission_Processor {
                     $this->process_item($updatedRequest, $tree);
                 }
             }
-        }
-        
-        if (self::DEBUG_ENABLED) {
-            $this->log_request($request, $transformed_trees);
         }
         
         // adds to the company cut any remaining funds that were not used
@@ -187,23 +197,26 @@ class Commission_Processor {
     }
     
     private function log_request(Referrals_New_Request $request, $agent_trees) {
-        echo "Date: {$request->date}\n";
-        echo "Commission Request id: {$this->commission_request_id}\n";
-        echo "Contract Number is: {$request->client['contract_number']}\n";
-        echo "State of Sale (for life licensing): {$request->client['state_of_sale']}\n";
-        echo "Company Haircut All is: " . ($request->companyHaircutAll ? "YES" : "NO") . "\n";
-        echo "New Business: " . ($request->new_business ? "YES" : "NO") . "\n";
-        echo "Company Haircut Skip is: " . ($request->skipCompanyHaircut ? "YES" : "NO") . "\n";
-        echo "Skip Life License Check is: " . ($request->skip_life_licensed_check ? "YES" : "NO") . "\n";
-        echo "Company Haircut Percent is: " . $request->companyHaircutPercent . "\n";
-        echo "Amount: {$request->amount}\n";
-        echo "Points: {$request->point}\n";
-        echo "Type: " . ($request->type == Commission_Type::TYPE_LIFE ? "LIFE" :"NON-LIFE") ."\n";
-        echo "Agent Trees\n";
+        $msg = "";
+        $msg .= "Date: {$request->date}\n";
+        $msg .= "Commission Request id: {$this->commission_request_id}\n";
+        $msg .= "Contract Number is: {$request->client['contract_number']}\n";
+        $msg .= "State of Sale (for life licensing): {$request->client['state_of_sale']}\n";
+        $msg .= "Company Haircut All is: " . ($request->companyHaircutAll ? "YES" : "NO") . "\n";
+        $msg .= "New Business: " . ($request->new_business ? "YES" : "NO") . "\n";
+        $msg .= "Is Renewal: " . ($request->renewal ? "YES" : "NO") . "\n";
+        $msg .= "Company Haircut Skip is: " . ($request->skipCompanyHaircut ? "YES" : "NO") . "\n";
+        $msg .= "Skip Life License Check is: " . ($request->skip_life_licensed_check ? "YES" : "NO") . "\n";
+        $msg .= "Company Haircut Percent is: " . $request->companyHaircutPercent . "\n";
+        $msg .= "Amount: {$request->amount}\n";
+        $msg .= "Points: {$request->points}\n";
+        $msg .= "Type: " . ($request->type == Commission_Type::TYPE_LIFE ? "LIFE" :"NON-LIFE") ."\n";
+        $msg .= "Agent Trees\n";
+        $this->logger->debug($msg);
         foreach ($agent_trees as $tree) {
             $this->print_tree($request, $tree, '>');
         }
-        echo "------------------------\n\n";
+        $this->logger->debug("------------------------\n\n");
     }
     
     private function print_tree(Referrals_New_Request $request, Commission_Node $tree, $prefix) {
@@ -215,42 +228,56 @@ class Commission_Processor {
         if ($tree->agent->is_active) {
             $active_message = "YES";
         }
-        echo "$prefix ------\n";
-        echo "$prefix ID: " . $tree->agent->id. "\n";
-        echo "$prefix Real Rate: " . $tree->rate . "\n";
-        echo "$prefix Points: " . $tree->points . "\n";
-        echo "$prefix Is Active: " . $active_message . "\n";
-        echo "$prefix Agent Rate: " . $tree->agent->rate. "\n";
-        echo "$prefix Rank: " . $tree->agent->rank . "\n";
-        echo "$prefix Active Life License: $life_license_message \n";
-        echo "$prefix Generational Count: " . $tree->generational_count . " \n";
-        
+        $msg = "";
+        $msg .= "$prefix ------\n";
+        $msg .= "$prefix ID: " . $tree->agent->id. "\n";
+        $msg .= "$prefix Real Rate: " . $tree->rate . "\n";
+        $msg .= "$prefix Points: " . $tree->points . "\n";
+        $msg .= "$prefix Is Active: " . $active_message . "\n";
+        $msg .= "$prefix Agent Rate: " . $tree->agent->rate. "\n";
+        $msg .= "$prefix Rank: " . $tree->agent->rank . "\n";
+        $msg .= "$prefix Active Life License: $life_license_message \n";
+        $msg .= "$prefix Generational Count: " . $tree->generational_count . " \n";
+        $this->logger->debug($msg);
         if ($tree->parent_node != null) {
-            echo "$prefix Parent Node\n";
-            $this->print_tree($tree->parent_node, $prefix . "    ");
+            $this->logger->debug("$prefix Parent Node\n");
+            $this->print_tree($request, $tree->parent_node, $prefix . "    ");
         }
         if ($tree->coleadership_node != null) {
-            echo "$prefix Coleadership Rate: " . $tree->coleadership_rate . "\n";
-            echo "$prefix Coleadership Node\n";
-            $this->print_tree($tree->coleadership_node, $prefix . "    ");
+            $this->logger->debug("$prefix Coleadership Rate: " . $tree->coleadership_rate . "\n");
+            $this->logger->debug("$prefix Coleadership Node\n");
+            $this->print_tree($request, $tree->coleadership_node, $prefix . "    ");
         }
-        echo "$prefix ------\n";
+        $this->logger->debug("$prefix ------\n");
     }
     
     private function perform_tree_transformations(Referrals_New_Request $request, $agent_trees) {
-        $transformations = [
-            new Real_Rate_Calculate_Transformer($this->settings_dal, $request)
-            ,new Points_Calculate_Transformer($request)
-        ];
-        $transformed_trees = [];
-        foreach ($agent_trees as $tree) {
-            $transformed_tree = $tree;
-            foreach ($transformations as $transformer) {
-                $transformed_tree = $transformer->transform($transformed_tree);
-            }
-            $transformed_trees[] = $transformed_tree;
+        $transformations = [];
+         // only include the partners
+        if ($request->renewal) {
+            $transformations[] = new Partners_Filter_Transformer($request);
         }
-        return $transformed_trees;
+        
+        $transformations[] = new Real_Rate_Calculate_Transformer($this->settings_dal, $request);
+        $transformations[] = new Points_Calculate_Transformer($request);
+        
+        $trees_to_process = $agent_trees;
+        foreach ($transformations as $transformer) {
+            $this->logger->debug("Performing transformation: " . get_class($transformer));
+            $result_trees = [];
+            foreach ($trees_to_process as $tree) {
+                $result = $transformer->transform($tree);
+                if ($result->has_result_nodes()) {
+                    $this->logger->debug("result of transformation is: " . count($result->get_result_nodes()));
+                    $result_trees = array_merge($result_trees, $result->get_result_nodes());
+                }
+                else {
+                    $this->logger->debug("transformation pruned all nodes");
+                }
+            }
+            $trees_to_process = $result_trees;
+        }
+        return $trees_to_process;
     }
     
     private function save_commission_request(Referrals_New_Request $request, $agent_trees) {
@@ -290,8 +317,8 @@ class Commission_Processor {
     }
     
     private function create_commission_for_item(Referrals_New_Request $request, Commission_Node $item, $adjusted_amount) {
-        $this->debugLog("create_commission_for_item() creating commission for agent '{$item->agent_id}'");
-        $this->debugLog("create_commission_for_item() points are '{$request->points}'");
+        $this->logger->debug("create_commission_for_item() creating commission for agent '{$item->agent_id}'");
+        $this->logger->debug("create_commission_for_item() points are '{$request->points}'");
         $custom = 'direct';
         $description = __("Personal sale", "affiliate-ltp");
         if (!$item->is_direct_sale) {
@@ -331,7 +358,6 @@ class Commission_Processor {
             $commission->meta['coleadership_rate'] = $item->coleadership_rate;
         }
         
-//        $this->debugLog("create_commission_for_item() gen count: {$item->generational_count}");
         if ($item->generational_count > 0) {
             $commission->description .= "- {$item->generational_count} Generation ";
             $commission->meta['generation_count'] = $item->generational_count;
@@ -347,7 +373,7 @@ class Commission_Processor {
         //$commission_id = affiliate_wp()->referrals->add($commission);
 
         if ($commission_id) {
-            $this->debugLog("create_commission_for_item() created commission for '{$item->agent->id}'");
+//            $this->logger->debug("create_commission_for_item() created commission for '{$item->agent->id}'");
             $commission->commission_id = $commission;
             $this->processed_items[] = $commission;
             do_action('affwp_ltp_commission_created', $commission);
@@ -372,12 +398,6 @@ class Commission_Processor {
         return $this->sugar_crm->createAccount($clientData);
     }
 
-    private function debugLog($message) {
-        if (self::DEBUG_ENABLED) {
-            error_log($message);
-        }
-    }
-    
     private function get_status_for_save(Commission_Node $item) {
         
         $company_agent_id = $this->settings_dal->get_company_agent_id(); 

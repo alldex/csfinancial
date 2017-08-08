@@ -1,3 +1,4 @@
+<!-- uses angular make sure to look at ltp-admin.js -->
 <div class="wrap" ng-app="commissionsApp" ng-controller="CommissionAddController as commissionAdd"
      ng-init="">
 
@@ -256,6 +257,18 @@
 				</td>
 
 			</tr>
+            <tr class="form-row form-required" ng-show="commissionAdd.shouldShowRenewal()">
+
+                    <th scope="row">
+                            <label for="cb_renewal"><?php _e( 'Is this a renewal?', 'affiliate-ltp' ); ?></label>
+                    </th>
+
+                    <td>
+                            <input type="checkbox" ng-model="commissionAdd.commission.renewal" name="cb_renewal" id="cb_renewal" />
+                            <p class="description"><?php _e( 'Policy is a renewal.', 'affiliate-ltp' ); ?></p>
+                    </td>
+
+            </tr>
 
             <tr class="form-row form-required life-commission-row" ng-show="commissionAdd.isLifePolicy()">
 
@@ -318,7 +331,6 @@
                                     <p class="description"><?php _e( 'The amount of the haircut.', 'affiliate-ltp' ); ?></p>
 				</td>
 			</tr>
-                        
                         <tr class="form-row form-required">
 
 				<th scope="row">

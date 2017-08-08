@@ -108,6 +108,7 @@ class New_Commission_Tree_Parser {
     }
     
     protected function get_coleadership_for_node(Commission_node $node) {
+        $coleadership_node = null;
         $coleadership_id = $this->agent_dal->get_agent_coleadership_agent_id($node->agent->id);
         if (!empty($coleadership_id)) {
             $coleadership_node = $this->create_initial_processor_item($coleadership_id, $node);
