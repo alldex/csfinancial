@@ -193,7 +193,7 @@
                         // we still have to go and fetch the existing record.
                         // is this a new record or an existing record
                 , new_business: commissionsAdd.commission.new_business
-                , action: "add_referral"
+                , action: "affwp_ltp_add_policy"
                 , 'affwp_add_referral_nonce': commissionsAdd.nonce
                 , skip_life_licensed_check: commissionsAdd.skip_life_licensed_check
                 , company_haircut_percent: commission.company_haircut_all ? 100 : commission.haircut_percent
@@ -285,7 +285,7 @@
             .factory("CommissionService", ["$http", function ($http) {
                     return {
                         save: function (data) {
-                            return $http.post(ajaxurl + '?action=affwp_add_referral', data).then(function (response) {
+                            return $http.post(ajaxurl + '?action=affwp_ltp_add_policy', data).then(function (response) {
                                 return response.data;
                             });
                         }

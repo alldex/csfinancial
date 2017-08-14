@@ -78,8 +78,10 @@ class SugarCRM_Command extends \WP_CLI_Command {
         $offset = 0;
         $limit = 100;
         $results = [];
+        $sort = [];
+        $filter = [];
         do {
-            $results = $this->commission_dal->get_commission_requests($limit, $offset);
+            $results = $this->commission_dal->get_commission_requests($sort, $filter, $limit, $offset);
             if (!$results) {
                 break;
             }

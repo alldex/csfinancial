@@ -43,7 +43,7 @@ class Asset_Loader implements I_Register_Hooks_And_Actions {
     
     /** Add any admin javascript files we need to load **/
     public function admin_scripts() {
-        if( ! affwp_is_admin_page() ) {
+        if( !is_admin() ) {
 		return;
 	}
         // include the frontend scripts and the admin scripts.

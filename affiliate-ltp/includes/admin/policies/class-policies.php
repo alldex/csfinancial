@@ -3,8 +3,11 @@ namespace AffiliateLTP\admin\policies;
 
 use AffiliateLTP\admin\Commission_DAL;
 use AffiliateLTP\Template_Loader;
-use WP_List_Table;
 use AffiliateLTP\admin\Agent_DAL;
+use AffiliateLTP\admin\State_DAL;
+use AffiliateLTP\admin\Notices;
+use AffiliateLTP\admin\policies\Policies_List_Table;
+
 /**
  * Copyright MyCommonSenseFinancial @2017
  * All rights reserved.
@@ -14,7 +17,7 @@ use AffiliateLTP\admin\Agent_DAL;
  *
  * @author snielson
  */
-class Policies {
+class Policies implements \AffiliateLTP\I_Register_Hooks_And_Actions{
     /**
      *
      * @var Commission_DAL
@@ -33,118 +36,128 @@ class Policies {
      */
     private $agent_dal;
     
+    /**
+     *
+     * @var State_DAL
+     */
+    private $state_dal;
+    
+    /**
+     * Handles the notice messages for the admin.
+     * @var Notices
+     */
+    private $notices;
+    
     public function __construct(Commission_DAL $commission_dal, Template_Loader $template_loader
-            ,Agent_DAL $agent_dal) {
+            ,Agent_DAL $agent_dal, State_DAL $state_dal, Notices $notices) {
         $this->commission_dal = $commission_dal;
         $this->template_loader = $template_loader;
         $this->agent_dal = $agent_dal;
+        $this->state_dal = $state_dal;
+        $this->notices = $notices;
     }
 
     public function handle_admin_sub_menu_page() {
-        $requests = $this->commission_dal->get_commission_requests(1000, 1);
+        
+        // filter our post variables
+        $action = filter_input(INPUT_GET, 'action');
+
+        if (isset($action) && 'add_policy' == $action) {
+            $this->handle_display_new_policy_screen();
+        } else if (isset($action) && 'edit_policy' == $action) {
+            $this->handle_display_edit_policy_screen();
+        } else {
+            $this->handle_display_list_policy_screen();
+        }
+    }
+    
+    public function handle_display_new_policy_screen() {
+        // load up the template.. defaults to our templates/admin-commission-edit.php
+        // if no one else has overridden it.
+        $state_dal = $this->state_dal;
+        $state_list = $state_dal->get_states();
+        $template_path = $this->template_loader->get_template_part('admin-commission', 'new', false);
+        include_once $template_path;
+    }
+    
+    public function handle_display_edit_policy_screen() {
+        // load up the template.. defaults to our templates/admin-commission-edit.php
+        // if no one else has overridden it.
+
+        $referral_id = filter_input(INPUT_GET, 'referral_id');
+        $commission = $this->commission_dal->get_commission( absint( $referral_id ) );
+
+        $payout = $this->commission_dal->get_commission_payout( $commission->payout_id );
+
+        $disabled = disabled((bool) $payout, true, false);
+        $payout_link = add_query_arg(array(
+            'page' => 'affiliate-wp-payouts',
+            'action' => 'view_payout',
+            'payout_id' => $payout ? $payout->ID : 0
+                ), admin_url('admin.php'));
+
+        $referralId = $commission->commission_id;
+        $agentRate = $this->commission_dal->get_commission_agent_rate($referralId);
+        $points = $this->commission_dal->get_commission_agent_points($referralId);
+        $clientId = $this->commission_dal->get_commission_client_id($referralId);
+        
+        if (!empty($clientId)) {
+            $instance = $this->sugar_crm_dal;
+            $client = $instance->getAccountById($clientId);
+        } else {
+            $client = array(
+                "contract_number" => ""
+                , "name" => ""
+                , "street_address" => ""
+                , "city_address" => ""
+                , "zipcode" => ""
+                , "phone" => ""
+                , "email" => ""
+            );
+        }
+
+        $template_path = $this->template_loader->get_template_part('admin-commission', 'edit', false);
+        include_once $template_path;
+    }
+    
+    public function handle_display_list_policy_screen() {
+        $orderby = filter_input(INPUT_GET, 'orderby', FILTER_SANITIZE_STRING,
+                ['options' => ['default' => 'commission_request_id']] );
+        $order = filter_input(INPUT_GET, 'order', FILTER_SANITIZE_STRING,
+                ['options' => ['default' => 'DESC']] );
+        
+        $sort = ['orderby' => $orderby, 'order' => $order];
+        $filter = [];
+        
+//        $this->add_notices();
+        $notices = $this->notices;
+        $requests = $this->commission_dal->get_commission_requests($filter, $sort, 1000, 0);
         $table = new Policies_List_Table([], $this->agent_dal, $requests);
         $table->prepare_items();
         $file = $this->template_loader->get_template_part("admin", "policies-list", false);
         include $file;
     }
-}
-
-class Policies_List_Table extends WP_List_Table {
-    private $data;
     
-    /**
-     *
-     * @var Agent_DAL
-     */
-    private $agent_dal;
-    
-    public function __construct($args, Agent_DAL $agent_dal, $data) {
-        parent::__construct($args);
-        $this->data = $data;
-        $this->agent_dal = $agent_dal;
+    private function add_notices() {
+        $notices = $this->notices;
+        $policy_added_notice = filter_input(INPUT_GET, 'affwp_ltp_notice', FILTER_SANITIZE_STRING,
+                ['options' => ['default' => '']] );
+        switch ($policy_added_notice) {
+            case 'policy_deleted_failed': {
+                $notices->add_success_notice($policy_added_notice, __("Policy failed to delete. Please try again or check the logs.", 'affiliate-ltp'));
+            }
+            break;
+            case 'policy_deleted': {
+                $notices->add_success_notice($policy_added_notice, __("Policy deleted.", 'affiliate-ltp'));
+            }
+            break;
+            case 'policy_added': {
+                $notices->add_success_notice($policy_added_notice, __("Policy successfully added!", 'affiliate-ltp'));
+            }
+            break;
+        }
     }
-    
-    function get_columns(){
-        $columns = array(
-            'contract_number' => __('Contract Number', 'affiliate-ltp'),
-            'client' => __('Client', 'affiliate-ltp'),
-            'agent'    => __('Writing Agent', 'affiliate-ltp'),
-            'amount' => __('Amount', 'affiliate-ltp'),
-            'points' => __('Points', 'affiliate-ltp'),
-            'request_type' => __('Type', 'affiliate-ltp'),
-            'new_business' => __('New Business', 'affiliate-ltp'),
-            'date_created' => __('Date', 'affiliate-ltp'),
-            'actions' => __('Actions', 'affiliate-ltp')
-        );
-    return $columns;
-  }
 
-  function prepare_items() {
-    $columns = $this->get_columns();
-    /**
-     * 'total_items' => 0,
-			'total_pages' => 0,
-			'per_page' => 0,
-     */
-    $this->set_pagination_args(["total_items" => count($this->data), 'total_pages' => count($this->data) % 20, 'per_page' => 20]);
-    $hidden = array();
-    $sortable = array();
-    $this->_column_headers = array($columns, $hidden, $sortable);
-    $this->items = array_slice($this->data, 0, 20);
-  }
-  
-  function column_actions($item) {
-      /*
-       * $out = '<div class="' . ( $always_visible ? 'row-actions visible' : 'row-actions' ) . '">';
-		foreach ( $actions as $action => $link ) {
-			++$i;
-			( $i == $action_count ) ? $sep = '' : $sep = ' | ';
-			$out .= "<span class='$action'>$link$sep</span>";
-		}
-		$out .= '</div>';
-       */
-    $query_args = ['commission_request_id' => $item->commission_request_id, 'action' => 'chargeback'];
-  
-    $url = esc_url( add_query_arg( $query_args ) );
-    $href= '<a href="' . $url . '">Chargeback</a>';
-    $chargeback = '<span class="chargeback"><a href="' 
-            . $url . '">Chargeback</a></span>';
-    $out = '<div class="row-actions visible">' . $chargeback . ' | ' . $delete . '</div>';
-    
-    
-    return $out;
-  }
-  
-  function column_contract_number( $item ) {
-      $url = esc_url(add_query_arg(['page' => 'affiliate-wp-referrals'
-        , 'reference' => $item->contract_number]));
-    return "<a href='" . $url . "'>" . $item->contract_number . "</a>";
-  }
-  
-  function column_client( $item ) {
-    $request = json_decode($item->request, true);
-    $client = $request['client']['name'];
-      return $client;
-  }
-  
-  function column_amount( $item ) {
-      return "$" . money_format('%i', $item->amount);
-  }
-  
-  function column_default( $item, $column_name ) {
-      
-      
-      if ($column_name === 'agent') {
-          return $this->agent_dal->get_agent_displayname( $item->writing_agent_id );
-      }
-      
-//      if ($column_name === 'status') {
-//          if ($item->status !== 'active') {
-//              return "<span class='error'>" . $item->status . "</span>";
-//          }
-//      }
-      
-      return $item->$column_name;
-  }
-    
+    public function register_hooks_and_actions() {
+    }
 }

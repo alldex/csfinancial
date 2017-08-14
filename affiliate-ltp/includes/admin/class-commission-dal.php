@@ -130,7 +130,7 @@ interface Commission_DAL {
     /*
      * Returns a list of commission requests from the offset up to the limit.
      */
-    function get_commission_requests($limit, $offset);
+    function get_commission_requests($filter, $sort, $limit, $offset);
     
     /**
      * Return the number of commissions for this contract

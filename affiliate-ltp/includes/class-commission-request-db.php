@@ -75,7 +75,7 @@ class Commission_Request_DB extends Affiliate_WP_DB implements I_Register_Hooks_
             ];
         }
         
-        public function get_commission_requests( $contract_number ) {
+        public function get_commission_requests_by_contract( $contract_number ) {
             $clauses = [
                 "fields" => "*"
                 ,"join" => ""

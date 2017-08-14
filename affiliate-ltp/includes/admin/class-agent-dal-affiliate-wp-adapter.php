@@ -689,7 +689,7 @@ ORDER BY recruits DESC, u.display_name  LIMIT %d";
     
     private function get_var($statement) {
         global $wpdb;
-        $this->logger->debug("get_var() Query: " . $statement);
+//        $this->logger->debug("get_var() Query: " . $statement);
         $results = $wpdb->get_var($statement);
         if ($wpdb->last_error) {
             $this->logger->error("get_var() Query Failed with statement: " . $statement. "\nError: " . $wpdb->last_error);

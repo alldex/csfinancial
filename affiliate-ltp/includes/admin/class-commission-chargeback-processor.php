@@ -11,6 +11,7 @@ use AffiliateLTP\admin\Commission_DAL;
 use AffiliateLTP\Commission_Type;
 use AffiliateLTP\admin\Referrals_New_Request_Builder;
 use AffiliateLTP\Commission;
+use Psr\Log\LoggerInterface;
 
 /**
  * Handles commission chargebacks.
@@ -36,16 +37,22 @@ class Commission_Chargeback_Processor {
      */
     private $company_agent_id;
     
+    /**
+     * Used for logging
+     * @var LoggerInterface
+     */
+    private $logger;
+    
     public function __construct(Commission_DAL $commission_dal, Agent_DAL $agent_dal, 
-            $company_agent_id) {
+            LoggerInterface $logger, $company_agent_id) {
         $this->commission_dal = $commission_dal;
         $this->agent_dal = $agent_dal;
         $this->company_agent_id = $company_agent_id;
+        $this->logger = $logger;
     }
     
     public function process_request($commission_request_id) {
         $commission_request_record = $this->commission_dal->get_commission_request($commission_request_id);
-        
         try {
             $request_json = $commission_request_record['request'];
             $request_hydrated = json_decode($request_json, true);
@@ -55,9 +62,11 @@ class Commission_Chargeback_Processor {
             
             // need to save off the request.
             $commission_ids = $this->commission_dal->get_commission_ids_for_request($commission_request_id);
-            foreach ($commission_ids as $commission_id) {
-                $commission = $this->commission_dal->get_commission($commission_id);
-                $this->charge_back_commission($chargeback_commission_request_id, $commission);
+            if (!empty($commission_ids)) {
+                foreach ($commission_ids as $commission_id) {
+                    $commission = $this->commission_dal->get_commission($commission_id);
+                    $this->charge_back_commission($chargeback_commission_request_id, $commission);
+                }
             }
         } catch (Exception $ex) {
             // TODO: stephen make a chargeback exception.
@@ -76,6 +85,7 @@ class Commission_Chargeback_Processor {
         $request->companyHaircutAll = $request_hydrated['companyHaircutAll'];
         $request->agents = [];
         $request->new_business = false; // we do not let chargebacks be new business.
+        $request->renewal = $request_hydrated['renewal'];
         foreach ($request_hydrated['agents'] as $json_agent) {
             $agent = new Referrals_Agent_Request();
             $agent->id = $json_agent['id'];

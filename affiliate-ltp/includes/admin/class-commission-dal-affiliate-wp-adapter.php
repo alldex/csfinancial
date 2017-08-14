@@ -250,8 +250,18 @@ class Commission_Dal_Affiliate_WP_Adapter implements Commission_DAL {
         return $this->referral_meta_db->get_meta($commission_id, 'client_name', true);
     }
     
-    public function get_commission_requests($limit, $offset) {
-        $clauses = ["fields" => "*", "orderby" => "commission_request_id"];
+    public function get_commission_requests($filter, $sort, $limit, $offset) {
+        $orderby = 'commission_request_id';
+        $order = 'ASC';
+        if (!empty($sort['orderby'])) {
+            $orderby = $sort['orderby'];
+        }
+        if (!empty($sort['order']) && strtolower($sort['order']) === 'desc') {
+            $order = 'DESC';
+        }
+        
+        
+        $clauses = ["fields" => "*", "orderby" => $orderby, "order" => $order];
         $args = ["number" => $limit, "offset" => $offset];
         return $this->commission_request_db->get_results($clauses, $args);
     }

@@ -102,6 +102,7 @@ class Plugin {
         $this->container->register("commission_chargeback_processor", "AffiliateLTP\admin\Commission_Chargeback_Processor")
                 ->addArgument(new Reference("commission_dal"))
                 ->addArgument(new Reference("agent_dal"))
+                ->addArgument(new Reference("logger"))
                 ->addArgument("%company_agent_id%");
         $this->container->register("commission_processor", "AffiliateLTP\admin\Commission_Processor")
                 ->addArgument(new Reference("commission_dal"))
@@ -170,14 +171,33 @@ class Plugin {
         $this->container->register("subscriptions_listener",  "AffiliateLTP\stripe\Subscription_Event_Listener")
                 ->addArgument(new Reference("logger"));
         
-        
+        $this->container->register("notices", "AffiliateLTP\admin\Notices");
         
         if( is_admin() ) {
+            $this->container->register("actions_processor", "AffiliateLTP\admin\Actions_Processor");
+            
             $this->container->register('policies', "AffiliateLTP\admin\policies\Policies")
                     ->addArgument(new Reference("commission_dal"))
                     ->addArgument(new Reference("template_loader"))
-                    ->addArgument(new Reference("agent_dal"));
-            $this->register_hooks_and_actions(['settings']);
+                    ->addArgument(new Reference("agent_dal"))
+                    ->addArgument(new Reference("state_dal"))
+                    ->addArgument(new Reference("notices"));
+            $this->container->register('ajax_policy_add', "AffiliateLTP\admin\policies\Policy_Add_AJAX")
+                    ->addArgument(new Reference("commission_processor"))
+                    ->addArgument(new Reference("logger"));
+            
+            $this->container->register('policy_delete', "AffiliateLTP\admin\policies\Policy_Delete")
+                    ->addArgument(new Reference("commission_dal"))
+                    ->addArgument(new Reference("notices"))
+                    ->addArgument(new Reference("logger"));
+            
+            $this->container->register('policy_chargeback', "AffiliateLTP\admin\policies\Policy_ChargeBack")
+                    ->addArgument(new Reference("settings_dal"))
+                    ->addArgument(new Reference("commission_chargeback_processor"))
+                    ->addArgument(new Reference("notices"))
+                    ->addArgument(new Reference("logger"));
+            
+            $this->register_hooks_and_actions(['settings', 'notices','actions_processor']);
         }
         
         // these have actions in their constructors so we need to initialize them.
@@ -277,6 +297,9 @@ class Plugin {
                 ,'admin_menu'
                 ,'tools'
                 , 'commissions_table_extensions'
+                ,'ajax_policy_add'
+                ,'policy_delete'
+                ,'policy_chargeback'
             ]);
         }
     }
