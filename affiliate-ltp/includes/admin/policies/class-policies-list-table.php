@@ -74,24 +74,35 @@ class Policies_List_Table extends WP_List_Table {
 		$out .= '</div>';
        */
   
-    $chargeback_url = esc_url( add_query_arg( ['commission_request_id' => $item->commission_request_id
-            , 'action' => 'chargeback'] ) );
-    $chargeback = '<span class="chargeback"><a href="' 
-            . $chargeback_url . '">Chargeback</a></span>';
+    if ($commission->amount >= 0) {
+        $row_actions['chargeback'] = 
+            $this->get_chargeback_link($request['commission_request_id'],
+                $commission->ID);
+    }
+    $actions = [];
+    if ($item->amount >= 0) {
+        $chargeback_url = esc_url( add_query_arg( ['commission_request_id' => $item->commission_request_id
+                , 'action' => 'chargeback'] ) );
+        $chargeback = '<span class="chargeback"><a href="' 
+                . $chargeback_url . '">Chargeback</a></span>';
+        $actions[] = $chargeback;
+    }
     
-    $edit_url = esc_url( add_query_arg( ['commission_request_id' => $item->commission_request_id
-            , 'action' => 'edit'] ) );
-    $edit = '<span class="edit"><a href="' 
-            . $edit_url . '">Edit</a></span>';
+//     TODO: stephen deal with edit of policies.
+    
+//    $edit_url = esc_url( add_query_arg( ['commission_request_id' => $item->commission_request_id
+//            , 'action' => 'edit_policy'] ) );
+//    $edit = '<span class="edit"><a href="' 
+//            . $edit_url . '">Edit</a></span>';
+//    $actions[] = $edit;
     
     $delete_url = wp_nonce_url( add_query_arg( ['commission_request_id' => $item->commission_request_id
             , 'action' => 'delete_policy'] ) , 'affwp_ltp_delete_commission_nonce');
     $delete = '<span class="delete"><a href="' 
             . $delete_url . '">Delete</a></span>';
+    $actions[] = $delete;
     
-    $out = '<div class="row-actions visible">' . $chargeback 
-            . ' | ' . $edit 
-            . ' | ' . $delete 
+    $out = '<div class="row-actions visible">' . implode(" | ", $actions)
             . '</div>';
     
     

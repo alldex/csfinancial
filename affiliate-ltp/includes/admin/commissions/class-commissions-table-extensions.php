@@ -88,17 +88,10 @@ class Commissions_Table_Extensions extends List_Table implements \AffiliateLTP\I
         public function update_commission_actions($row_actions, $commission) {
             unset($row_actions['reject']);
             unset($row_actions['accept']);
+            unset($row_actions['delete']);
             
             $request = $this->get_commission_request_for_referral($commission);
-            if ($this->is_main_commission_for_request($commission, $request)) {
-                if ($commission->amount >= 0) {
-                    $row_actions['chargeback'] = 
-                        $this->get_chargeback_link($request['commission_request_id'],
-                            $commission->ID);
-                }
-                $row_actions['delete'] = $this->get_delete_link($request['commission_request_id']);
-            }
-            else {
+            if (!$this->is_main_commission_for_request($commission, $request)) {
                 $row_actions = $this->retain_actions($row_actions, 
                         ['mark-as-paid', 'mark-as-unpaid']);
             }

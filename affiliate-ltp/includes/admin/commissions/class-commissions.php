@@ -103,20 +103,14 @@ class Commissions implements \AffiliateLTP\I_Register_Hooks_And_Actions {
         // see the commissions table for the hooks that alter the affiliate_referrals_list table.
         
         remove_action('affwp_add_referral', 'affwp_process_add_referral');
-        add_action('affwp_add_referral', array($this, 'process_add_commission_request'));
 
         add_action('wp_ajax_affwp_ltp_search_clients', array($this, 'ajaxSearchClients'));
-        add_action('wp_ajax_affwp_add_referral', array($this, 'process_add_commission_request'));
-        
         add_action('wp_ajax_affwp_search_commission', array($this, 'ajaxSearchCommission'));
-        
-        add_action('affwp_process_chargeback_commission', array($this, 'process_chargeback_commission'));
 
+        // TODO: stephen is there a better place for this metadata?
         add_action('affwp_delete_referral', array($this, 'cleanup_referral_metadata'), 10, 1);
 
         add_action('affwp_generate_commission_payout', array($this, 'generateCommissionPayoutFile') );
-        
-        add_action('affwp_process_delete_commission', array($this, 'process_delete_commission'));
     }
 
     public function generateCommissionPayoutFile( $data ) {

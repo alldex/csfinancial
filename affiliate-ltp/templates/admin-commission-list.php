@@ -2,7 +2,7 @@
 <div class="wrap">
     <h1>
         <?php _e('Referrals', 'affiliate-wp'); ?>
-        <a href="<?php echo esc_url(add_query_arg('action', 'add_referral')); ?>" class="page-title-action"><?php _e('Add New', 'affiliate-wp'); ?></a>
+        <a href="<?php echo esc_url(add_query_arg(array('page' => 'affiliate-ltp-policies', 'action' => 'add_policy'))); ?>" class="page-title-action"><?php _e('Add New', 'affiliate-wp'); ?></a>
         <a href="<?php echo esc_url(add_query_arg(array('page' => 'affiliate-wp-reports', 'tab' => 'referrals'))); ?>" class="page-title-action"><?php _ex('Reports', 'referrals', 'affiliate-wp'); ?></a>
         <button class="page-title-action affwp-referrals-export-toggle"><?php _e('Generate Payout File', 'affiliate-wp'); ?></button>
         <button class="page-title-action affwp-referrals-export-toggle" style="display:none"><?php _e('Close', 'affiliate-wp'); ?></button>

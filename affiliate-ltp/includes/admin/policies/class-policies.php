@@ -80,14 +80,21 @@ class Policies implements \AffiliateLTP\I_Register_Hooks_And_Actions{
         include_once $template_path;
     }
     
+    // TODO: stephen there is lots of problems here we will need to address...
     public function handle_display_edit_policy_screen() {
         // load up the template.. defaults to our templates/admin-commission-edit.php
         // if no one else has overridden it.
 
-        $referral_id = filter_input(INPUT_GET, 'referral_id');
-        $commission = $this->commission_dal->get_commission( absint( $referral_id ) );
-
-        $payout = $this->commission_dal->get_commission_payout( $commission->payout_id );
+        $commission_request_id = filter_input(INPUT_GET, 'commission_request_id', FILTER_SANITIZE_NUMBER_INT);
+        
+        $policy = $this->commission_dal->get_commission_request($commission_request_id);
+        
+        $request = json_decode($commission_request->request);
+        
+//        $commission = $this->commission_dal->get_commission( absint( $referral_id ) );
+//
+//        $payout = $this->commission_dal->get_commission_payout( $commission->payout_id );
+        
 
         $disabled = disabled((bool) $payout, true, false);
         $payout_link = add_query_arg(array(
