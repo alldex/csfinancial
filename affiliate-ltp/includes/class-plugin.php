@@ -125,7 +125,8 @@ class Plugin {
                 ->addArgument(new Reference("logger"));
         $this->container->register('admin_menu', 'AffiliateLTP\admin\Menu')
                 ->addArgument(new Reference('commissions'))
-                ->addArgument(new Reference('subscriptions'));
+                ->addArgument(new Reference('subscriptions'))
+                ->addArgument(new Reference('policies'));
         $this->container->register("cli_commands", "AffiliateLTP\commands\Command_Registration")
                 ->addArgument(new Reference('settings_dal'))
                 ->addArgument(new Reference('agent_dal'))
@@ -169,8 +170,14 @@ class Plugin {
         $this->container->register("subscriptions_listener",  "AffiliateLTP\stripe\Subscription_Event_Listener")
                 ->addArgument(new Reference("logger"));
         
+        
+        
         if( is_admin() ) {
-            $this->register_hooks_and_actions('settings');
+            $this->container->register('policies', "AffiliateLTP\admin\policies\Policies")
+                    ->addArgument(new Reference("commission_dal"))
+                    ->addArgument(new Reference("template_loader"))
+                    ->addArgument(new Reference("agent_dal"));
+            $this->register_hooks_and_actions(['settings']);
         }
         
         // these have actions in their constructors so we need to initialize them.
