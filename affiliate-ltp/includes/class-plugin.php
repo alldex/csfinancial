@@ -173,6 +173,15 @@ class Plugin {
         
         $this->container->register("notices", "AffiliateLTP\admin\Notices");
         
+        $this->container->register("gfmailchimp", "\GFMailChimp")
+                    ->setFactory(array('AffiliateLTP\mailchimp\GFMailChimp_Factory', 'createInstance'));
+        $this->container->register("mailchimp-service", "AffiliateLTP\mailchimp\MailChimp_Service")
+                ->addArgument(new Reference("logger"))
+                ->addArgument(new Reference("gfmailchimp"));
+        $this->container->register("profile-builder-extensions", "AffiliateLTP\ProfileBuilder\Profile_Builder_Extensions")
+                ->addArgument(new Reference("logger"))
+                ->addArgument(new Reference("mailchimp-service"));
+        
         if( is_admin() ) {
             $this->container->register("actions_processor", "AffiliateLTP\admin\Actions_Processor");
             
@@ -286,6 +295,7 @@ class Plugin {
             , 'template_loader', 'agent_org_chart_handler', 'agent_emails'
             ,'leaderboards', 'dashboard.agent_events', 'dashboard.agent_promotions'
             ,'dashboard.agent_graphs', 'dashboard.agent_commissions'
+            , 'profile-builder-extensions'
         ]);
         
         // need to register commands after the other plugins have executed.

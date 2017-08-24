@@ -19,6 +19,8 @@ require_once $_tests_dir . '/includes/functions.php';
 function _manually_load_plugin() {
 	require dirname( dirname( __FILE__ ) ) . '/../affiliate-wp/affiliate-wp.php';
 	require dirname( dirname( __FILE__ ) ) . '/../affiliatewp-multi-level-marketing/affiliatewp-multi-level-marketing.php';
+        require dirname( dirname( __FILE__ ) ) . '/../gravityforms/gravityforms.php';
+        require dirname( dirname( __FILE__ ) ) . '/../Gravity_Forms_MailChimp_Add_On/class-gf-mailchimp.php';
 	require dirname( dirname( __FILE__ ) ) . '/affiliate-ltp.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
