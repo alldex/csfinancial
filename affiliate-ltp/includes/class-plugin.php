@@ -112,7 +112,8 @@ class Plugin {
                 ->addArgument(new Reference("logger"));
         $this->container->register("commission_payout_exporter", "AffiliateLTP\admin\Commission_Payout_Export")
                 ->addArgument(new Reference('referral_meta'))
-                ->addArgument(new Reference("settings_dal"));
+                ->addArgument(new Reference("settings_dal"))
+                ->addArgument(new Reference("commission_dal"));
         $this->container->register("state_dal", "AffiliateLTP\admin\State_DAL");
         $this->container->register('commissions', 'AffiliateLTP\admin\commissions\Commissions')
                 ->addArgument(new Reference("commission_dal"))

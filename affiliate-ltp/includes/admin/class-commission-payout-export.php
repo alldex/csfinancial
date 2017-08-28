@@ -31,10 +31,27 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
      */
     private $settings_dal;
     
-    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb, Settings_DAL $settings_dal) {
+    /**
+     * Holds the clients we have looked up.
+     * @var array
+     */
+    private $client_lookup;
+    
+    /**
+     * Commission DAL
+     * @var Commission_DAL
+     */
+    private $commission_dal;
+    
+    public function __construct(Affiliate_WP_Referral_Meta_DB $referralMetaDb
+            , Settings_DAL $settings_dal
+            , Commission_DAL $commission_dal ) {
+        $this->client_lookup = [];
        $this->commissionType = Commission_Type::TYPE_LIFE;
        $this->referralMetaDb = $referralMetaDb;
        $this->settings_dal = $settings_dal;
+       $this->commission_dal = $commission_dal;
+       
         parent::__construct();
         
         add_filter( 'affwp_export_get_data_' . $this->export_type, array($this, 'add_extra_data'), 10, 1);
@@ -68,7 +85,7 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
     
     // TODO: rename this funtion to conform with naming standards
     public function add_extra_data( $exportData ) {
-        $newData = array();
+        $new_data = array();
         $affiliateLookup = [];
         foreach ($exportData as $affiliateId => $row) {
             $userId = affwp_get_affiliate_user_id($affiliateId);
@@ -77,7 +94,7 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
             
             $description = $this->get_description_for_affiliate($affiliateId);
             
-            $newData[$affiliateId] = array(
+            $new_data[$affiliateId] = array(
                 "first_name" => $user_data->first_name
                 ,"last_name" => $user_data->last_name
                 ,"business_name" => "" // we don't know what goes here for now.
@@ -86,19 +103,26 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
 //                ,'currency' => $row['currency'] // leaving this in for historical reasons.
                 ,"check_no" => "" // make the currency empty
                 ,'description' => $description
+                ,'client_name' => ""
             );
         }
         
+        $this->add_individual_records($exportData, $affiliateLookup, $new_data);
+        
+        return $new_data;   
+    }
+    
+    private function add_individual_records($exportData, $affiliateLookup, &$new_data) {
         $col_headers = $this->get_csv_cols();
-        $newData[] = array_combine($col_headers, array_fill(0, count($col_headers), ""));
+        $new_data[] = array_combine($col_headers, array_fill(0, count($col_headers), ""));
         $title = array_combine($col_headers, array_fill(0, count($col_headers), ""));
         $title["first_name"] = "Individual Records";
-        $newData[] = $title;
-        $newData[] = array_combine($col_headers, array_fill(0, count($col_headers), ""));
+        $new_data[] = $title;
+        $new_data[] = array_combine($col_headers, array_fill(0, count($col_headers), ""));
         foreach ($exportData as $affiliateId => $row) {
             if (!empty($this->referralsByAffiliateId[$affiliateId])) {
                 foreach ($this->referralsByAffiliateId[$affiliateId] as $commission) {
-                    $newData[] = [
+                    $new_data[] = [
                         "first_name" => $affiliateLookup[$affiliateId]->first_name
                         ,"last_name" => $affiliateLookup[$affiliateId]->last_name
                         ,"business_name" => ""
@@ -106,11 +130,11 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
                         ,"amount" =>  money_format('%.2n', $commission->amount)
                         ,"check_no" => ""
                         ,"description" => $commission->reference
+                        ,"client_name" => $commission->client_name
                     ];
                 }
             }
         }
-        return $newData;   
     }
     
     
@@ -153,11 +177,15 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
             if (!array_key_exists($referral->affiliate_id, $referralsByAffiliateId)) {
                 $referralsByAffiliateId[$referral->affiliate_id] = array();
             }
+            $referral->client_name = $this->get_client_name($referral->referral_id);
             $referralsByAffiliateId[$referral->affiliate_id][] = $referral;
         }
         $this->referralsByAffiliateId = $referralsByAffiliateId;
-
         return $referrals;
+    }
+    
+    private function get_client_name($commission_id) {
+        return $this->commission_dal->get_commission_client_name($commission_id);
     }
     
     public function csv_cols() {
@@ -169,6 +197,7 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
                 'amount'        => __( 'Amount', 'affiliate-wp' ),
                 'check_no'      => __( 'Check No', 'affiliate-ltp' ),
                 'description'    => __('Description', 'affiliate-ltp' ),
+                'client_name'    => __('Client Name', 'affiliate-ltp' ),
         );
         return $cols;
     }
