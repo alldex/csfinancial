@@ -335,7 +335,7 @@ class Commission_Processor {
         $commission->reference = $request->client['contract_number'];
         $commission->custom = $custom;
         $commission->context = $request->type;
-        $commission->status = $this->get_status_for_save($item);
+        $commission->status = $this->get_status_for_save($item, $adjusted_amount);
         $commission->date = $request->date;
         $commission->client = $request->client;
         $commission->meta = [
@@ -398,11 +398,14 @@ class Commission_Processor {
         return $this->sugar_crm->createAccount($clientData);
     }
 
-    private function get_status_for_save(Commission_Node $item) {
+    private function get_status_for_save(Commission_Node $item, $adjusted_amount) {
         
         $company_agent_id = $this->settings_dal->get_company_agent_id(); 
         // company status items are always paid.
         if ($item->agent->id == $company_agent_id) {
+            return Commission_Status::PAID;
+        }
+        else if ($adjusted_amount <= 0) {
             return Commission_Status::PAID;
         }
         
