@@ -37,7 +37,7 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
        $this->settings_dal = $settings_dal;
         parent::__construct();
         
-        add_filter( 'affwp_export_get_data_' . $this->export_type, array($this, 'addExtraData'), 10, 1);
+        add_filter( 'affwp_export_get_data_' . $this->export_type, array($this, 'add_extra_data'), 10, 1);
         add_filter( 'affwp_export_get_data_' . $this->export_type, array($this, 'remove_company_agent'), 20, 1);
     }
     
@@ -67,17 +67,19 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
     }
     
     // TODO: rename this funtion to conform with naming standards
-    public function addExtraData( $exportData ) {
+    public function add_extra_data( $exportData ) {
         $newData = array();
+        $affiliateLookup = [];
         foreach ($exportData as $affiliateId => $row) {
             $userId = affwp_get_affiliate_user_id($affiliateId);
-            $userData = get_userdata( $userId );
+            $user_data = get_userdata( $userId );
+            $affiliateLookup[$affiliateId] = $user_data;
             
-            $description = $this->getDescriptionForAffiliate($affiliateId);
+            $description = $this->get_description_for_affiliate($affiliateId);
             
             $newData[$affiliateId] = array(
-                "first_name" => $userData->first_name
-                ,"last_name" => $userData->last_name
+                "first_name" => $user_data->first_name
+                ,"last_name" => $user_data->last_name
                 ,"business_name" => "" // we don't know what goes here for now.
                 ,"email" => $row['email']
                 ,"amount" => $row['amount']
@@ -86,19 +88,44 @@ class Commission_Payout_Export extends Affiliate_WP_Referral_Payout_Export {
                 ,'description' => $description
             );
         }
-        return $newData;
         
+        $col_headers = $this->get_csv_cols();
+        $newData[] = array_combine($col_headers, array_fill(0, count($col_headers), ""));
+        $title = array_combine($col_headers, array_fill(0, count($col_headers), ""));
+        $title["first_name"] = "Individual Records";
+        $newData[] = $title;
+        $newData[] = array_combine($col_headers, array_fill(0, count($col_headers), ""));
+        foreach ($exportData as $affiliateId => $row) {
+            if (!empty($this->referralsByAffiliateId[$affiliateId])) {
+                foreach ($this->referralsByAffiliateId[$affiliateId] as $commission) {
+                    $newData[] = [
+                        "first_name" => $affiliateLookup[$affiliateId]->first_name
+                        ,"last_name" => $affiliateLookup[$affiliateId]->last_name
+                        ,"business_name" => ""
+                        ,"email" => $row['email']
+                        ,"amount" =>  money_format('%.2n', $commission->amount)
+                        ,"check_no" => ""
+                        ,"description" => $commission->reference
+                    ];
+                }
+            }
+        }
+        return $newData;   
     }
     
+    
         
-    private function getDescriptionForAffiliate( $affiliateId ) {
+    private function get_description_for_affiliate( $affiliateId ) {
         
         $contractNumbers = array();
+        setlocale(LC_MONETARY, 'en_US.UTF-8');
         if (array_key_exists($affiliateId, $this->referralsByAffiliateId)) {
             $referrals = $this->referralsByAffiliateId[$affiliateId];
             foreach ($referrals as $referral) {
                 // it looks like we don't need to get additional meta information here for now
-                $contractNumbers[] = $referral->reference;
+                // TODO: stephen we should probably get the locale symbol here.
+                
+                $contractNumbers[] = $referral->reference . "(" . money_format('%.2n', $referral->amount) . ")";
             }
         }
         return sprintf(__("Contract numbers: %s", 'affiliate-ltp'), join(",", $contractNumbers));
