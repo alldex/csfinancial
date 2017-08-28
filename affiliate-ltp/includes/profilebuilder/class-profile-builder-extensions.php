@@ -69,7 +69,7 @@ class Profile_Builder_Extensions {
             $this->logger->info("check_username_update username changed! "
                     . " user($user_id) now has username $new_username.  "
                         . "User will now be logged out and redirected to the home page");
-            $this->email_username_change($user_data, $new_username);
+            $this->email_username_change($user_data, $old_username, $new_username);
             
             echo "<p class='alert alert-info'>Your login is no longer valid and you have been logged out.  Please login again.  Click <a href='" 
             . get_site_url() . "'>here</a> to login<p>";
@@ -116,10 +116,10 @@ class Profile_Builder_Extensions {
         
     }
     
-    private function email_username_change($user, $new_username) {
-        $username_change_text = __( 'Hi,
+    private function email_username_change($user, $old_username, $new_username) {
+        $username_change_text = __( 'Hi ###OLD_USERNAME###,
 
-This notice confirms that your username was changed on ###SITENAME###.
+This notice confirms that your username was changed to ###USERNAME### on ###SITENAME###.
 
 If you did not change your username, please contact the Site Administrator at
 ###ADMIN_EMAIL###
@@ -128,7 +128,7 @@ This email has been sent to ###EMAIL###
 
 Regards,
 All at ###SITENAME###
-###SITEURL###' );
+###SITEURL###', 'affiliate-ltp' );
 
         $username_change_email = array(
                 'to'      => $user->user_email,
@@ -140,12 +140,13 @@ All at ###SITENAME###
 
         $username_change_email = apply_filters( 'username_change_email', $username_change_email, $user, $new_username );
         $blog_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-        $pass_change_email['message'] = str_replace( '###USERNAME###', $new_username, $pass_change_email['message'] );
-        $pass_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $pass_change_email['message'] );
-        $pass_change_email['message'] = str_replace( '###EMAIL###', $user->user_email, $pass_change_email['message'] );
-        $pass_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $pass_change_email['message'] );
-        $pass_change_email['message'] = str_replace( '###SITEURL###', home_url(), $pass_change_email['message'] );
+        $username_change_email['message'] = str_replace( '###OLD_USERNAME###', $old_username, $username_change_email['message'] );
+        $username_change_email['message'] = str_replace( '###USERNAME###', $new_username, $username_change_email['message'] );
+        $username_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $username_change_email['message'] );
+        $username_change_email['message'] = str_replace( '###EMAIL###', $user->user_email, $username_change_email['message'] );
+        $username_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $username_change_email['message'] );
+        $username_change_email['message'] = str_replace( '###SITEURL###', home_url(), $username_change_email['message'] );
 
-        wp_mail( $pass_change_email['to'], sprintf( $pass_change_email['subject'], $blog_name ), $pass_change_email['message'], $pass_change_email['headers'] );
+        wp_mail( $username_change_email['to'], sprintf( $username_change_email['subject'], $blog_name ), $username_change_email['message'], $username_change_email['headers'] );
     }
 }
