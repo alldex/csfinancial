@@ -50,10 +50,12 @@ class Points_Calculate_Transformer {
     
     private function update_node_points(Commission_Node $tree, $points) {
         $copy = clone $tree;
-        if ($this->request_type != Commission_Type::TYPE_LIFE
-                && $copy->is_direct_sale) {
-            $points = round($copy->rate * $points);
-        }
+        // points for non-life are the same as points for life, only adjust
+        // during a split or a co-leadership.
+//        if ($this->request_type != Commission_Type::TYPE_LIFE
+//                && $copy->is_direct_sale) {
+//            $points = round($copy->rate * $points);
+//        }
         $copy->points = $points;
         
         if (!empty($copy->coleadership_node)) {
