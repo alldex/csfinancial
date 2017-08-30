@@ -13,6 +13,12 @@
                 <input type="file" name="import_file"/>
             </p>
             <p>
+                <label>
+                    <input type="checkbox" name="skip_life_licensed_check" value="1" CHECKED="CHECKED" />
+                    Still process commissions with base shops that include non-licensed life agents?
+                </label>
+            </p>
+            <p>
                 <input type="hidden" name="affwp_action" value="import_commissions" />
                 <?php wp_nonce_field('affwp_import_nonce', 'affwp_import_nonce'); ?>
                 <?php submit_button(__('Import', 'affiliate-ltp'), 'secondary', 'submit', false); ?>

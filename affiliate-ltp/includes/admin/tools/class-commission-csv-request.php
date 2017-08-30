@@ -5,7 +5,7 @@
  * All rights reserved.
  */
 
-namespace AffiliateLTP\admin\csv;
+namespace AffiliateLTP\admin\tools;
 
 /**
  * Description of class-commission-csv-request

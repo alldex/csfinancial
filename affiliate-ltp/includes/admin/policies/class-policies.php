@@ -136,7 +136,7 @@ class Policies implements \AffiliateLTP\I_Register_Hooks_And_Actions{
         $sort = ['orderby' => $orderby, 'order' => $order];
         $filter = [];
         
-//        $this->add_notices();
+        $this->add_notices();
         $notices = $this->notices;
         $requests = $this->commission_dal->get_commission_requests($filter, $sort, 1000, 0);
         $table = new Policies_List_Table([], $this->agent_dal, $requests);
@@ -160,6 +160,10 @@ class Policies implements \AffiliateLTP\I_Register_Hooks_And_Actions{
             break;
             case 'policy_added': {
                 $notices->add_success_notice($policy_added_notice, __("Policy successfully added!", 'affiliate-ltp'));
+            }
+            break;
+            case 'policies_imported': {
+                $notices->add_success_notice($policy_added_notice, __("Policies successfully imported!", 'affiliate-ltp'));
             }
             break;
         }

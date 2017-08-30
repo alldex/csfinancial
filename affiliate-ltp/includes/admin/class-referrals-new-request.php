@@ -50,6 +50,12 @@ class Referrals_New_Request {
      * @var boolean
      */
     public $renewal;
+    
+    /**
+     * The percentage of the company haircut.
+     * @var integer
+     */
+    public $companyHaircutPercent;
 
     public function __construct() {
         $this->agents = array();

@@ -147,11 +147,13 @@ class Plugin {
         $this->container->register("commissions_table_extensions", "AffiliateLTP\admin\commissions\Commissions_Table_Extensions")
                 ->addArgument(new Reference("commission_dal"))
                 ->addArgument("%company_agent_id%");
-        $this->container->register("commissions_importer", "AffiliateLTP\admin\csv\Commissions_Importer")
+        $this->container->register("commissions_importer", "AffiliateLTP\admin\\tools\Commissions_Importer")
+                ->addArgument(new Reference('logger'))
                 ->addArgument(new Reference("agent_dal"))
                 ->addArgument(new Reference("sugarcrm"))
                 ->addArgument(new Reference("commission_processor"));
-        $this->container->register('tools', 'AffiliateLTP\admin\Tools')
+        $this->container->register('tools', 'AffiliateLTP\admin\\tools\Tools')
+                ->addArgument(new Reference('logger'))
                 ->addArgument(new Reference('commissions_importer'));
         $this->container->register('points_retriever', 'AffiliateLTP\Points_Retriever')
                 ->addArgument(new Reference("referral_meta"));

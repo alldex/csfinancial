@@ -5,14 +5,15 @@
  * All rights reserved.
  */
 
-namespace AffiliateLTP\admin\csv;
+namespace AffiliateLTP\admin\tools;
 
-use AffiliateLTP\admin\csv\Commission_CSV_Request;
+use AffiliateLTP\admin\tools\Commission_CSV_Request;
 use League\Csv\Reader;
 use AffiliateLTP\admin\Referrals_Agent_Request;
 use AffiliateLTP\admin\Agent_DAL;
 use AffiliateLTP\Sugar_CRM_DAL;
 use AffiliateLTP\Commission_Type;
+use Psr\Log\LoggerInterface;
 
 
 
@@ -45,34 +46,62 @@ class Commission_Parser {
      */
     private $line_number;
     
+    /**
+     * Normally on the frontend interface a user is warned that some commissions
+     * have agents not licensed to sell life, we want to give the user the option
+     * to automatically keep processing those commissions if needed.
+     * @var Tracks whether the request should skip over the life license check
+     *
+     */
+    private $should_skip_life_license_check = true;
+    
+    /**
+     * Used for logging messages
+     * @var LoggerInterface
+     */
+    private $logger;
+    
     private $csv_keys = ['writing_agent_email'
-            ,'is_life_insurance', 'points'
-            ,'date','amount'
-            ,'split_commission'
-            ,'split_1_percent'
-            ,'split_2_agent_email', 'split_2_percent'
-            ,'split_3_agent_email', 'split_3_percent'
+            ,'is_life_insurance'
+            ,'points'
+            ,'date'
+            ,'amount'
+            ,'is_renewal'
             ,'skip_company_haircut'
             ,'give_all_company_haircut'
+            ,'company_haircut_percent'
             ,'contract_number'
             ,'client_name'
             ,'client_street_address'
             ,'client_city'
+            ,'client_state'
+            ,'state_of_sale'
             ,'client_zipcode'
             ,'client_phone'
             ,'client_email'
+            ,'split_commission'
+            ,'split_1_percent'
+            ,'split_2_agent_email'
+            ,'split_2_percent'
+            ,'split_3_agent_email'
+            ,'split_3_percent'
         ];
     
     // TODO: stephen need to have a situation of how to handle errors while we go through the import
     
-    public function __construct(Reader $reader, Agent_DAL $agent_dal, Sugar_CRM_DAL $crm_dal) {
+    public function __construct(LoggerInterface $logger, Reader $reader, Agent_DAL $agent_dal, Sugar_CRM_DAL $crm_dal) {
         $keys = $this->csv_keys;
         
+        $this->logger = $logger;
         $this->readerIterator = $reader->setOffset(1)->fetchAssoc($keys, array($this, 'format_rows'));
         $this->readerIterator->rewind(); // set it to the beginning.
         $this->agent_dal = $agent_dal;
         $this->crm_dal =$crm_dal;
         $this->line_number = 1;
+    }
+    
+    public function skip_life_license_check($should_skip) {
+        $this->should_skip_life_license_check = $should_skip;
     }
     
     public function format_rows($row) {
@@ -86,6 +115,7 @@ class Commission_Parser {
         $row['is_life_insurance'] = $formatBool($row['is_life_insurance']);
         $row['skip_company_haircut'] = $formatBool($row['skip_company_haircut']);
         $row['give_all_company_haircut'] = $formatBool($row['give_all_company_haircut']);
+        $row['is_renewal'] = $formatBool($row['is_renewal']);
         
         if ($row['is_life_insurance']) {
             $row['points'] = $formatDouble($row['points']);
@@ -94,7 +124,7 @@ class Commission_Parser {
             $row['points'] = $row['amount'];
         }
         
-        $requiredInts = ['split_1_percent','split_2_percent', 'split_3_percent'];
+        $requiredInts = ['split_1_percent','split_2_percent', 'split_3_percent', 'company_haircut_percent'];
         foreach ($requiredInts as $key) {
             $row[$key] = $filterInt($row[$key]);
         }
@@ -124,8 +154,9 @@ class Commission_Parser {
         }
                 
         $row = $this->readerIterator->current();
+        $this->logger->debug("Row is: " . var_export($row, true));
         //$this->validate_row($row);
-        $request = new \AffiliateLTP\admin\csv\Commission_CSV_Request();
+        $request = new Commission_CSV_Request();
         
         $request->agents= $this->create_agents_for_row($row);
         $request->client = $this->get_client_for_row($row);
@@ -133,6 +164,9 @@ class Commission_Parser {
         $request->points = $row['points'];
         $request->companyHaircutAll = $row['give_all_company_haircut'];
         $request->skipCompanyHaircut = $row['skip_company_haircut'];
+        $request->companyHaircutPercent = $row['company_haircut_percent'];
+        
+        $request->renewal = $row['is_renewal'];
         if ($row['is_life_insurance']) {
             $request->type = Commission_Type::TYPE_LIFE;
         }
@@ -141,6 +175,7 @@ class Commission_Parser {
         }
         $request->date = $row['date'];
         $request->line_number = $row['line_number'];
+        $request->skip_life_licensed_check = $this->should_skip_life_license_check;
         
         $this->readerIterator->next();
         
@@ -150,9 +185,11 @@ class Commission_Parser {
     private function get_client_for_row($row) {
         // need to do a lookup for the client based on the contract number
         $client = null;
+        $this->logger->info("Record with contract #: " . $row['contract_number']);
         
         $found_client = $this->crm_dal->getAccountById($row['contract_number']);
         if (!empty($found_client)) {
+            $this->logger->info("Client already exists returning found client");
             $client = $found_client;
         }
         else {
@@ -163,11 +200,14 @@ class Commission_Parser {
             ,'street_address' => $row['client_street_address']
             ,'city' => $row['client_city']
             ,'country' => 'USA' // TODO: stephen extract this to a setting or constant.
+            ,'state' => $row['client_state']
             ,'zip' => $row['client_zipcode']
             ,'phone'   => $row['client_phone']
             ,'email' => $row['client_email']
             );
         }
+        $client['state_of_sale'] = $row['state_of_sale'];
+        $this->logger->debug("Returned client is: " . var_export($client, true));
         return $client;
     }
     
