@@ -25,7 +25,7 @@ use AffiliateLTP\commands\Command_Registration;
  */
 class Plugin {
         
-    const AFFILIATEWP_LTP_VERSION = "1.0.0";
+    const AFFILIATEWP_LTP_VERSION = "1.1.0";
     
     const LOCALHOST_RESTRICTED = true;
     
